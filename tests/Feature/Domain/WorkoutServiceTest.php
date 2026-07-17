@@ -37,6 +37,7 @@ test('workout generation is deterministic unique and ordered for the local date'
         ->and($workout->items->every(
             fn ($item): bool => $item->level->difficulty === Difficulty::Advanced,
         ))->toBeTrue()
+        ->and($service->estimatedDurationMinutes($workout))->toBe(9)
         ->and($workout->status)->toBe(WorkoutStatus::Pending);
 });
 

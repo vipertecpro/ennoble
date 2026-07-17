@@ -30,8 +30,11 @@ test('profile service maintains one local profile with default settings', functi
         ->and($updated->setting->theme_preference)->toBe(ThemePreference::System);
 });
 
-test('blank local profile names are rejected', function () {
-    expect(fn () => app(ProfileService::class)->createOrUpdate('   '))
+test('local profile names are optional and bounded', function () {
+    $profile = app(ProfileService::class)->createOrUpdate('   ');
+
+    expect($profile->display_name)->toBe('')
+        ->and(fn () => app(ProfileService::class)->createOrUpdate(str_repeat('A', 41)))
         ->toThrow(InvalidArgumentException::class);
 });
 

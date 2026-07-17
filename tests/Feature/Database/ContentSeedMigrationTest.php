@@ -8,6 +8,7 @@ use App\Models\Profile;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 test('content migration seeds only bundled definitions', function () {
     expect(Game::query()->count())->toBe(2)
@@ -91,7 +92,8 @@ test('product migrations upgrade the previous scaffold schema without losing leg
         expect(DB::table('users')->where('email', 'legacy@example.test')->exists())->toBeTrue()
             ->and(DB::table('games')->count())->toBe(2)
             ->and(DB::table('game_levels')->count())->toBe(6)
-            ->and(DB::table('achievements')->count())->toBe(6);
+            ->and(DB::table('achievements')->count())->toBe(6)
+            ->and(Schema::connection('upgrade_test')->hasColumn('profiles', 'onboarding_completed_at'))->toBeTrue();
     } finally {
         DB::setDefaultConnection($originalConnection);
         DB::purge('upgrade_test');

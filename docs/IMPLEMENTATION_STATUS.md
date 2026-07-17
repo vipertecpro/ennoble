@@ -21,15 +21,15 @@ Audit date: 2026-07-18
 | NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
-| Native components/routes | Seven placeholder NativeComponents and routes |
-| Product UI/assets | Reusable shell only; no product screens or media assets |
+| Native components/routes | Nine NativeComponents/routes, including onboarding, Home dashboard, and workout placeholder |
+| Product UI/assets | Reusable shell, native onboarding, and state-aware Home dashboard; no external media assets |
 | Static analysis | Not configured |
 
 ## Infrastructure Status
 
-**Frozen and unchanged by Prompts 2 and 3.**
+**Frozen and unchanged by Prompts 2, 3, 4, and 5.**
 
-Prompts 2 and 3 did not modify:
+Prompts 2, 3, 4, and 5 did not modify:
 
 - Root Composer dependencies, repositories, constraints, or lock data.
 - NativePHP plugin registration.
@@ -186,24 +186,66 @@ Implemented services for:
 
 The current core haptic API provides one generic short vibration, so semantic intents do not claim distinct platform patterns.
 
+## Prompt 4 — Premium Onboarding Experience
+
+**Status: Complete; needs device verification.**
+
+Implemented one native eight-step first-launch journey:
+
+1. Welcome with an animated, abstract Ennoble mark and Begin action.
+2. Why Ennoble with horizontally paged Focus, Processing Speed, Language, and Daily Growth cards.
+3. Training philosophy covering small improvements, offline operation, privacy, no advertisements, no account, and on-device data.
+4. Required training-goal selection.
+5. Required Beginner, Intermediate, Advanced, or Adaptive difficulty selection.
+6. Optional, whitespace-normalized display name with a 40-character maximum.
+7. Theme, sound, haptics, and Reduced Motion settings.
+8. Ready summary with the selected choices, 5–10 minute estimate, and Start Training action.
+
+The root Home component redirects incomplete profiles to onboarding. Completion persists the profile, settings, and `onboarding_completed_at` in one transaction, then replaces navigation into the existing Home shell. Returning profiles skip onboarding, and direct onboarding navigation also returns them Home.
+
+Prompt 4 reuses the shared screen container, semantic theme/tokens, typed platform icons, haptic service, profile service, and settings service. New reusable components own progress, geometric illustration placeholders, feature cards and paging, display-name input, and summary rows. Reduced Motion resolves authored durations and final navigation transition to zero/none.
+
+No Today, Games library, gameplay, Progress, Profile editing, statistics, achievements, notifications, authentication, or remote behavior was added.
+
+## Prompt 5 — Home Dashboard Experience
+
+**Status: Complete; needs device verification.**
+
+The Home placeholder is now the central, state-aware native dashboard:
+
+- Device-time Good Morning, Good Afternoon, or Good Evening greeting with normalized local name or “friend” fallback.
+- Reusable Daily Momentum workout card showing a bounded duration estimated from configured round counts, included skills, selected difficulty, completion percentage, and Start Training, Continue Training, or Completed Today state.
+- Current and longest streak preview with a seven-marker visual and encouraging zero-streak state.
+- Progress snapshot with up to three persisted skill values, seven-day completion percentage, per-game personal best, and explicit no-progress/no-history states.
+- Latest persisted achievement preview with an encouraging no-unlock state.
+- Informational Memory Path, Pattern Pulse, Word Forge, and Quick Read cards using a shared native bottom sheet.
+
+Home consumes `WorkoutService`, `StatisticsService`, `ProgressService`, `AchievementService`, `ProfileService`, and `SettingsService`. Read-only `overview()` and `latestUnlock()` methods were added to the appropriate domain services. Adaptive profiles now deterministically use Intermediate starting levels during workout generation while retaining the Adaptive preference.
+
+The workout CTA navigates to `/workout`, an honest non-gameplay placeholder with hidden tab chrome and native back behavior. It does not create a game session. Completed workouts disable the CTA. Coming Soon cards never navigate or create sessions.
+
+Home uses NativePHP's verified lazy-screen attribute for its initial loading frame. Dashboard, workout, statistics, progress, and achievement loading states are independently renderable. Recoverable section errors preserve unrelated content; workout retry uses the existing semantic toast service if local definitions remain unavailable. Empty streak, progress, history, personal-best, and achievement states remain evidence-based.
+
+Motion is restrained to shared section durations, progress changes, native control feedback, and Coming Soon press transforms. Reduced Motion sets authored durations to zero and press transforms to identity. Primary workout and Coming Soon interactions use the existing preference-aware haptic service.
+
 ## Automated Verification
 
 | Command/check | Result |
 | --- | --- |
-| Focused Prompt 3 Pest suite | Passed: 26 tests, 300 assertions |
-| `php artisan test` | Passed: 67 tests, 448 assertions |
+| Focused Home dashboard/shell/domain Pest suite | Passed: 40 tests, 520 assertions |
+| `php artisan test` | Passed: 100 tests, 924 assertions |
 | `composer validate --strict` | Passed: `composer.json` valid |
-| `vendor/bin/pint --dirty --format agent` | Passed; generated icon enum spacing normalized |
-| `php artisan route:list` | Passed: seven native application routes registered |
-| `php artisan native:validate --no-interaction` | Passed: all seven NativeComponents, no warnings |
+| `vendor/bin/pint --dirty --format agent` | Passed for the current application dirty set |
+| `php artisan route:list` | Passed: nine native application routes plus framework/infrastructure routes |
+| `php artisan native:validate --no-interaction` | Passed: all nine NativeComponents, no warnings |
 | `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
 | `git diff --check` | Passed |
 | Static analysis | Not run; no tool/configuration exists |
-| Android/iOS launch or build | Not run, as required by Prompt 3 |
+| Android/iOS launch or build | Not run, as required by Prompt 5 |
 
 ### Pint Scope Note
 
-The Prompt 3 dirty set contained only application-owned changes. Pint formatted the generated application icon enums and did not modify `packages/nativephp/native-ui`.
+The Prompt 5 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
 
 ## Test Coverage
 
@@ -242,6 +284,30 @@ Prompt 3 tests cover:
 - Typed toast payloads.
 - Alert and confirmation bridge payloads.
 
+Prompt 4 tests cover:
+
+- First-launch redirect and returning-profile bypass.
+- Direct onboarding access after completion.
+- All eight steps, progress semantics, back behavior, loading state, and required selections.
+- Goal, difficulty, optional display name, theme, sound, haptics, and Reduced Motion persistence.
+- Whitespace normalization and the 40-character display-name boundary.
+- Atomic completion timestamp and replace navigation to Home.
+- Reduced-motion-aware authored durations and navigation.
+- Semantic onboarding labels through the in-process accessibility audit.
+
+Prompt 5 tests cover:
+
+- Morning, afternoon, evening, and overnight greeting boundaries.
+- Display-name normalization and friendly fallback.
+- First workout, available, in-progress, completed, returning-user, and empty-history states.
+- Workout skills, duration, difficulty, completion percentage, and action state.
+- Current/longest streaks, weekly activity, persisted skill values, personal bests, and latest achievement.
+- Independent dashboard and section loading states.
+- Recoverable missing-definition behavior without blocking unrelated previews.
+- Adaptive profile workout generation.
+- Preference-aware haptics, workout-placeholder navigation, Coming Soon bottom sheet, and no-navigation behavior.
+- Reduced-motion values and conditional-state accessibility audits.
+
 These are PHP/database and NativePHP in-process component tests. They do not claim SwiftUI/Compose rendering, simulator, physical-device, VoiceOver, TalkBack, visual, status-bar, large-text, or airplane-mode evidence.
 
 ## Product Roadmap Status
@@ -253,9 +319,9 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Prompt 2 database foundation | Complete | 13 tables, constraints, seed migration, upgrade test |
 | Prompt 2 domain services | Complete | Games, workout, progress, statistics, achievements, profile, settings |
 | Native design system/shell | Needs device verification | Prompt 3 automated checks complete |
-| Onboarding/local profile UI | Not started | Prompt 4 |
-| Today UI | Not started | Later prompt; `WorkoutService` is ready |
-| Games library UI | Not started | Later prompt |
+| Onboarding/local profile UI | Needs device verification | Prompt 4 automated checks complete |
+| Home/Today dashboard | Needs device verification | Prompt 5 automated checks complete |
+| Games library UI | Not started | Prompt 6 |
 | Signal Shift gameplay | Not started | Scoring/session foundation only |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
@@ -266,7 +332,7 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 
 ## Known Infrastructure Risks
 
-These pre-existing risks remain outside Prompts 2 and 3:
+These pre-existing risks remain outside Prompts 2, 3, 4, and 5:
 
 1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
 2. Native UI remains a temporary project path mirror.
@@ -275,14 +341,10 @@ These pre-existing risks remain outside Prompts 2 and 3:
 5. No static-analysis tool is configured.
 6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-## Remaining Work Before Prompt 4
+## Remaining Work Before Prompt 6
 
-Prompt 4 can begin from the tested domain layer and native shell. It should:
+There is no known PHP, persistence, routing, or native-template blocker for the Games library prompt. Prompt 6 can reuse the shell, typed icons, semantic tokens, dialog host, haptic service, and the established Coming Soon information pattern.
 
-- Reuse `EnnobleLayout`, the shared screen container, typed icons, semantic tokens, and feedback/dialog services.
-- Implement onboarding and local-profile UI only within the approved Prompt 4 scope.
-- Read and persist through the existing profile/settings services.
-- Add NativeComponent interaction, validation, persistence, error-state, and accessibility tests.
-- Preserve the frozen dependency/plugin/mirror baseline.
+Before treating Prompt 5 as platform-verified, run the native app on each selected platform and inspect Home at compact and large sizes, dynamic text, safe areas, scrolling, light/dark appearance, section loading/error states, progress rendering, Reduced Motion, press feedback, VoiceOver/TalkBack reading order, and the workout-placeholder/back flow.
 
-No database redesign, placeholder metrics, remote capability, gameplay, Today, Games library, Progress, achievements, statistics, or workout UI is required before Prompt 4.
+Gameplay, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 5.

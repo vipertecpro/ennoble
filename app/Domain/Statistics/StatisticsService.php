@@ -184,6 +184,17 @@ final class StatisticsService
     }
 
     /**
+     * Return the persisted overall dashboard aggregate when evidence exists.
+     */
+    public function overview(Profile $profile): ?Statistic
+    {
+        return Statistic::query()
+            ->whereBelongsTo($profile)
+            ->overall()
+            ->first();
+    }
+
+    /**
      * Rebuild all cached statistics from authoritative completed records.
      *
      * @return Collection<int, Statistic>

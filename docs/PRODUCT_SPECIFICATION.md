@@ -15,11 +15,43 @@ All game content, configuration, typography, illustrations, sounds, and motion a
 - Data should remain local, inspectable through the product, and resettable by the user.
 - Every feature should remain usable with reduced motion and without sound or haptics.
 
+## First-Launch Onboarding
+
+Before entering the main application for the first time, the user completes one native eight-step journey:
+
+1. **Welcome** — Ennoble's identity, a concise product promise, and a single Begin action.
+2. **Why Ennoble?** — horizontally paged cards for Focus, Processing Speed, Language, and Daily Growth.
+3. **Training Philosophy** — small daily improvements, fully offline operation, privacy, no advertisements, no account, and on-device ownership.
+4. **Training Goal** — Improve Focus, Improve Thinking Speed, Improve Communication, Stay Mentally Sharp, or General Improvement.
+5. **Difficulty** — Beginner, Intermediate, Advanced, or Adaptive.
+6. **Display Name** — an optional, locally stored name with a 40-character maximum.
+7. **Accessibility** — theme, sound, haptics, and reduced-motion preferences.
+8. **Ready** — a review of the selected profile and settings plus the expected daily training time of 5–10 minutes.
+
+Goal and difficulty are required before continuing. The display name is optional, whitespace-normalized, and never used to create an account. Completing the final step stores all choices and an onboarding-completion timestamp in local SQLite, then enters Home. Incomplete profiles are returned to onboarding on first launch; completed profiles skip it.
+
+Onboarding motion is subtle and communicates progress without carrying required meaning. Reduced Motion removes authored onboarding transitions and animation durations. Screen-reader labels, native text scaling, semantic controls, and the shared minimum touch-target rules remain part of the flow.
+
+## Home Dashboard
+
+Home is the central native overview after onboarding. It adapts to first-use, available, in-progress, completed, returning-user, and empty-history states without fabricating activity. The dashboard contains:
+
+- A device-time greeting with the optional local display name or a friendly fallback.
+- A reusable Today workout card with a bounded duration estimated from configured round counts, included skills, selected difficulty, completion percentage, and Start, Continue, or Completed action state.
+- Current and longest streak values with an intentional zero-streak explanation.
+- A lightweight progress preview containing evidence-backed skill values, seven-day completion, and available per-game personal-best evidence.
+- The latest unlocked local achievement or an encouraging empty state.
+- Informational previews for Memory Path, Pattern Pulse, Word Forge, and Quick Read.
+
+Opening a Coming Soon preview shows local informational content only. Starting or continuing the Today card opens an honest future workout-flow placeholder; it does not create a session or implement gameplay. Dashboard sections recover independently so one unavailable local preview does not hide unrelated content.
+
+Authored dashboard motion is restrained to section appearance, progress changes, and press feedback. Reduced Motion removes those transforms and durations. Haptics remain optional and preference-gated.
+
 ## Main Application Sections
 
 ### Today
 
-Today is the default training destination. It contains:
+Today is the default training destination after onboarding. It contains:
 
 - The locally generated daily workout.
 - A sequence containing one Signal Shift session and one Clear Thought session.
@@ -63,7 +95,7 @@ Statistics must distinguish unavailable data from zero. A new profile sees an in
 
 Profile contains:
 
-- Local display name.
+- Optional local display name.
 - Training goal.
 - Difficulty preference.
 - Sound preference.

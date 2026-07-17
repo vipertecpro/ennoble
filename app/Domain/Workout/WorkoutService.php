@@ -4,6 +4,7 @@ namespace App\Domain\Workout;
 
 use App\Domain\Achievements\AchievementService;
 use App\Domain\Statistics\StatisticsService;
+use App\Enums\Difficulty;
 use App\Enums\GameType;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkout;
@@ -68,14 +69,17 @@ final class WorkoutService
             foreach ([GameType::SignalShift, GameType::ClearThought] as $index => $gameType) {
                 /** @var Game $game */
                 $game = $games->get($gameType->value);
+                $levelDifficulty = $profile->difficulty_preference === Difficulty::Adaptive
+                    ? Difficulty::Intermediate
+                    : $profile->difficulty_preference;
                 $level = GameLevel::query()
                     ->whereBelongsTo($game)
                     ->active()
-                    ->where('difficulty', $profile->difficulty_preference)
+                    ->where('difficulty', $levelDifficulty)
                     ->first();
 
                 if ($level === null) {
-                    throw new DomainException("No active {$profile->difficulty_preference->value} level exists for {$game->name}.");
+                    throw new DomainException("No active {$levelDifficulty->value} level exists for {$game->name}.");
                 }
 
                 $workout->items()->create([
@@ -111,6 +115,19 @@ final class WorkoutService
                 'items.sessions' => fn ($query) => $query->latest('started_at'),
             ])
             ->first();
+    }
+
+    /**
+     * Estimate two configured rounds per minute within the product's 5–10 minute promise.
+     */
+    public function estimatedDurationMinutes(DailyWorkout $dailyWorkout): int
+    {
+        $dailyWorkout->loadMissing('items.level');
+        $roundCount = (int) $dailyWorkout->items->sum(
+            fn ($item): int => $item->level->round_count,
+        );
+
+        return max(5, min(10, (int) ceil($roundCount / 2)));
     }
 
     /**

@@ -1,20 +1,31 @@
 <?php
 
+use App\Models\Profile as LocalProfile;
+use App\Models\Setting;
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
+use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Progress;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\Splash;
+use App\NativeComponents\Screens\WorkoutPreview;
 use App\NativeLayouts\EnnobleLayout;
 use Native\Mobile\Edge\NativeRouter;
 use Native\Mobile\Testing\Native;
 
+beforeEach(function () {
+    $profile = LocalProfile::factory()->onboarded()->create();
+    Setting::factory()->for($profile)->create();
+});
+
 test('all application shell routes are registered with the expected layout', function () {
     expect(NativeRouter::registeredRoutes())->toMatchArray([
         '/splash' => ['class' => Splash::class, 'layout' => null],
+        '/onboarding' => ['class' => Onboarding::class, 'layout' => null],
         '/' => ['class' => Home::class, 'layout' => EnnobleLayout::class],
+        '/workout' => ['class' => WorkoutPreview::class, 'layout' => EnnobleLayout::class],
         '/games' => ['class' => Games::class, 'layout' => EnnobleLayout::class],
         '/progress' => ['class' => Progress::class, 'layout' => EnnobleLayout::class],
         '/profile' => ['class' => Profile::class, 'layout' => EnnobleLayout::class],
@@ -34,7 +45,8 @@ test('placeholder screens render and pass the in-process accessibility audit', f
         ->assertAccessible();
 })->with([
     'splash' => ['/splash', Splash::class, 'Native application shell ready.'],
-    'home' => ['/', Home::class, 'Home shell ready'],
+    'home' => ['/', Home::class, 'Today’s Workout'],
+    'workout' => ['/workout', WorkoutPreview::class, 'Your workout is ready'],
     'games' => ['/games', Games::class, 'Games shell ready'],
     'progress' => ['/progress', Progress::class, 'Progress shell ready'],
     'profile' => ['/profile', Profile::class, 'Profile shell ready'],
@@ -83,18 +95,12 @@ test('profile settings and about placeholders form a working native flow', funct
         ->assertTabBarHidden();
 });
 
-test('shared screen container renders loading error retry and overlay states', function () {
+test('home shared screen container renders full loading and recoverable error states', function () {
     Native::visit('/')
-        ->call('showLoading')
-        ->assertSee('Loading Home')
-        ->call('showError', 'Local shell failure')
-        ->assertSee('Local shell failure')
-        ->tap('Retry')
-        ->assertSee('Home shell ready')
-        ->call('showDialog')
-        ->assertElement('modal', fn (array $node): bool => ($node['props']['visible'] ?? false) === true)
-        ->call('dismissDialog')
-        ->assertElement('modal', fn (array $node): bool => ($node['props']['visible'] ?? true) === false)
-        ->call('showBottomSheet')
-        ->assertElement('bottom_sheet', fn (array $node): bool => ($node['props']['visible'] ?? false) === true);
+        ->set('dashboardState', 'loading')
+        ->assertSee('Loading your Ennoble dashboard')
+        ->set('dashboardState', 'error')
+        ->assertSee('Your dashboard could not be loaded')
+        ->tap('Retry dashboard')
+        ->assertSee('Today’s Workout');
 });

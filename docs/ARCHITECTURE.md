@@ -4,9 +4,9 @@
 
 Ennoble runs on Laravel 13.20.0, PHP 8.4.23, and local SQLite. NativePHP Mobile remains locked to `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`. Native UI remains the frozen project-owned path mirror based on upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with only the documented iOS 18.2 manifest fix.
 
-Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell without changing Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
+Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard without changing Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
 
-The application now has seven native placeholder routes, a four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, Today, Games, Progress, Profile, onboarding, animations, illustrations, and business UI remain unimplemented.
+The application now has nine native routes, including onboarding, the complete Home dashboard, and an honest future workout-flow placeholder. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, the Games library, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
 
 The local database now contains the additive Ennoble schema and bundled definitions for:
 
@@ -46,6 +46,8 @@ app/
       SignalShift/
         SignalShiftScoringService.php
       GameSessionService.php
+    Onboarding/
+      OnboardingService.php
     Profile/
       ProfileService.php
     Progress/
@@ -84,6 +86,7 @@ app/
     Feedback/
     Navigation/
     Screens/
+    Home/
     Theme/
     Tokens/
 resources/
@@ -101,7 +104,7 @@ tests/
   Fixtures/Native/
 ```
 
-The empty asset directories contain only structural `.gitkeep` files. No placeholder illustration, animation, sound, icon asset, or font ships from Prompt 3.
+The asset directories remain structural and do not ship external artwork, animation, sound, icon, or font files. Prompt 4's original illustration placeholders are composed from typed native icons and geometric EDGE surfaces so later bundled artwork can replace them without changing screen behavior.
 
 ## Native Application Shell
 
@@ -110,14 +113,16 @@ The empty asset directories contain only structural `.gitkeep` files. No placeho
 `routes/mobile.php` registers:
 
 - `/splash`
+- `/onboarding`
 - `/`
+- `/workout`
 - `/games`
 - `/progress`
 - `/profile`
 - `/settings`
 - `/about`
 
-The root route is the Home placeholder so the existing NativePHP `start_url` remains unchanged. Splash is an explicit navigation-verification route rather than an onboarding flow.
+The root route remains Home so the existing NativePHP `start_url` remains unchanged. Home redirects an incomplete local profile to `/onboarding`; returning users receive the current local dashboard. Direct onboarding navigation by a completed profile replaces back to Home. `/workout` is a non-gameplay placeholder with hidden tab chrome and native back navigation. Splash remains an explicit navigation-verification route.
 
 `EnnobleLayout` opts into installed v4 native chrome. It provides:
 
@@ -155,7 +160,7 @@ Shared loading, empty, error, icon, top-bar, modal, and bottom-sheet components 
 
 The installed renderer still derives platform appearance from the operating system. Explicit preferences therefore force Ennoble's semantic colors and chrome colors, but exact system-bar appearance remains a device-verification item.
 
-`DesignTokens` centralizes typography, spacing, corner radius, elevation, motion duration, opacity, icon size, screen padding, component spacing, and minimum touch target values. No gameplay motion is implemented.
+`DesignTokens` centralizes typography, spacing, corner radius, elevation, motion duration, opacity, icon size, screen padding, component spacing, and minimum touch target values. Onboarding uses those durations for restrained progress, illustration, card, and step transitions. Home uses the same values for section appearance and native-thread press feedback. Both components resolve authored durations and transforms to static values when Reduced Motion is selected. No gameplay motion is implemented.
 
 ### Feedback and Dialog Infrastructure
 
@@ -204,7 +209,7 @@ Factories produce purposeful domain states rather than unrelated random values. 
 
 `ProfileService` owns Ennoble's single local profile:
 
-- Normalizes and validates the display name.
+- Normalizes the optional display name and enforces the shared 40-character maximum.
 - Creates or updates the unique `local` profile.
 - Ensures safe default settings exist in the same transaction.
 
@@ -219,6 +224,37 @@ Factories produce purposeful domain states rather than unrelated random values. 
 
 Unsupported accessibility keys are discarded instead of being silently treated as product capability.
 
+### Onboarding
+
+`OnboardingService` composes the existing profile and settings services rather than duplicating their persistence rules. In one transaction it:
+
+1. Normalizes and stores the optional display name.
+2. Stores the selected training goal and difficulty.
+3. Stores theme, sound, haptics, and reduced-motion preferences.
+4. Marks the local profile complete with `onboarding_completed_at`.
+
+`Onboarding` owns only native screen state, validation, feedback, theme preview, step navigation, and final navigation. Goal and difficulty selections reject forged enum values. The optional display name uses the domain limit. A failed transaction leaves the user on the final step with a recoverable message.
+
+The UI is one native screen with eight conditional steps and reusable progress, feature-card, illustration-placeholder, input, carousel, and summary-row Blade components. It uses genuine native paging, radio groups, toggles, text input, buttons, and typed platform icons. Selection and completion haptics pass through the existing preference-aware `HapticService`.
+
+### Home Dashboard
+
+`Home` remains a presentation boundary. It:
+
+1. Enforces onboarding and applies the saved theme.
+2. Resolves a reusable device-time greeting and friendly display-name fallback.
+3. Calls `WorkoutService::generateToday()` and `history()` for the Today card, workout state, seven-day activity, and returning-user state.
+4. Calls `StatisticsService::overview()` and `personalBests()` for streak and personal-best previews.
+5. Calls `ProgressService::currentSkillValues()` for evidence-backed skill highlights.
+6. Calls `AchievementService::latestUnlock()` for the newest persisted unlock.
+7. Calls `ProfileService` and `SettingsService` for the local profile and Reduced Motion preference.
+
+The component maps those domain results into serializable native view state. It uses NativePHP's verified lazy-screen attribute for an immediate initial loading frame. It does not score rounds, start sessions, update statistics, evaluate achievements, or write new persistence rules. Workout generation remains the only intentional domain mutation on Home and is idempotent per profile/local date.
+
+Reusable EDGE components own the greeting, section headers, section loading, Today workout, streak, progress, achievement, and Coming Soon cards. The full dashboard and each data section expose loading and recoverable error states independently. Empty states distinguish no streak, no progress evidence, no workout history, no personal best, and no achievement unlock.
+
+The Today CTA triggers preference-aware haptics and navigates to `/workout`, which explicitly states that no session has started. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
+
 ### Workout
 
 `WorkoutService`:
@@ -226,8 +262,10 @@ Unsupported accessibility keys are discarded instead of being silently treated a
 - Loads or creates one workout for a supplied local date.
 - Requires both playable bundled definitions.
 - Selects the profile's active difficulty level for each game.
+- Resolves an Adaptive profile to the deterministic Intermediate starting levels until performance-based adaptation is implemented, without changing the stored profile preference.
 - Creates Signal Shift then Clear Thought in deterministic order.
 - Returns the same workout when generation is repeated.
+- Estimates two configured rounds per minute, bounded to the product's 5–10 minute duration promise.
 - Hydrates complete resume state.
 - Refuses premature completion.
 - Finalizes the workout summary, statistics, streak, and achievements idempotently.
@@ -295,6 +333,7 @@ It does not know about navigation, NativeComponents, EDGE, or layout.
 - Current and longest completed-workout streak.
 - Evidence-backed daily summaries.
 - Full aggregate rebuild from authoritative completed records.
+- Read-only overall and per-game personal-best retrieval for lightweight presentation.
 
 `statistics_recorded_at` markers on sessions and workouts prevent repeated completion calls from double counting. `scope_key` provides reliable overall/per-game uniqueness under SQLite.
 
@@ -308,12 +347,14 @@ It does not know about navigation, NativeComponents, EDGE, or layout.
 - Stores observed value and threshold as unlock evidence.
 - Inserts one unlock per profile and definition.
 - Ignores inactive definitions.
+- Returns the latest persisted unlock with its definition for lightweight presentation.
 
 ## Persistence and Transaction Model
 
 SQLite foreign keys and unique constraints enforce core invariants:
 
 - One local profile key.
+- One nullable onboarding-completion timestamp per local profile.
 - One settings row per profile.
 - One workout per profile/date.
 - One game and position per workout.
@@ -358,7 +399,7 @@ The frozen NativePHP compatibility boundary remains:
 - Root Composer repositories and constraints are unchanged.
 - `packages/nativephp/native-ui` contains no Ennoble domain logic.
 
-`php artisan native:validate` passes all seven Prompt 3 NativeComponents without warnings.
+`php artisan native:validate` passes all nine application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include the runtime-registered `carousel` and `outlined_text_input` manifest types, so those two genuine Native UI elements are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
 
 ## Failure Handling
 
@@ -369,13 +410,15 @@ The frozen NativePHP compatibility boundary remains:
 - Resume snapshots carry a version and remain bounded.
 - Aggregate rebuilds do not alter authoritative rounds or completed sessions.
 - Migration failures are not hidden by database resets.
+- Dashboard section failures retain unrelated local previews and never expose raw exceptions.
+- Invalid Coming Soon identifiers do nothing, and the workout placeholder never starts a session.
 
 ## Verification Boundary
 
-Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, progress, statistics, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, and in-process accessibility audits.
+Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, progress, statistics, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, section loading/error/empty states, workout-placeholder and Coming Soon navigation behavior, and in-process accessibility audits.
 
 These are Laravel in-process/database tests. They are not Android, iOS, simulator, physical-device, VoiceOver, TalkBack, offline-airplane-mode, or visual tests.
 
 ## Next Implementation Boundary
 
-Prompt 4 may add onboarding and local-profile UI on top of this shell. It must reuse `EnnobleLayout`, the screen container, semantic tokens, typed icons, and Prompt 2 services. It must not implement gameplay, Today, Games, Progress, statistics, or achievement UI ahead of their approved stages.
+Prompt 6 may build the Games library on the completed Home boundary. Prompt 5 intentionally does not implement gameplay, the Games library, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, or remote capability. Device/simulator visual, VoiceOver, TalkBack, large-text, and reduced-motion behavior remain explicit platform-verification work.

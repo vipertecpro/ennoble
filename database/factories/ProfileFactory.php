@@ -26,4 +26,14 @@ class ProfileFactory extends Factory
             'difficulty_preference' => Difficulty::Intermediate,
         ];
     }
+
+    /**
+     * Mark the local profile as having completed onboarding.
+     */
+    public function onboarded(): static
+    {
+        return $this->state(fn (): array => [
+            'onboarding_completed_at' => now(),
+        ]);
+    }
 }

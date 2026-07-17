@@ -26,6 +26,7 @@ test('fresh migrations create the complete offline domain schema', function () {
     expect(collect($tables)->every(
         fn (string $table): bool => Schema::hasTable($table),
     ))->toBeTrue()
+        ->and(Schema::hasColumn('profiles', 'onboarding_completed_at'))->toBeTrue()
         ->and(Schema::hasColumns('game_sessions', [
             'state_snapshot',
             'current_round',

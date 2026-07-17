@@ -85,6 +85,19 @@ final class AchievementService
     }
 
     /**
+     * Return the latest unlocked achievement for a lightweight preview.
+     */
+    public function latestUnlock(Profile $profile): ?AchievementUnlock
+    {
+        return AchievementUnlock::query()
+            ->whereBelongsTo($profile)
+            ->with('achievement.game')
+            ->latest('unlocked_at')
+            ->latest('id')
+            ->first();
+    }
+
+    /**
      * @param  Collection<string, Statistic>  $statistics
      * @return array<string, int|float|string>|null
      */

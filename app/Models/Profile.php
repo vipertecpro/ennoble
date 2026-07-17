@@ -20,6 +20,7 @@ class Profile extends Model
         'display_name',
         'training_goal',
         'difficulty_preference',
+        'onboarding_completed_at',
     ];
 
     protected $attributes = [
@@ -63,6 +64,7 @@ class Profile extends Model
         return [
             'training_goal' => TrainingGoal::class,
             'difficulty_preference' => Difficulty::class,
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 }
