@@ -22,14 +22,14 @@ Audit date: 2026-07-18
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
 | Native components/routes | Nine NativeComponents/routes, including onboarding, Home dashboard, and workout placeholder |
-| Product UI/assets | Reusable shell, native onboarding, and state-aware Home dashboard; no external media assets |
+| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, and curated Games library; no external media assets |
 | Static analysis | Not configured |
 
 ## Infrastructure Status
 
-**Frozen and unchanged by Prompts 2, 3, 4, and 5.**
+**Frozen and unchanged by Prompts 2, 3, 4, 5, and 6.**
 
-Prompts 2, 3, 4, and 5 did not modify:
+Prompts 2, 3, 4, 5, and 6 did not modify:
 
 - Root Composer dependencies, repositories, constraints, or lock data.
 - NativePHP plugin registration.
@@ -228,12 +228,32 @@ Home uses NativePHP's verified lazy-screen attribute for its initial loading fra
 
 Motion is restrained to shared section durations, progress changes, native control feedback, and Coming Soon press transforms. Reduced Motion sets authored durations to zero and press transforms to identity. Primary workout and Coming Soon interactions use the existing preference-aware haptic service.
 
+## Prompt 6 — Games Library Experience
+
+**Status: Complete; needs device verification.**
+
+The Games placeholder is now a focused native catalog:
+
+- Signal Shift is featured with skill focus, profile-level difficulty, round-based duration, personal best, last played, and Start Training or Play Again state.
+- Signal Shift and Clear Thought appear as available games with short descriptions, trained skills, duration, difficulty, best score, times played, completed-session count, last played, and completion rate.
+- All, Focus, Language, Logic, Memory, and Speed chips filter every catalog section locally.
+- Debounced offline search matches title, category, and description.
+- Memory Path, Pattern Pulse, Word Forge, Quick Read, Number Sense, and Reaction Pulse appear as explicit Coming Soon cards.
+- Coming Soon cards open the existing shared bottom sheet and never navigate or create sessions.
+- Playable actions open `/workout`, which remains an explicit non-gameplay placeholder and never creates a session.
+
+The screen reuses the native layout, screen container, semantic theme and design tokens, typed icons, section header, loading/empty/error patterns, dialog host, toast service, haptic service, `WorkoutService`, and `StatisticsService`. Reusable Games components own the featured card, available card, future card, statistic, badge, illustration placeholder, filter chip, and search field.
+
+`WorkoutService` now exposes the existing profile-level difficulty resolution and individual round-based duration estimate for presentation reuse. `StatisticsService` now owns Games preview aggregation, including completion-rate calculation and last-played evidence. No migration, new persistence, playable content, remote dependency, gameplay, Progress UI, Achievement UI, or Profile editing was added.
+
+Initial loading, complete catalog, filtered results, no search results, no category matches, no history, no statistics, recoverable statistics failure, and recoverable full-library failure are covered. Reduced Motion removes authored durations and press transforms. Search, chips, cards, buttons, and sheets carry semantic labels and pass the in-process accessibility audit in active and conditional states.
+
 ## Automated Verification
 
 | Command/check | Result |
 | --- | --- |
-| Focused Home dashboard/shell/domain Pest suite | Passed: 40 tests, 520 assertions |
-| `php artisan test` | Passed: 100 tests, 924 assertions |
+| Focused Games/Home/shell/domain Pest suite | Passed: 37 tests, 591 assertions |
+| `php artisan test` | Passed: 112 tests, 1,178 assertions |
 | `composer validate --strict` | Passed: `composer.json` valid |
 | `vendor/bin/pint --dirty --format agent` | Passed for the current application dirty set |
 | `php artisan route:list` | Passed: nine native application routes plus framework/infrastructure routes |
@@ -241,11 +261,11 @@ Motion is restrained to shared section durations, progress changes, native contr
 | `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
 | `git diff --check` | Passed |
 | Static analysis | Not run; no tool/configuration exists |
-| Android/iOS launch or build | Not run, as required by Prompt 5 |
+| Android/iOS launch or build | Not run, as required by Prompt 6 |
 
 ### Pint Scope Note
 
-The Prompt 5 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
+The Prompt 6 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
 
 ## Test Coverage
 
@@ -308,6 +328,20 @@ Prompt 5 tests cover:
 - Preference-aware haptics, workout-placeholder navigation, Coming Soon bottom sheet, and no-navigation behavior.
 - Reduced-motion values and conditional-state accessibility audits.
 
+Prompt 6 tests cover:
+
+- Featured Signal Shift, both playable games, and all six Coming Soon cards.
+- Profile-level difficulty and configured duration presentation.
+- Best score, completed-session count, last-played evidence, no-history state, and completion-rate calculation.
+- Category filtering across featured, playable, and future sections with preference-aware haptics.
+- Offline title, category, and description search.
+- No-search-result and no-category-match exploration states.
+- Playable navigation to the explicit non-gameplay placeholder without session creation.
+- Coming Soon bottom-sheet content, dismissal, no navigation, and no persistence.
+- Reduced-motion values and transition behavior.
+- Recoverable missing-definition, statistics-loading, and statistics-error states.
+- Onboarding guards and conditional-state accessibility audits.
+
 These are PHP/database and NativePHP in-process component tests. They do not claim SwiftUI/Compose rendering, simulator, physical-device, VoiceOver, TalkBack, visual, status-bar, large-text, or airplane-mode evidence.
 
 ## Product Roadmap Status
@@ -321,7 +355,7 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Native design system/shell | Needs device verification | Prompt 3 automated checks complete |
 | Onboarding/local profile UI | Needs device verification | Prompt 4 automated checks complete |
 | Home/Today dashboard | Needs device verification | Prompt 5 automated checks complete |
-| Games library UI | Not started | Prompt 6 |
+| Games library UI | Needs device verification | Prompt 6 automated checks complete |
 | Signal Shift gameplay | Not started | Scoring/session foundation only |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
@@ -332,7 +366,7 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 
 ## Known Infrastructure Risks
 
-These pre-existing risks remain outside Prompts 2, 3, 4, and 5:
+These pre-existing risks remain outside Prompts 2, 3, 4, 5, and 6:
 
 1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
 2. Native UI remains a temporary project path mirror.
@@ -341,10 +375,10 @@ These pre-existing risks remain outside Prompts 2, 3, 4, and 5:
 5. No static-analysis tool is configured.
 6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-## Remaining Work Before Prompt 6
+## Remaining Work Before Prompt 7
 
-There is no known PHP, persistence, routing, or native-template blocker for the Games library prompt. Prompt 6 can reuse the shell, typed icons, semantic tokens, dialog host, haptic service, and the established Coming Soon information pattern.
+There is no known PHP, persistence, routing, or native-template blocker for the Signal Shift foundation. Prompt 7 can reuse the two-game domain foundation, Games selection flow, typed icons, semantic tokens, haptic service, transactional session checkpoints, scoring service, and existing workout placeholder boundary.
 
-Before treating Prompt 5 as platform-verified, run the native app on each selected platform and inspect Home at compact and large sizes, dynamic text, safe areas, scrolling, light/dark appearance, section loading/error states, progress rendering, Reduced Motion, press feedback, VoiceOver/TalkBack reading order, and the workout-placeholder/back flow.
+Before treating Prompt 6 as platform-verified, run the native app on each selected platform and inspect Games at compact and large sizes, dynamic text, safe areas, vertical scrolling, filter wrapping, search keyboard behavior, light/dark appearance, empty/error states, progress rendering, Reduced Motion, press feedback, sheet presentation, VoiceOver/TalkBack reading order, and workout-placeholder/back navigation.
 
-Gameplay, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 5.
+Signal Shift gameplay and content generation, Clear Thought gameplay/content, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 6.

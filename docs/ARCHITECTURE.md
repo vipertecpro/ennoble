@@ -4,9 +4,9 @@
 
 Ennoble runs on Laravel 13.20.0, PHP 8.4.23, and local SQLite. NativePHP Mobile remains locked to `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`. Native UI remains the frozen project-owned path mirror based on upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with only the documented iOS 18.2 manifest fix.
 
-Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard without changing Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
+Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard. Prompt 6 replaces the Games placeholder with a curated, searchable, filterable native library. Prompts 5 and 6 do not change Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
 
-The application now has nine native routes, including onboarding, the complete Home dashboard, and an honest future workout-flow placeholder. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, the Games library, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
+The application has nine native routes, including onboarding, the complete Home dashboard, the complete Games library, and an honest future workout-flow placeholder. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
 
 The local database now contains the additive Ennoble schema and bundled definitions for:
 
@@ -255,6 +255,25 @@ Reusable EDGE components own the greeting, section headers, section loading, Tod
 
 The Today CTA triggers preference-aware haptics and navigates to `/workout`, which explicitly states that no session has started. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
 
+### Games Library
+
+`Games` is a native presentation boundary. It:
+
+1. Enforces onboarding and applies the saved local theme and Reduced Motion preference.
+2. Loads only the two bundled playable `Game` definitions.
+3. Uses `WorkoutService::levelForProfile()` and `estimatedGameDurationMinutes()` so profile-level difficulty resolution and round-based duration estimates are not duplicated in the screen.
+4. Uses `StatisticsService::gamePreviews()` for personal best, completion count, started-session count, completion rate, and last-played evidence.
+5. Maps the two persisted games and six presentation-only future definitions into serializable view state.
+6. Applies in-memory category and search filtering across title, category, and description.
+
+Signal Shift is both the featured card and one of the two available cards. Clear Thought is the other available card. The six Coming Soon definitions remain application presentation data because they are unavailable and must not enter the persisted playable-content lifecycle.
+
+Reusable EDGE components own the featured card, playable card, Coming Soon card, illustration placeholder, statistic tile, badge, category chip, and search input. The existing screen container, section header, loading card, empty/error states, dialog host, semantic tokens, typed icons, toast service, and haptic service are reused.
+
+Playable actions trigger preference-aware impact feedback and navigate to `/workout`, the existing explicit non-gameplay placeholder. Coming Soon cards provide native-thread press feedback and selection haptics, then open the shared bottom sheet without navigation or persistence. Search and filters never mutate SQLite.
+
+Initial loading, complete-catalog, filtered, no-search-result, no-category-match, no-history, no-statistics, statistics-error, and full recoverable-error states are represented. Reduced Motion resolves authored appearance and press transforms to static values. The in-process accessibility audit covers the complete and conditional trees, while platform reading order, scalable-text layout, and visual behavior remain device-verification work.
+
 ### Workout
 
 `WorkoutService`:
@@ -334,6 +353,7 @@ It does not know about navigation, NativeComponents, EDGE, or layout.
 - Evidence-backed daily summaries.
 - Full aggregate rebuild from authoritative completed records.
 - Read-only overall and per-game personal-best retrieval for lightweight presentation.
+- Games-library previews combining per-game aggregates with started-session counts and latest-play evidence.
 
 `statistics_recorded_at` markers on sessions and workouts prevent repeated completion calls from double counting. `scope_key` provides reliable overall/per-game uniqueness under SQLite.
 
@@ -399,7 +419,7 @@ The frozen NativePHP compatibility boundary remains:
 - Root Composer repositories and constraints are unchanged.
 - `packages/nativephp/native-ui` contains no Ennoble domain logic.
 
-`php artisan native:validate` passes all nine application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include the runtime-registered `carousel` and `outlined_text_input` manifest types, so those two genuine Native UI elements are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
+`php artisan native:validate` passes all nine application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include every runtime-registered Native UI manifest type used by the application, so carousel, outlined text input, and Games filter chips are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
 
 ## Failure Handling
 
@@ -412,13 +432,16 @@ The frozen NativePHP compatibility boundary remains:
 - Migration failures are not hidden by database resets.
 - Dashboard section failures retain unrelated local previews and never expose raw exceptions.
 - Invalid Coming Soon identifiers do nothing, and the workout placeholder never starts a session.
+- Missing playable Games definitions produce a recoverable full-library error rather than invented cards.
+- Games statistics failures preserve the catalog, show unavailable evidence, and offer a focused retry.
+- Invalid category, playable-game, or Coming Soon identifiers do nothing.
 
 ## Verification Boundary
 
-Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, progress, statistics, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, section loading/error/empty states, workout-placeholder and Coming Soon navigation behavior, and in-process accessibility audits.
+Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, per-game duration resolution, progress, statistics, Games preview aggregation and completion rate, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, Games featured/available/future sections, filtering, offline search, conditional empty/error states, workout-placeholder and Coming Soon navigation behavior, and in-process accessibility audits.
 
 These are Laravel in-process/database tests. They are not Android, iOS, simulator, physical-device, VoiceOver, TalkBack, offline-airplane-mode, or visual tests.
 
 ## Next Implementation Boundary
 
-Prompt 6 may build the Games library on the completed Home boundary. Prompt 5 intentionally does not implement gameplay, the Games library, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, or remote capability. Device/simulator visual, VoiceOver, TalkBack, large-text, and reduced-motion behavior remain explicit platform-verification work.
+Prompt 7 may build the Signal Shift foundation on the completed domain, Home, and Games-library boundaries. Prompt 6 intentionally does not implement Signal Shift or Clear Thought gameplay, workout execution, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, or remote capability. Device/simulator visual, VoiceOver, TalkBack, large-text, search-keyboard, filter-wrapping, and reduced-motion behavior remain explicit platform-verification work.

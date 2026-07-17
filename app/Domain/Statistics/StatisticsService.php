@@ -10,6 +10,8 @@ use App\Models\GameRound;
 use App\Models\GameSession;
 use App\Models\Profile;
 use App\Models\Statistic;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -184,6 +186,55 @@ final class StatisticsService
     }
 
     /**
+     * Return evidence-backed statistics used by the Games library.
+     *
+     * @return Collection<int, array{
+     *     best_score: int|null,
+     *     completion_count: int,
+     *     completion_rate: int|null,
+     *     last_played_at: CarbonInterface|null,
+     *     session_count: int
+     * }>
+     */
+    public function gamePreviews(Profile $profile): Collection
+    {
+        $statistics = $this->personalBests($profile)->keyBy('game_id');
+        $sessionSummaries = GameSession::query()
+            ->whereBelongsTo($profile)
+            ->select('game_id')
+            ->selectRaw('COUNT(*) as session_count')
+            ->selectRaw('MAX(started_at) as last_played_at')
+            ->groupBy('game_id')
+            ->get()
+            ->keyBy('game_id');
+        $gameIds = $statistics->keys()
+            ->merge($sessionSummaries->keys())
+            ->unique();
+
+        return $gameIds->mapWithKeys(function (int $gameId) use ($statistics, $sessionSummaries): array {
+            /** @var Statistic|null $statistic */
+            $statistic = $statistics->get($gameId);
+            /** @var GameSession|null $sessionSummary */
+            $sessionSummary = $sessionSummaries->get($gameId);
+            $sessionCount = (int) ($sessionSummary?->getAttribute('session_count') ?? 0);
+            $completionCount = $statistic?->sessions_completed ?? 0;
+            $lastPlayedAt = $sessionSummary?->getAttribute('last_played_at');
+
+            return [
+                $gameId => [
+                    'best_score' => $statistic?->best_score,
+                    'completion_count' => $completionCount,
+                    'completion_rate' => $this->calculateCompletionRate($completionCount, $sessionCount),
+                    'last_played_at' => is_string($lastPlayedAt)
+                        ? CarbonImmutable::parse($lastPlayedAt)
+                        : null,
+                    'session_count' => $sessionCount,
+                ],
+            ];
+        });
+    }
+
+    /**
      * Return the persisted overall dashboard aggregate when evidence exists.
      */
     public function overview(Profile $profile): ?Statistic
@@ -192,6 +243,22 @@ final class StatisticsService
             ->whereBelongsTo($profile)
             ->overall()
             ->first();
+    }
+
+    /**
+     * Calculate the percentage of started sessions that were completed.
+     */
+    public function calculateCompletionRate(int $completedCount, int $sessionCount): ?int
+    {
+        if ($completedCount < 0 || $sessionCount < 0 || $completedCount > $sessionCount) {
+            throw new InvalidArgumentException('Completion counts must be non-negative and internally consistent.');
+        }
+
+        if ($sessionCount === 0) {
+            return null;
+        }
+
+        return (int) round(($completedCount / $sessionCount) * 100);
     }
 
     /**

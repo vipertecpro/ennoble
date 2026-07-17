@@ -17,6 +17,8 @@ test('statistics calculations preserve unavailable values and validate counts', 
 
     expect($service->calculateAccuracy(0, 0))->toBeNull()
         ->and($service->calculateAccuracy(3, 4))->toBe(75.0)
+        ->and($service->calculateCompletionRate(0, 0))->toBeNull()
+        ->and($service->calculateCompletionRate(2, 3))->toBe(67)
         ->and($service->calculateAverageResponseTime(collect([
             new GameRound(['response_ms' => 800]),
             new GameRound(['response_ms' => 1200]),
@@ -25,6 +27,46 @@ test('statistics calculations preserve unavailable values and validate counts', 
 
     expect(fn () => $service->calculateAccuracy(3, 2))
         ->toThrow(InvalidArgumentException::class);
+    expect(fn () => $service->calculateCompletionRate(3, 2))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+test('game previews combine aggregate personal bests with session history', function () {
+    $profile = Profile::factory()->create();
+    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $level = $game->levels()->firstOrFail();
+
+    GameSession::factory()->completed()->create([
+        'profile_id' => $profile->getKey(),
+        'game_id' => $game->getKey(),
+        'game_level_id' => $level->getKey(),
+        'started_at' => now()->subDay(),
+        'completed_at' => now()->subDay()->addMinutes(4),
+    ]);
+    GameSession::factory()->create([
+        'profile_id' => $profile->getKey(),
+        'game_id' => $game->getKey(),
+        'game_level_id' => $level->getKey(),
+        'started_at' => now(),
+        'last_interaction_at' => now(),
+    ]);
+    Statistic::factory()
+        ->for($profile)
+        ->for($game)
+        ->create([
+            'scope_key' => 'game:signal_shift',
+            'sessions_completed' => 1,
+            'best_score' => 975,
+        ]);
+
+    $preview = app(StatisticsService::class)->gamePreviews($profile)->get($game->getKey());
+
+    expect($preview)
+        ->best_score->toBe(975)
+        ->completion_count->toBe(1)
+        ->completion_rate->toBe(50)
+        ->session_count->toBe(2)
+        ->and($preview['last_played_at']->toDateTimeString())->toBe(now()->toDateTimeString());
 });
 
 test('completed session statistics are overall per-game and idempotent', function () {

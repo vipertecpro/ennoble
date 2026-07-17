@@ -2,15 +2,514 @@
 
 namespace App\NativeComponents\Screens;
 
-use App\NativeUI\Screens\PlaceholderScreen;
+use App\Domain\Onboarding\OnboardingService;
+use App\Domain\Profile\ProfileService;
+use App\Domain\Settings\SettingsService;
+use App\Domain\Statistics\StatisticsService;
+use App\Domain\Workout\WorkoutService;
+use App\Enums\GameType;
+use App\Models\Game;
+use App\Models\Profile;
+use App\NativeUI\Dialogs\InteractsWithDialogs;
+use App\NativeUI\Feedback\HapticFeedback;
+use App\NativeUI\Feedback\HapticService;
+use App\NativeUI\Feedback\ToastService;
+use App\NativeUI\Feedback\ToastType;
+use App\NativeUI\Theme\ThemeManager;
+use App\NativeUI\Tokens\DesignTokens;
+use App\NativeUI\Tokens\MotionToken;
+use Carbon\CarbonInterface;
+use DomainException;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Native\Mobile\Attributes\Lazy;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
+use Native\Mobile\Edge\NativeComponent;
+use Native\Mobile\Edge\Transition;
+use Throwable;
 
-class Games extends PlaceholderScreen
+#[Lazy]
+final class Games extends NativeComponent
 {
-    protected const TITLE = 'Games';
+    use InteractsWithDialogs;
+
+    /**
+     * @var array<string, string>
+     */
+    private const CATEGORIES = [
+        'all' => 'All',
+        'focus' => 'Focus',
+        'language' => 'Language',
+        'logic' => 'Logic',
+        'memory' => 'Memory',
+        'speed' => 'Speed',
+    ];
+
+    /**
+     * @var array<string, array{
+     *     title: string,
+     *     category: string,
+     *     categories: list<string>,
+     *     duration: string,
+     *     description: string
+     * }>
+     */
+    private const COMING_SOON = [
+        'memory-path' => [
+            'title' => 'Memory Path',
+            'category' => 'Memory',
+            'categories' => ['memory'],
+            'duration' => 'About 4 min',
+            'description' => 'Recall ordered visual journeys with calm, deliberate pacing.',
+        ],
+        'pattern-pulse' => [
+            'title' => 'Pattern Pulse',
+            'category' => 'Logic',
+            'categories' => ['logic'],
+            'duration' => 'About 4 min',
+            'description' => 'Recognize changing sequences and relationships before they shift.',
+        ],
+        'word-forge' => [
+            'title' => 'Word Forge',
+            'category' => 'Language',
+            'categories' => ['language'],
+            'duration' => 'About 5 min',
+            'description' => 'Build precise language from compact, carefully shaped prompts.',
+        ],
+        'quick-read' => [
+            'title' => 'Quick Read',
+            'category' => 'Language',
+            'categories' => ['language', 'speed'],
+            'duration' => 'About 4 min',
+            'description' => 'Read efficiently while protecting comprehension and recall.',
+        ],
+        'number-sense' => [
+            'title' => 'Number Sense',
+            'category' => 'Logic',
+            'categories' => ['logic'],
+            'duration' => 'About 4 min',
+            'description' => 'Estimate, compare, and reason with everyday quantities.',
+        ],
+        'reaction-pulse' => [
+            'title' => 'Reaction Pulse',
+            'category' => 'Speed',
+            'categories' => ['speed', 'focus'],
+            'duration' => 'About 3 min',
+            'description' => 'Respond to precise signals while keeping impulsive taps in check.',
+        ],
+    ];
+
+    public string $libraryState = 'content';
+
+    public string $libraryError = 'Your games library could not be loaded. Please try again.';
+
+    public bool $statisticsLoading = true;
+
+    public ?string $statisticsError = null;
+
+    public string $searchQuery = '';
+
+    public string $selectedCategory = 'all';
+
+    /**
+     * @var list<array{key: string, label: string}>
+     */
+    public array $categories = [];
+
+    /**
+     * @var list<array<string, mixed>>
+     */
+    public array $playableGames = [];
+
+    /**
+     * @var list<array<string, mixed>>
+     */
+    public array $filteredPlayableGames = [];
+
+    /**
+     * @var list<array<string, mixed>>
+     */
+    public array $comingSoonGames = [];
+
+    /**
+     * @var list<array<string, mixed>>
+     */
+    public array $filteredComingSoonGames = [];
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    public ?array $featuredGame = null;
+
+    public bool $featuredVisible = false;
+
+    public string $emptyTitle = 'No games found';
+
+    public string $emptyDescription = 'Try another category to discover more training experiences.';
+
+    public string $comingSoonTitle = '';
+
+    public string $comingSoonCategory = '';
+
+    public string $comingSoonDuration = '';
+
+    public string $comingSoonDescription = '';
+
+    public bool $reducedMotion = false;
+
+    public int $motionDuration = 0;
+
+    public float $pressScale = 1.0;
+
+    public float $pressOpacity = 1.0;
+
+    /**
+     * Apply the saved theme and assemble the entirely local games catalog.
+     */
+    public function mount(): void
+    {
+        $theme = app(ThemeManager::class);
+        $theme->applyCurrent();
+
+        if (! app(OnboardingService::class)->isComplete()) {
+            $this->replace('/onboarding')->transition(
+                $theme->prefersReducedMotion() ? Transition::None : Transition::Fade,
+            );
+
+            return;
+        }
+
+        $this->categories = collect(self::CATEGORIES)
+            ->map(fn (string $label, string $key): array => compact('key', 'label'))
+            ->values()
+            ->all();
+        $this->comingSoonGames = collect(self::COMING_SOON)
+            ->map(fn (array $game, string $slug): array => [
+                'slug' => $slug,
+                ...$game,
+            ])
+            ->values()
+            ->all();
+
+        $this->loadLibrary();
+    }
 
     public function render(): Element
     {
         return $this->view('screens.games');
+    }
+
+    /**
+     * Refresh evidence-backed previews when returning to the Games tab.
+     */
+    public function onResume(): void
+    {
+        $this->loadLibrary();
+    }
+
+    /**
+     * Supply a concise purpose to the native top bar.
+     */
+    public function navigationOptions(): ?NavBarOptions
+    {
+        return NavBarOptions::make()
+            ->title('Games')
+            ->subtitle('Curated offline training')
+            ->back(false);
+    }
+
+    /**
+     * Reapply local filtering when the debounced search field changes.
+     */
+    public function updatedSearchQuery(): void
+    {
+        $this->applyFilters();
+    }
+
+    /**
+     * Select one of the supported library categories.
+     */
+    public function setCategory(string $category): void
+    {
+        if (! array_key_exists($category, self::CATEGORIES)) {
+            return;
+        }
+
+        $this->selectedCategory = $category;
+        $this->applyFilters();
+
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+    }
+
+    /**
+     * Reset filtering from the no-match empty state.
+     */
+    public function showAllGames(): void
+    {
+        $this->setCategory('all');
+    }
+
+    /**
+     * Open the existing honest workout/game-flow placeholder.
+     */
+    public function openGame(string $slug): void
+    {
+        if (! collect($this->playableGames)->contains('slug', $slug)) {
+            return;
+        }
+
+        app(HapticService::class)->trigger(HapticFeedback::Impact);
+
+        $navigation = $this->navigate('/workout');
+
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
+        }
+    }
+
+    /**
+     * Present local information for an unavailable future game.
+     */
+    public function showComingSoon(string $slug): void
+    {
+        $game = self::COMING_SOON[$slug] ?? null;
+
+        if ($game === null) {
+            return;
+        }
+
+        $this->comingSoonTitle = $game['title'];
+        $this->comingSoonCategory = $game['category'];
+        $this->comingSoonDuration = $game['duration'];
+        $this->comingSoonDescription = $game['description'];
+        $this->bottomSheetVisible = true;
+
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+    }
+
+    /**
+     * Retry the complete local catalog after a recoverable failure.
+     */
+    public function retryLibrary(): void
+    {
+        $this->loadLibrary();
+
+        if ($this->libraryState === 'error') {
+            app(ToastService::class)->show(
+                'The games library is still unavailable.',
+                ToastType::Error,
+            );
+        }
+    }
+
+    /**
+     * Retry evidence-backed statistics without changing filters.
+     */
+    public function retryStatistics(): void
+    {
+        $this->loadLibrary();
+
+        if ($this->statisticsError !== null) {
+            app(ToastService::class)->show(
+                'Game statistics are still unavailable.',
+                ToastType::Error,
+            );
+        }
+    }
+
+    private function loadLibrary(): void
+    {
+        $this->libraryState = 'content';
+        $this->libraryError = 'Your games library could not be loaded. Please try again.';
+
+        try {
+            $profile = app(ProfileService::class)->current();
+
+            if ($profile === null || $profile->onboarding_completed_at === null) {
+                $this->replace('/onboarding')->transition(Transition::None);
+
+                return;
+            }
+
+            $settings = app(SettingsService::class)->forProfile($profile);
+            $this->reducedMotion = $settings->reduced_motion;
+            $this->motionDuration = $this->reducedMotion
+                ? 0
+                : DesignTokens::motionDuration(MotionToken::Normal);
+            $this->pressScale = $this->reducedMotion ? 1.0 : 0.985;
+            $this->pressOpacity = $this->reducedMotion
+                ? 1.0
+                : DesignTokens::OPACITY['pressed'];
+
+            $games = Game::query()
+                ->playable()
+                ->whereIn('type', [GameType::SignalShift, GameType::ClearThought])
+                ->orderBy('sort_order')
+                ->get();
+
+            if ($games->count() !== 2) {
+                throw new DomainException('Both playable game definitions are required for the Games library.');
+            }
+
+            $this->loadPlayableGames($profile, $games);
+            $this->applyFilters();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $this->libraryState = 'error';
+            $this->playableGames = [];
+            $this->filteredPlayableGames = [];
+            $this->featuredGame = null;
+            $this->featuredVisible = false;
+        }
+    }
+
+    /**
+     * @param  Collection<int, Game>  $games
+     */
+    private function loadPlayableGames(Profile $profile, Collection $games): void
+    {
+        $this->statisticsLoading = true;
+        $this->statisticsError = null;
+        $previews = collect();
+
+        try {
+            $previews = app(StatisticsService::class)->gamePreviews($profile);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $this->statisticsError = 'Your game statistics could not be loaded. Your training history is safe.';
+        } finally {
+            $this->statisticsLoading = false;
+        }
+
+        $workouts = app(WorkoutService::class);
+        $this->playableGames = $games
+            ->map(function (Game $game) use ($profile, $previews, $workouts): array {
+                $level = $workouts->levelForProfile($game, $profile);
+                $preview = $previews->get($game->getKey(), []);
+                $sessionCount = (int) ($preview['session_count'] ?? 0);
+                $categories = $this->categoriesFor($game->type);
+
+                return [
+                    'slug' => $game->slug,
+                    'title' => $game->name,
+                    'description' => $game->description,
+                    'category' => self::CATEGORIES[$categories[0]],
+                    'categories' => $categories,
+                    'duration' => 'About '.$workouts->estimatedGameDurationMinutes($level).' min',
+                    'difficulty' => $profile->difficulty_preference->label(),
+                    'level' => $level->name,
+                    'skills' => collect($game->skill_keys)
+                        ->map(fn (string $skill): string => Str::headline($skill))
+                        ->values()
+                        ->all(),
+                    'best_score' => $preview['best_score'] ?? null,
+                    'session_count' => $sessionCount,
+                    'completion_count' => (int) ($preview['completion_count'] ?? 0),
+                    'completion_rate' => $preview['completion_rate'] ?? null,
+                    'last_played' => $this->formatLastPlayed($preview['last_played_at'] ?? null),
+                    'has_history' => $sessionCount > 0,
+                    'hero_action' => $sessionCount > 0 ? 'Play Again' : 'Start Training',
+                ];
+            })
+            ->values()
+            ->all();
+        $this->featuredGame = collect($this->playableGames)
+            ->firstWhere('slug', 'signal-shift');
+    }
+
+    private function applyFilters(): void
+    {
+        $this->filteredPlayableGames = collect($this->playableGames)
+            ->filter(fn (array $game): bool => $this->matchesFilters($game))
+            ->values()
+            ->all();
+        $this->filteredComingSoonGames = collect($this->comingSoonGames)
+            ->filter(fn (array $game): bool => $this->matchesFilters($game))
+            ->values()
+            ->all();
+        $this->featuredVisible = $this->featuredGame !== null
+            && $this->matchesFilters($this->featuredGame);
+
+        if ($this->hasFilteredResults()) {
+            return;
+        }
+
+        if (Str::of($this->searchQuery)->squish()->isNotEmpty()) {
+            $this->emptyTitle = 'No search results';
+            $this->emptyDescription = 'Try another title, category, or training focus.';
+
+            return;
+        }
+
+        $this->emptyTitle = 'No games found';
+        $this->emptyDescription = 'Try All or another category to discover more training experiences.';
+    }
+
+    /**
+     * @param  array<string, mixed>  $game
+     */
+    private function matchesFilters(array $game): bool
+    {
+        $categories = $game['categories'] ?? [];
+
+        if ($this->selectedCategory !== 'all'
+            && ! in_array($this->selectedCategory, $categories, true)) {
+            return false;
+        }
+
+        $query = Str::of($this->searchQuery)->squish()->lower()->toString();
+
+        if ($query === '') {
+            return true;
+        }
+
+        $haystack = Str::of(implode(' ', [
+            (string) ($game['title'] ?? ''),
+            (string) ($game['category'] ?? ''),
+            implode(' ', array_map(
+                fn (string $category): string => self::CATEGORIES[$category] ?? $category,
+                $categories,
+            )),
+            (string) ($game['description'] ?? ''),
+        ]))->lower();
+
+        return $haystack->contains($query);
+    }
+
+    private function hasFilteredResults(): bool
+    {
+        return $this->filteredPlayableGames !== []
+            || $this->filteredComingSoonGames !== [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function categoriesFor(GameType $gameType): array
+    {
+        return match ($gameType) {
+            GameType::SignalShift => ['focus', 'speed'],
+            GameType::ClearThought => ['language', 'logic'],
+        };
+    }
+
+    private function formatLastPlayed(?CarbonInterface $lastPlayedAt): string
+    {
+        if ($lastPlayedAt === null) {
+            return 'Not played yet';
+        }
+
+        if ($lastPlayedAt->isToday()) {
+            return 'Today';
+        }
+
+        if ($lastPlayedAt->isYesterday()) {
+            return 'Yesterday';
+        }
+
+        return $lastPlayedAt->format('M j');
     }
 }

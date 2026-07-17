@@ -34,7 +34,7 @@ test('all application shell routes are registered with the expected layout', fun
     ]);
 });
 
-test('placeholder screens render and pass the in-process accessibility audit', function (
+test('application screens render and pass the in-process accessibility audit', function (
     string $uri,
     string $component,
     string $visibleText,
@@ -47,7 +47,7 @@ test('placeholder screens render and pass the in-process accessibility audit', f
     'splash' => ['/splash', Splash::class, 'Native application shell ready.'],
     'home' => ['/', Home::class, 'Today’s Workout'],
     'workout' => ['/workout', WorkoutPreview::class, 'Your workout is ready'],
-    'games' => ['/games', Games::class, 'Games shell ready'],
+    'games' => ['/games', Games::class, 'Train with purpose.'],
     'progress' => ['/progress', Progress::class, 'Progress shell ready'],
     'profile' => ['/profile', Profile::class, 'Profile shell ready'],
     'settings' => ['/settings', Settings::class, 'Settings shell ready'],

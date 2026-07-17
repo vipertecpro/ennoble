@@ -69,18 +69,7 @@ final class WorkoutService
             foreach ([GameType::SignalShift, GameType::ClearThought] as $index => $gameType) {
                 /** @var Game $game */
                 $game = $games->get($gameType->value);
-                $levelDifficulty = $profile->difficulty_preference === Difficulty::Adaptive
-                    ? Difficulty::Intermediate
-                    : $profile->difficulty_preference;
-                $level = GameLevel::query()
-                    ->whereBelongsTo($game)
-                    ->active()
-                    ->where('difficulty', $levelDifficulty)
-                    ->first();
-
-                if ($level === null) {
-                    throw new DomainException("No active {$levelDifficulty->value} level exists for {$game->name}.");
-                }
+                $level = $this->levelForProfile($game, $profile);
 
                 $workout->items()->create([
                     'game_id' => $game->getKey(),
@@ -97,6 +86,35 @@ final class WorkoutService
 
             return $workout->load(['items.game', 'items.level', 'items.sessions']);
         });
+    }
+
+    /**
+     * Resolve the active level matching a profile's saved difficulty.
+     */
+    public function levelForProfile(Game $game, Profile $profile): GameLevel
+    {
+        $levelDifficulty = $profile->difficulty_preference === Difficulty::Adaptive
+            ? Difficulty::Intermediate
+            : $profile->difficulty_preference;
+        $level = GameLevel::query()
+            ->whereBelongsTo($game)
+            ->active()
+            ->where('difficulty', $levelDifficulty)
+            ->first();
+
+        if ($level === null) {
+            throw new DomainException("No active {$levelDifficulty->value} level exists for {$game->name}.");
+        }
+
+        return $level;
+    }
+
+    /**
+     * Estimate an individual game's duration from its configured round count.
+     */
+    public function estimatedGameDurationMinutes(GameLevel $gameLevel): int
+    {
+        return max(2, min(5, (int) ceil($gameLevel->round_count / 2)));
     }
 
     /**

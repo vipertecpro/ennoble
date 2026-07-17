@@ -66,14 +66,17 @@ One workout is generated per local calendar day. Generation uses bundled games a
 
 ### Games
 
-The Games library shows:
+The Games library is a focused, curated native catalog rather than an endless technical list. It includes:
 
-- **Signal Shift** — playable in the first release.
-- **Clear Thought** — playable in the first release.
-- A short description, trained skills, difficulty indicator, best score, and recent completion history for each playable game.
-- Coming Soon cards for Memory Path, Number Sense, Word Forge, Pattern Pulse, Quick Read, and Sound Recall.
+- A featured **Signal Shift** card with skill focus, profile-level difficulty, configured duration estimate, personal best, last-played evidence, and Start Training or Play Again state.
+- Available cards for **Signal Shift** and **Clear Thought** with descriptions, trained skills, configured duration estimates, difficulty, best score, completion count, last played, and completion rate.
+- Lightweight local filtering for All, Focus, Language, Logic, Memory, and Speed.
+- Entirely offline search across game title, category, and description.
+- Coming Soon cards for Memory Path, Pattern Pulse, Word Forge, Quick Read, Number Sense, and Reaction Pulse.
 
-Coming Soon cards open an informational native sheet with the proposed skill area and an explicit unavailable state. They do not navigate to placeholder gameplay or create sessions.
+Search and filters apply to the featured, available, and Coming Soon sections without fabricating matches. No-result, no-history, and no-statistics states encourage exploration while preserving the distinction between unavailable evidence and zero.
+
+Playable actions open the honest future workout/game-flow placeholder. They do not create a game session or implement gameplay. Coming Soon cards open an informational native sheet with category, estimated duration, and an explicit unavailable state; they never navigate or persist activity.
 
 ### Progress
 

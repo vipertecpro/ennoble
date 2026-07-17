@@ -25,6 +25,8 @@ test('workout generation is deterministic unique and ordered for the local date'
     $workout = $service->generateToday($profile, $date);
     $sameWorkout = $service->generateToday($profile, $date);
     $resumed = $service->resume($profile, $date);
+    $signalShift = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $signalShiftLevel = $service->levelForProfile($signalShift, $profile);
 
     expect($sameWorkout->is($workout))->toBeTrue()
         ->and($resumed?->is($workout))->toBeTrue()
@@ -37,6 +39,8 @@ test('workout generation is deterministic unique and ordered for the local date'
         ->and($workout->items->every(
             fn ($item): bool => $item->level->difficulty === Difficulty::Advanced,
         ))->toBeTrue()
+        ->and($signalShiftLevel->difficulty)->toBe(Difficulty::Advanced)
+        ->and($service->estimatedGameDurationMinutes($signalShiftLevel))->toBe(5)
         ->and($service->estimatedDurationMinutes($workout))->toBe(9)
         ->and($workout->status)->toBe(WorkoutStatus::Pending);
 });

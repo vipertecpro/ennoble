@@ -1,13 +1,120 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<x-native.screen-container :state="$shellState">
-    <x-slot:empty>
+<x-native.screen-container :state="$libraryState" :scroll="true">
+    <x-slot:loading>
+        <x-native.loading-overlay label="Loading the offline games library" />
+    </x-slot:loading>
+
+    <x-slot:error>
+        <x-native.error-state :description="$libraryError">
+            <x-slot:retry>
+                <native:button label="Retry games library" variant="secondary" @press="retryLibrary" />
+            </x-slot:retry>
+        </x-native.error-state>
+    </x-slot:error>
+
+    <native:column class="w-full gap-2">
+        <native:text class="text-xs font-semibold text-theme-primary">CURATED TRAINING</native:text>
+        <native:text class="text-3xl font-bold leading-tight text-theme-on-background">Train with purpose.</native:text>
+        <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
+            Choose a focused experience, understand what it trains, and see only progress backed by your local history.
+        </native:text>
+    </native:column>
+
+    <x-native.games-search-input :search-query="$searchQuery" />
+
+    <native:row class="w-full flex-wrap gap-2" a11y-label="Game category filters">
+        @foreach ($categories as $category)
+            <x-native.game-filter-chip
+                :category="$category['key']"
+                :label="$category['label']"
+                :selected="$selectedCategory === $category['key']"
+            />
+        @endforeach
+    </native:row>
+
+    @if ($statisticsLoading)
+        <x-native.dashboard-loading-card label="Loading game statistics" />
+    @elseif ($statisticsError)
+        <native:column class="w-full gap-3 rounded-2xl border border-theme-outline bg-theme-surface p-4">
+            <native:text class="text-base font-semibold text-theme-on-surface">Statistics unavailable</native:text>
+            <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">{{ $statisticsError }}</native:text>
+            <native:button label="Retry statistics" variant="secondary" @press="retryStatistics" />
+        </native:column>
+    @endif
+
+    @if (! $featuredVisible && $filteredPlayableGames === [] && $filteredComingSoonGames === [])
         <x-native.empty-state
-            :ios="Ios::Gamecontroller"
-            :android="AndroidOutlined::SportsEsports"
-            title="Games shell ready"
-            description="No gameplay is implemented in this application-shell prompt."
-        />
-    </x-slot:empty>
+            :ios="Ios::Magnifyingglass"
+            :android="AndroidOutlined::SearchOff"
+            :title="$emptyTitle"
+            :description="$emptyDescription"
+        >
+            <x-slot:action>
+                @if ($selectedCategory !== 'all')
+                    <native:button label="Show all games" variant="secondary" @press="showAllGames" />
+                @endif
+            </x-slot:action>
+        </x-native.empty-state>
+    @else
+        @if ($featuredVisible && $featuredGame)
+            <x-native.dashboard-section-header title="Featured" eyebrow="A FOCUSED PLACE TO BEGIN" />
+            <x-native.featured-game-card
+                :game="$featuredGame"
+                :motion-duration="$motionDuration"
+            />
+        @endif
+
+        @if ($filteredPlayableGames !== [])
+            <x-native.dashboard-section-header title="Available Games" eyebrow="PLAYABLE IN THE FIRST RELEASE" />
+
+            @foreach ($filteredPlayableGames as $game)
+                <x-native.game-card
+                    :game="$game"
+                    :motion-duration="$motionDuration"
+                />
+            @endforeach
+        @endif
+
+        @if ($filteredComingSoonGames !== [])
+            <x-native.dashboard-section-header title="Coming Soon" eyebrow="INFORMATIONAL PREVIEWS" />
+
+            @foreach ($filteredComingSoonGames as $game)
+                <x-native.coming-soon-game-card
+                    :game="$game"
+                    :press-scale="$pressScale"
+                    :press-opacity="$pressOpacity"
+                    :motion-duration="$motionDuration"
+                />
+            @endforeach
+        @endif
+    @endif
+
+    <x-slot:overlays>
+        <x-native.dialog-host
+            :dialog-visible="$dialogVisible"
+            :bottom-sheet-visible="$bottomSheetVisible"
+            sheet-a11y-label="Coming soon game details"
+        >
+            <x-slot:sheet>
+                <native:column class="w-full gap-4 p-5">
+                    <native:row class="w-full flex-wrap items-center gap-2">
+                        <x-native.game-badge label="COMING SOON" :emphasis="true" :motion-duration="$motionDuration" />
+                        <native:text class="text-sm font-semibold text-theme-on-surface-variant">
+                            {{ $comingSoonCategory }} · {{ $comingSoonDuration }}
+                        </native:text>
+                    </native:row>
+                    <native:text class="text-2xl font-bold text-theme-on-surface">{{ $comingSoonTitle }}</native:text>
+                    <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
+                        {{ $comingSoonDescription }}
+                    </native:text>
+                    <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">
+                        This game is unavailable today. This sheet is informational only and does not create a session or open gameplay.
+                    </native:text>
+                    <native:button label="Got it" variant="secondary" @press="dismissBottomSheet" />
+                </native:column>
+            </x-slot:sheet>
+        </x-native.dialog-host>
+    </x-slot:overlays>
 </x-native.screen-container>
