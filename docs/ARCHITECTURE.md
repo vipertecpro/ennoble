@@ -4,7 +4,9 @@
 
 Ennoble runs on Laravel 13.20.0, PHP 8.4.23, and local SQLite. NativePHP Mobile remains locked to `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`. Native UI remains the frozen project-owned path mirror based on upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with only the documented iOS 18.2 manifest fix.
 
-Prompt 2 adds the complete first-release domain and persistence foundation without changing Composer, plugin registration, NativePHP configuration, or the Native UI mirror. There are still no Ennoble NativeComponents, native routes, EDGE views, navigation, gameplay screens, animations, illustrations, or assets.
+Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell without changing Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
+
+The application now has seven native placeholder routes, a four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, Today, Games, Progress, Profile, onboarding, animations, illustrations, and business UI remain unimplemented.
 
 The local database now contains the additive Ennoble schema and bundled definitions for:
 
@@ -69,7 +71,99 @@ tests/
     Domain/
 ```
 
-The application intentionally has no `app/NativeComponents`, `app/NativeLayouts`, `resources/views/native`, or `routes/mobile.php` yet.
+The native application layer now adds:
+
+```text
+app/
+  Icons/
+  NativeComponents/
+    Screens/
+  NativeLayouts/
+  NativeUI/
+    Dialogs/
+    Feedback/
+    Navigation/
+    Screens/
+    Theme/
+    Tokens/
+resources/
+  animations/
+  audio/
+  fonts/
+  icons/
+  illustrations/
+  views/
+    components/native/
+    native/screens/
+routes/
+  mobile.php
+tests/
+  Fixtures/Native/
+```
+
+The empty asset directories contain only structural `.gitkeep` files. No placeholder illustration, animation, sound, icon asset, or font ships from Prompt 3.
+
+## Native Application Shell
+
+### Routing and Chrome
+
+`routes/mobile.php` registers:
+
+- `/splash`
+- `/`
+- `/games`
+- `/progress`
+- `/profile`
+- `/settings`
+- `/about`
+
+The root route is the Home placeholder so the existing NativePHP `start_url` remains unchanged. Splash is an explicit navigation-verification route rather than an onboarding flow.
+
+`EnnobleLayout` opts into installed v4 native chrome. It provides:
+
+- A reusable native top bar using per-screen title, subtitle, back, and right-action overrides.
+- Home, Games, Progress, and Profile tabs.
+- Typed SF Symbol and Material icon enums.
+- URL-derived active-tab state.
+- Native replace navigation for tab switches.
+- Layout-owned safe-area behavior.
+- Hidden tab chrome on Settings and About detail placeholders.
+
+An additional shared inline EDGE top bar supports explicit left and right action slots for future chrome-less compositions. It uses a 44-point minimum target and a fixed `goBack` callback contract.
+
+### Screen Container and States
+
+`resources/views/components/native/screen-container.blade.php` is the common content boundary. It owns:
+
+- Optional safe-area handling for chrome-less screens.
+- Screen padding and component spacing from `DesignTokens`.
+- Scroll and fixed-content variants.
+- Loading, empty, error, and active content states.
+- A reusable overlay slot.
+
+Shared loading, empty, error, icon, top-bar, modal, and bottom-sheet components compose within this boundary. The error state exposes retry content and an illustration placeholder without shipping an illustration asset.
+
+### Theme and Motion
+
+`config/native-ui.php` defines Ennoble's semantic light and dark palettes and Native UI radius/font tokens. `ThemeManager` reads Prompt 2's local setting and supports:
+
+- System mode by retaining distinct light and dark token blocks.
+- Explicit light mode by applying the light palette to both renderer appearances.
+- Explicit dark mode by applying the dark palette to both renderer appearances.
+- Current semantic token lookup for native chrome.
+- Reduced-motion-aware duration resolution.
+
+The installed renderer still derives platform appearance from the operating system. Explicit preferences therefore force Ennoble's semantic colors and chrome colors, but exact system-bar appearance remains a device-verification item.
+
+`DesignTokens` centralizes typography, spacing, corner radius, elevation, motion duration, opacity, icon size, screen padding, component spacing, and minimum touch target values. No gameplay motion is implemented.
+
+### Feedback and Dialog Infrastructure
+
+`HapticService` honors Prompt 2's local haptic preference and calls the installed core `Device::vibrate()` capability. Semantic intents are typed as success, error, warning, selection, and impact, but the current core bridge provides one generic short vibration rather than distinct platform patterns.
+
+`ToastService` supports success, error, warning, and information with a visible text prefix before calling the native toast bridge.
+
+`DialogService` creates native alerts and destructive confirmations. `InteractsWithDialogs` plus the shared dialog host provide reusable modal and bottom-sheet state without product business logic.
 
 ## Layer Responsibilities
 
@@ -264,7 +358,7 @@ The frozen NativePHP compatibility boundary remains:
 - Root Composer repositories and constraints are unchanged.
 - `packages/nativephp/native-ui` contains no Ennoble domain logic.
 
-`php artisan native:validate` is expected to pass with the informational no-NativeComponents warning until Prompt 3 creates the native shell.
+`php artisan native:validate` passes all seven Prompt 3 NativeComponents without warnings.
 
 ## Failure Handling
 
@@ -278,10 +372,10 @@ The frozen NativePHP compatibility boundary remains:
 
 ## Verification Boundary
 
-Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, progress, statistics, streaks, achievements, and idempotency.
+Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, progress, statistics, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, and in-process accessibility audits.
 
 These are Laravel in-process/database tests. They are not Android, iOS, simulator, physical-device, VoiceOver, TalkBack, offline-airplane-mode, or visual tests.
 
 ## Next Implementation Boundary
 
-Prompt 3 may consume this domain layer to build the native design system and application shell. It must not duplicate scoring, checkpoint, aggregation, or achievement logic inside NativeComponents. No gameplay content or screens should be inferred from the existence of this foundation.
+Prompt 4 may add onboarding and local-profile UI on top of this shell. It must reuse `EnnobleLayout`, the screen container, semantic tokens, typed icons, and Prompt 2 services. It must not implement gameplay, Today, Games, Progress, statistics, or achievement UI ahead of their approved stages.

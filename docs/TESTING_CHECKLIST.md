@@ -279,3 +279,31 @@ The no-NativeComponents warning is expected until the application-shell prompt a
 | Android/iOS simulator/device | Not run, as required by Prompt 1.2 |
 
 Prompt 1.2 changed documentation only. It did not update Composer packages, regenerate native projects, or add application code.
+
+## Prompt 3 Native Shell Verification
+
+| Command/check | Result |
+| --- | --- |
+| Focused Prompt 3 Pest suite | Passed: 26 tests, 300 assertions |
+| `php artisan test` | Passed: 67 tests, 448 assertions |
+| `composer validate --strict` | Exit 0: Composer JSON and lock file are valid |
+| `vendor/bin/pint --dirty --format agent` | Exit 0: application icon enums formatted; frozen mirror unchanged |
+| `php artisan route:list` | Exit 0: Splash, Home, Games, Progress, Profile, Settings, and About native routes present |
+| `php artisan native:validate --no-interaction` | Exit 0: all seven NativeComponents pass without warnings |
+| `php artisan native:plugin:validate --no-interaction` | Exit 0: Native UI passes with Android minimum 26 and iOS minimum 18.2 |
+| `git diff --check` | Exit 0: no whitespace errors |
+| Static analysis | Not run; no tool/configuration exists |
+| Android/iOS simulator/device | Not run, as required by Prompt 3 |
+
+Prompt 3 automated coverage confirms:
+
+- Every registered route resolves with `Native::visit()`.
+- Four-tab native chrome exposes labels and active state.
+- Splash, Settings, and About navigation intents are correct.
+- Shared empty, loading, error, retry, modal, bottom-sheet, inline-loading, and button-loading states render.
+- Every placeholder plus the shared-component fixture passes `assertAccessible()`.
+- Theme preferences read Prompt 2 settings and resolve system/light/dark palettes.
+- Reduced motion resolves reusable durations to zero.
+- Haptic, toast, alert, and confirmation bridge calls are faked and asserted.
+
+This evidence is in-process only. Safe areas, SwiftUI/Compose rendering, status bars, light/dark appearance, large text, VoiceOver, TalkBack, offline launch, haptics, and visual balance remain unverified on platforms.

@@ -6,6 +6,32 @@ Ennoble should feel calm, intelligent, energetic, and premium. The experience fa
 
 The visual identity is original. It does not reproduce another brain-training product's logo, illustrations, card layouts, motion, or written tone.
 
+## Implemented Foundation
+
+Prompt 3 establishes the reusable design-system mechanics without attempting final visual polish.
+
+| Foundation | Implemented source |
+| --- | --- |
+| Semantic appearance | `config/native-ui.php` light and dark palettes |
+| Typography, spacing, radii, elevation | `App\NativeUI\Tokens\DesignTokens` |
+| Motion, opacity, and icon sizing | `DesignTokens` plus `MotionToken` |
+| Theme preference integration | `App\NativeUI\Theme\ThemeManager` |
+| Native chrome | `App\NativeLayouts\EnnobleLayout` |
+| Shared screen states | `resources/views/components/native/` |
+| Typed icons | Generated `App\Icons\Ios`, `Android`, and `AndroidOutlined` enums |
+
+The current semantic palette is intentionally restrained:
+
+| Token group | Light direction | Dark direction |
+| --- | --- | --- |
+| Primary | Deep violet | Soft violet with dark on-color |
+| Background | Warm near-white | Deep neutral |
+| Surface | White | Raised deep neutral |
+| Accent | Muted warm orange | Soft warm orange |
+| Destructive | Deep red | Soft red with dark on-color |
+
+These values are foundation tokens, not final screen art direction. Control visuals remain theme-driven.
+
 ## Brand Personality
 
 - **Calm:** uncluttered surfaces and predictable navigation.
@@ -50,7 +76,7 @@ Avoid making every surface a rounded card. Full-width sections, dividers, spacin
 4. Elevated surface: sheets, modals, and temporary foreground content.
 5. Game field: game-specific, high-contrast full-screen area.
 
-Theme implementation must use semantic Native UI tokens after `config/native-ui.php` is available and verified. Per-control colors are not assumed to override theme behavior.
+Theme implementation uses the verified semantic Native UI tokens in `config/native-ui.php`. Per-control colors are not assumed to override theme behavior.
 
 ## Color Direction
 
@@ -104,6 +130,8 @@ Motion should explain continuity, confirm input, or celebrate progress. It is no
 
 Before implementation, verify every animation, gesture, and transition property in [NativePHP v4 Gestures and Animation](https://nativephp.com/docs/mobile/4/digging-deeper/gestures-and-animation) and installed source. Unsupported effects must be simplified rather than invented.
 
+Prompt 3 defines only the `fast`, `normal`, `slow`, `spring`, `success`, and `error` timing tokens. Reduced motion resolves these reusable durations to zero through `ThemeManager`; no product or gameplay animation is present.
+
 ## Haptic and Sound Principles
 
 - Correct input: light, optional confirmation.
@@ -113,7 +141,7 @@ Before implementation, verify every animation, gesture, and transition property 
 - Honor sound and haptic preferences immediately.
 - Pair every sound or haptic cue with visible feedback.
 
-The installed core exposes device vibration, but exact haptic granularity must be verified before promising implementation. Do not add a plugin merely to simulate an unapproved effect.
+The installed core exposes one generic short vibration. Prompt 3 types future success, error, warning, selection, and impact intents, but intentionally maps enabled feedback to that one verified capability. Distinct native patterns remain unavailable until a later approved and verified implementation.
 
 ## Light and Dark Appearance
 
@@ -131,6 +159,8 @@ Both modes must:
 
 - Use layout-managed safe areas for screens under `NativeLayout`.
 - Use explicit safe-area utilities only on chrome-less screens after verifying layout behavior.
+- Reuse the shared screen container for padding, scrolling, state presentation, and optional chrome-less safe areas.
+- Reuse the shared inline top bar only when layout chrome is unsuitable; its left and right action slots must contain accessible controls.
 - Support compact phone widths without clipping instructions or controls.
 - Allow larger screens to gain breathing room, not uncontrolled line lengths.
 - Keep primary gameplay actions within comfortable reach while preserving platform conventions.
@@ -147,6 +177,8 @@ Both modes must:
 - Support VoiceOver and TalkBack reading order.
 - Run NativePHP's in-process accessibility audit for every screen, followed by manual assistive-technology verification on each platform.
 - Treat reduced motion, sound off, and haptics off as first-class states.
+
+Prompt 3's reusable components use native scalable text, 44-point minimum top-bar targets, explicit icon labels where meaningful, text cues for toast semantics, and in-process accessibility audits. Manual VoiceOver, TalkBack, contrast, large-text, and reading-order evidence still requires platform execution.
 
 ## State Checklist
 

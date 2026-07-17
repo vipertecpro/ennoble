@@ -21,15 +21,15 @@ Audit date: 2026-07-18
 | NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
-| Native components/routes | None, by Prompt 2 restriction |
-| Product UI/assets | None, by Prompt 2 restriction |
+| Native components/routes | Seven placeholder NativeComponents and routes |
+| Product UI/assets | Reusable shell only; no product screens or media assets |
 | Static analysis | Not configured |
 
 ## Infrastructure Status
 
-**Frozen and unchanged by Prompt 2.**
+**Frozen and unchanged by Prompts 2 and 3.**
 
-Prompt 2 did not modify:
+Prompts 2 and 3 did not modify:
 
 - Root Composer dependencies, repositories, constraints, or lock data.
 - NativePHP plugin registration.
@@ -136,28 +136,74 @@ Implemented and tested:
 - Repeat-safe session completion, workout completion, achievement evaluation, and bundled-content seeding.
 - Rebuildable statistics from authoritative completed evidence.
 
+## Prompt 3 — Native Application Shell and Design Foundation
+
+**Status: Complete; needs device verification.**
+
+### Application Shell
+
+Implemented:
+
+- Seven native placeholder routes: Splash, Home, Games, Progress, Profile, Settings, and About.
+- Four-tab native chrome for Home, Games, Progress, and Profile.
+- Native top-bar titles, subtitles, back state, action overrides, and an inline shared top bar with left/right slots.
+- URL-derived active tabs and replace-style tab navigation.
+- Layout-managed safe areas and a chrome-less safe-area option for Splash.
+- Settings and About detail routes with hidden tab chrome.
+
+No Today, Games library, Progress, Profile, Settings controls, onboarding, gameplay, achievements, statistics, workout, or product content was implemented.
+
+### Theme and Tokens
+
+Implemented:
+
+- Ennoble light and dark semantic palettes in `config/native-ui.php`.
+- Settings-aware `ThemeManager` integration with Prompt 2's `ThemePreference`.
+- System, explicit light, and explicit dark token application.
+- Typography, spacing, radius, elevation, motion, opacity, icon size, screen padding, component spacing, and 44-point touch-target tokens.
+- Reduced-motion duration resolution.
+- Generated typed iOS, Android filled, and Android outlined icon catalogs from the installed snapshots.
+
+The installed renderer follows operating-system appearance. Explicit theme preferences force the semantic palettes and native chrome colors, but system status-bar behavior remains unverified without a platform run.
+
+### Shared Components and Services
+
+Implemented shared EDGE components for:
+
+- Screen container with fixed/scrolling content.
+- Full-screen, inline, and button loading.
+- Empty states with optional actions.
+- Recoverable errors with retry and illustration placeholders.
+- Typed icons.
+- Inline top bars with back, left-action, and right-action support.
+- Modal and bottom-sheet hosting.
+
+Implemented services for:
+
+- Native alerts and destructive confirmations.
+- Success, error, warning, and information toasts.
+- Preference-gated success, error, warning, selection, and impact haptic intents.
+
+The current core haptic API provides one generic short vibration, so semantic intents do not claim distinct platform patterns.
+
 ## Automated Verification
 
 | Command/check | Result |
 | --- | --- |
-| `php artisan test --compact` | Passed: 41 tests, 148 assertions |
-| Focused Prompt 2 Pest suite | Passed: 39 tests, 146 assertions |
+| Focused Prompt 3 Pest suite | Passed: 26 tests, 300 assertions |
+| `php artisan test` | Passed: 67 tests, 448 assertions |
 | `composer validate --strict` | Passed: `composer.json` valid |
-| `php artisan migrate --no-interaction` | Passed: six Prompt 2 migrations applied to existing SQLite |
-| Temporary fresh migrate | Passed |
-| Temporary six-step rollback | Passed |
-| Temporary migration reapply | Passed |
-| Existing-scaffold upgrade test | Passed with legacy row preserved |
-| Scoped Pint on `app/Domain`, `app/Enums`, `app/Models`, `database`, and `tests` | Passed |
-| `php artisan native:validate --no-interaction` | Exit 0; expected informational warning that no NativeComponents exist |
+| `vendor/bin/pint --dirty --format agent` | Passed; generated icon enum spacing normalized |
+| `php artisan route:list` | Passed: seven native application routes registered |
+| `php artisan native:validate --no-interaction` | Passed: all seven NativeComponents, no warnings |
 | `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
 | `git diff --check` | Passed |
-| Frozen mirror comparison | Only documented maintenance Markdown differences remain |
-| Android/iOS launch or build | Not run, as required |
+| Static analysis | Not run; no tool/configuration exists |
+| Android/iOS launch or build | Not run, as required by Prompt 3 |
 
 ### Pint Scope Note
 
-Root `vendor/bin/pint --dirty --format agent` treats the untracked frozen path mirror as dirty even when application paths are supplied. It attempted to reformat upstream mirror files; those changes were immediately restored from the installed package and verified by recursive comparison. Final formatting was therefore run against each application-owned PHP directory explicitly, and all scoped checks pass.
+The Prompt 3 dirty set contained only application-owned changes. Pint formatted the generated application icon enums and did not modify `packages/nativephp/native-ui`.
 
 ## Test Coverage
 
@@ -179,7 +225,24 @@ Prompt 2 tests cover:
 - Accuracy, compatible response time, personal best aggregates, and streak gaps.
 - Achievement positive/negative boundaries, inactive definitions, evidence, and idempotency.
 
-These are PHP/database tests. They do not claim native rendering, simulator, physical-device, VoiceOver, TalkBack, visual, or airplane-mode evidence.
+Prompt 3 tests cover:
+
+- Native route registration and route-to-layout mapping.
+- Placeholder rendering for all seven destinations.
+- Four-tab labels, active state, and visibility.
+- Splash replacement and Profile → Settings → About navigation.
+- Top-bar title and detail tab-bar hiding.
+- Loading, empty, error, retry, modal, and bottom-sheet rendering.
+- Shared top-bar action slots and loading variants.
+- Automated in-process accessibility audits.
+- System/light/dark theme resolution and Prompt 2 settings integration.
+- Reduced-motion duration handling.
+- Design-token completeness.
+- Haptic preference gating and fake native vibration calls.
+- Typed toast payloads.
+- Alert and confirmation bridge payloads.
+
+These are PHP/database and NativePHP in-process component tests. They do not claim SwiftUI/Compose rendering, simulator, physical-device, VoiceOver, TalkBack, visual, status-bar, large-text, or airplane-mode evidence.
 
 ## Product Roadmap Status
 
@@ -189,21 +252,21 @@ These are PHP/database tests. They do not claim native rendering, simulator, phy
 | Infrastructure readiness | Frozen | Compatibility strategy and plugin registration preserved |
 | Prompt 2 database foundation | Complete | 13 tables, constraints, seed migration, upgrade test |
 | Prompt 2 domain services | Complete | Games, workout, progress, statistics, achievements, profile, settings |
-| Native design system/shell | Not started | Prompt 3 |
-| Onboarding/local profile UI | Not started | Later prompt |
+| Native design system/shell | Needs device verification | Prompt 3 automated checks complete |
+| Onboarding/local profile UI | Not started | Prompt 4 |
 | Today UI | Not started | Later prompt; `WorkoutService` is ready |
 | Games library UI | Not started | Later prompt |
 | Signal Shift gameplay | Not started | Scoring/session foundation only |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
 | Profile/settings UI | Not started | Persistence services are ready |
-| Accessibility UI/device evidence | Not started | No screens exist |
+| Accessibility UI/device evidence | In progress | In-process audits pass; manual platform evidence remains |
 | Complete QA | Not started | Requires integrated product and selected platforms |
-| Release readiness | Blocked | Native application and device evidence do not exist |
+| Release readiness | Blocked | Complete product implementation and device evidence do not exist |
 
 ## Known Infrastructure Risks
 
-These pre-existing risks remain outside Prompt 2:
+These pre-existing risks remain outside Prompts 2 and 3:
 
 1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
 2. Native UI remains a temporary project path mirror.
@@ -212,15 +275,14 @@ These pre-existing risks remain outside Prompt 2:
 5. No static-analysis tool is configured.
 6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-## Remaining Work Before Prompt 3
+## Remaining Work Before Prompt 4
 
-Prompt 3 can begin from the tested local domain layer. It should:
+Prompt 4 can begin from the tested domain layer and native shell. It should:
 
-- Implement semantic native theming and the native application shell only within its approved scope.
-- Register verified native routes and create NativeComponents/EDGE views.
-- Consume domain services rather than duplicating business logic.
-- Add in-process NativeComponent tests.
-- Keep gameplay content and mechanics outside the shell prompt.
+- Reuse `EnnobleLayout`, the shared screen container, typed icons, semantic tokens, and feedback/dialog services.
+- Implement onboarding and local-profile UI only within the approved Prompt 4 scope.
+- Read and persist through the existing profile/settings services.
+- Add NativeComponent interaction, validation, persistence, error-state, and accessibility tests.
 - Preserve the frozen dependency/plugin/mirror baseline.
 
-No database redesign, placeholder metrics, remote capability, or gameplay screen is required before Prompt 3.
+No database redesign, placeholder metrics, remote capability, gameplay, Today, Games library, Progress, achievements, statistics, or workout UI is required before Prompt 4.
