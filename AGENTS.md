@@ -112,6 +112,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - The application is served by Laravel Herd at `https?://[kebab-case-project-dir].test`. Use the `get-absolute-url` tool to generate valid URLs. Never run commands to serve the site. It is always available.
 - Use the `herd` CLI to manage services, PHP versions, and sites (e.g. `herd sites`, `herd services:start <service>`, `herd php:list`). Run `herd list` to discover all available commands.
 
+=== tests rules ===
+
+# Test Enforcement
+
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+
 === laravel/core rules ===
 
 # Do Things the Laravel Way
@@ -248,114 +255,6 @@ ask: "Which platform do you want to build/test on — iOS or Android?" Never ass
 
 When the platform is confirmed, give the relevant command(s) above and tell the user to run it in their terminal.
 Do not run it yourself.
-
-=== nativephp/mobile-camera rules ===
-
-## nativephp/camera
-
-Camera plugin for NativePHP Mobile providing photo capture, video recording, and gallery picker functionality.
-
-### PHP Usage (Livewire/Blade)
-
-<code-snippet name="Taking Photos" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Take a photo
-Camera::getPhoto();
-</code-snippet>
-
-<code-snippet name="Recording Videos" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Using fluent API
-Camera::recordVideo()
-    ->maxDuration(60)
-    ->id('my-video-123')
-    ->start();
-</code-snippet>
-
-<code-snippet name="Picking Media from Gallery" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Pick multiple images
-Camera::pickImages('images', true);
-
-// Pick any media type
-Camera::pickImages('all', true);
-</code-snippet>
-
-### JavaScript Usage (Vue/React/Inertia)
-
-<code-snippet name="Camera in JavaScript" lang="javascript">
-import { camera } from '#nativephp';
-
-// Take a photo with identifier
-await camera.getPhoto().id('profile-pic');
-
-// Record video with max duration
-await camera.recordVideo()
-    .maxDuration(30)
-    .id('my-video-123');
-
-// Pick multiple images from gallery
-await camera.pickImages()
-    .images()
-    .multiple()
-    .maxItems(5);
-</code-snippet>
-
-### Handling Camera Events
-
-#### PHP
-
-<code-snippet name="Photo Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Camera\PhotoTaken;
-
-#[OnNative(PhotoTaken::class)]
-public function handlePhotoTaken(string $path)
-{
-    $this->processPhoto($path);
-}
-</code-snippet>
-
-<code-snippet name="Video Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Camera\VideoRecorded;
-
-#[OnNative(VideoRecorded::class)]
-public function handleVideoRecorded(string $path, string $mimeType, ?string $id = null)
-{
-    $this->processVideo($path);
-}
-</code-snippet>
-
-<code-snippet name="Gallery Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Gallery\MediaSelected;
-
-#[OnNative(MediaSelected::class)]
-public function handleMediaSelected(array $media)
-{
-    foreach ($media as $file) {
-        $this->processMedia($file);
-    }
-}
-</code-snippet>
-
-### Events
-
-- `Native\Mobile\Events\Camera\PhotoTaken` - Photo captured (payload: `string $path`)
-- `Native\Mobile\Events\Camera\VideoRecorded` - Video recorded (payload: `string $path`, `string $mimeType`, `?string $id`)
-- `Native\Mobile\Events\Camera\VideoCancelled` - Recording cancelled
-- `Native\Mobile\Events\Gallery\MediaSelected` - Media selected (payload: `array $media`)
-
-### Storage Locations
-
-- **Photos (Android):** `{cache}/captured.jpg`
-- **Photos (iOS):** `~/Library/Application Support/Photos/captured.jpg`
-- **Videos (Android):** `{cache}/video_{timestamp}.mp4`
-- **Videos (iOS):** `~/Library/Application Support/Videos/captured_video_{timestamp}.mp4`
 
 === nativephp/native-ui rules ===
 
@@ -503,7 +402,7 @@ Button::make()
 
 - The official product name is **Ennoble** and the internal slug is `ennoble`.
 - Ennoble is a polished, fully offline, native brain-training application built with Laravel, NativePHP Mobile v4, SuperNative, EDGE, and local SQLite.
-- Ennoble is not a conventional Laravel website, an Elevate clone, or a NativePHP component demonstration.
+- Ennoble is not a conventional Laravel website, a derivative product, or a NativePHP component demonstration.
 - Branding, written content, illustrations, sounds, game mechanics, motion, and visual identity must be original.
 
 ## Authoritative Sources
@@ -567,3 +466,15 @@ Button::make()
 - Do not change dependencies, package identifiers, bundle identifiers, generated native projects, or platform permissions without an explicit requirement and documented rationale.
 - Update the relevant files in `docs/` after each significant implementation prompt so plans, status, architecture, and testing evidence remain current.
 - Never mark a feature complete when it is mocked, unavailable, unverified, or only documented.
+
+## NativePHP Compatibility Layer
+
+- Treat `packages/nativephp/native-ui` as a temporary, frozen mirror of upstream Native UI.
+- Never modify `packages/nativephp/native-ui` unless synchronising it with a reviewed upstream commit.
+- Never implement Ennoble application logic, product components, scoring, workouts, persistence, or bug fixes inside the mirror.
+- Always diagnose and fix application issues inside Ennoble first.
+- Record every approved mirror difference in `packages/nativephp/native-ui/UPSTREAM_DIFF.md`.
+- Keep the root Composer path repository, Native UI version mapping, and plugin registration unchanged during ordinary feature work.
+- If NativePHP v4 Stable provides mutually compatible official Composer packages, remove the mirror before implementing new features on the upgraded dependency line.
+- Always prefer compatible upstream packages over local mirrors.
+- Follow `docs/UPSTREAM_TRACKING.md` for the removal and upgrade checklist.

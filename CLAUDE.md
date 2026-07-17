@@ -112,6 +112,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - The application is served by Laravel Herd at `https?://[kebab-case-project-dir].test`. Use the `get-absolute-url` tool to generate valid URLs. Never run commands to serve the site. It is always available.
 - Use the `herd` CLI to manage services, PHP versions, and sites (e.g. `herd sites`, `herd services:start <service>`, `herd php:list`). Run `herd list` to discover all available commands.
 
+=== tests rules ===
+
+# Test Enforcement
+
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+
 === laravel/core rules ===
 
 # Do Things the Laravel Way
@@ -248,114 +255,6 @@ ask: "Which platform do you want to build/test on — iOS or Android?" Never ass
 
 When the platform is confirmed, give the relevant command(s) above and tell the user to run it in their terminal.
 Do not run it yourself.
-
-=== nativephp/mobile-camera rules ===
-
-## nativephp/camera
-
-Camera plugin for NativePHP Mobile providing photo capture, video recording, and gallery picker functionality.
-
-### PHP Usage (Livewire/Blade)
-
-<code-snippet name="Taking Photos" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Take a photo
-Camera::getPhoto();
-</code-snippet>
-
-<code-snippet name="Recording Videos" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Using fluent API
-Camera::recordVideo()
-    ->maxDuration(60)
-    ->id('my-video-123')
-    ->start();
-</code-snippet>
-
-<code-snippet name="Picking Media from Gallery" lang="php">
-use Native\Mobile\Facades\Camera;
-
-// Pick multiple images
-Camera::pickImages('images', true);
-
-// Pick any media type
-Camera::pickImages('all', true);
-</code-snippet>
-
-### JavaScript Usage (Vue/React/Inertia)
-
-<code-snippet name="Camera in JavaScript" lang="javascript">
-import { camera } from '#nativephp';
-
-// Take a photo with identifier
-await camera.getPhoto().id('profile-pic');
-
-// Record video with max duration
-await camera.recordVideo()
-    .maxDuration(30)
-    .id('my-video-123');
-
-// Pick multiple images from gallery
-await camera.pickImages()
-    .images()
-    .multiple()
-    .maxItems(5);
-</code-snippet>
-
-### Handling Camera Events
-
-#### PHP
-
-<code-snippet name="Photo Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Camera\PhotoTaken;
-
-#[OnNative(PhotoTaken::class)]
-public function handlePhotoTaken(string $path)
-{
-    $this->processPhoto($path);
-}
-</code-snippet>
-
-<code-snippet name="Video Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Camera\VideoRecorded;
-
-#[OnNative(VideoRecorded::class)]
-public function handleVideoRecorded(string $path, string $mimeType, ?string $id = null)
-{
-    $this->processVideo($path);
-}
-</code-snippet>
-
-<code-snippet name="Gallery Events" lang="php">
-use Native\Mobile\Attributes\OnNative;
-use Native\Mobile\Events\Gallery\MediaSelected;
-
-#[OnNative(MediaSelected::class)]
-public function handleMediaSelected(array $media)
-{
-    foreach ($media as $file) {
-        $this->processMedia($file);
-    }
-}
-</code-snippet>
-
-### Events
-
-- `Native\Mobile\Events\Camera\PhotoTaken` - Photo captured (payload: `string $path`)
-- `Native\Mobile\Events\Camera\VideoRecorded` - Video recorded (payload: `string $path`, `string $mimeType`, `?string $id`)
-- `Native\Mobile\Events\Camera\VideoCancelled` - Recording cancelled
-- `Native\Mobile\Events\Gallery\MediaSelected` - Media selected (payload: `array $media`)
-
-### Storage Locations
-
-- **Photos (Android):** `{cache}/captured.jpg`
-- **Photos (iOS):** `~/Library/Application Support/Photos/captured.jpg`
-- **Videos (Android):** `{cache}/video_{timestamp}.mp4`
-- **Videos (iOS):** `~/Library/Application Support/Videos/captured_video_{timestamp}.mp4`
 
 === nativephp/native-ui rules ===
 

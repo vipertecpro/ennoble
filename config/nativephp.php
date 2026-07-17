@@ -100,20 +100,14 @@ return [
     |
     | Override iOS Info.plist usage descriptions provided by plugins. Anything
     | you set here is applied AFTER all plugin manifests are merged, so it
-    | always wins — useful when multiple plugins claim the same key (e.g.
-    | mobile-camera and mobile-scanner both set NSCameraUsageDescription) and
-    | you want a single explicit string for App Store review.
+    | always wins when an application-specific description is required.
     |
     | Android has no equivalent: permission rationale is shown by app code at
     | runtime, not declared in the manifest, so this block is iOS-only.
     |
     */
 
-    'permissions' => [
-        // 'NSCameraUsageDescription' => 'Used to take a profile photo.',
-        // 'NSMicrophoneUsageDescription' => 'Used to record audio with your videos.',
-        // 'NSPhotoLibraryUsageDescription' => 'Used to select photos for your post.',
-    ],
+    'permissions' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -134,16 +128,7 @@ return [
     |
     */
 
-    'permission_localizations' => [
-        // 'nl' => [
-        //     'NSCameraUsageDescription' => 'Gebruikt om een profielfoto te maken.',
-        //     'NSMicrophoneUsageDescription' => 'Gebruikt om audio op te nemen bij je video\'s.',
-        //     'NSPhotoLibraryUsageDescription' => 'Gebruikt om foto\'s voor je bericht te selecteren.',
-        // ],
-        // 'fr' => [
-        //     'NSCameraUsageDescription' => 'Utilisé pour prendre une photo de profil.',
-        // ],
-    ],
+    'permission_localizations' => [],
 
     /*
     |--------------------------------------------------------------------------

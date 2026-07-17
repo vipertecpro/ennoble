@@ -2,120 +2,225 @@
 
 ## Status Definitions
 
-- **Not started:** No product implementation exists.
-- **In progress:** Implementation exists but completion criteria are not met.
-- **Blocked:** Work cannot safely proceed until a named prerequisite is resolved.
+- **Not started:** No implementation exists.
+- **In progress:** Some implementation exists, but the prompt's completion criteria are not met.
 - **Complete:** Implemented, tested, documented, and verified to the stated level.
-- **Needs device verification:** Automated checks pass, but required simulator or physical-device evidence is missing.
+- **Needs device verification:** Automated checks pass, but native platform evidence is still required.
+- **Blocked:** A named prerequisite prevents safe progress.
+- **Frozen:** The verified infrastructure baseline must not change during normal feature work.
 
 ## Verified Repository Baseline
 
 Audit date: 2026-07-18
 
-| Area | Finding |
+| Area | Current state |
 | --- | --- |
-| PHP | Requirement `^8.4`; local CLI 8.4.23 |
+| PHP | 8.4.23 locally; project requirement `^8.4` |
 | Laravel | 13.20.0 |
-| Database | SQLite; only default Laravel scaffold tables exist |
-| NativePHP Mobile | `dev-element`, source commit `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`; not a tagged v4 release |
-| Native UI | `dev-feat/webview-element`, source commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46` |
-| Camera | 1.0.3; installed but no Ennoble v1 requirement identified |
-| SuperNative/EDGE | Classes, renderers, routing, layouts, and tests exist in installed source |
-| Plugin registration | Blocked: `NativeServiceProvider` is unpublished and plugins are not registered |
-| Plugin validation | Native UI fails because `nativephp.json` lacks `ios.min_version` |
-| Native components/routes | None |
-| Android project | Generated directory exists, but metadata/build files retain NativePHP placeholders |
-| iOS project | Generated directory exists, but display/bundle values retain NativePHP placeholders |
-| Web boot | Herd root returns HTTP 200 with title Ennoble |
-| Tests | Two placeholder Pest tests pass |
-| Formatter | Pint check passes |
+| Database | SQLite with Laravel scaffold plus 13 Ennoble tables |
+| NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
+| Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
+| Plugin registration | Native UI remains the sole allowlisted plugin |
+| Native components/routes | None, by Prompt 2 restriction |
+| Product UI/assets | None, by Prompt 2 restriction |
 | Static analysis | Not configured |
 
-## Product Status
+## Infrastructure Status
 
-| Area | Status | Evidence or blocker |
+**Frozen and unchanged by Prompt 2.**
+
+Prompt 2 did not modify:
+
+- Root Composer dependencies, repositories, constraints, or lock data.
+- NativePHP plugin registration.
+- `config/nativephp.php`.
+- The temporary Native UI mirror.
+- Generated Android or iOS projects.
+- Platform permissions or package identifiers.
+
+The mirror was compared against its installed copy after formatting. The only differences remain its project maintenance `README.md` and `UPSTREAM_DIFF.md`, matching the documented compatibility boundary.
+
+## Prompt 2 — Domain and Persistence Foundation
+
+**Status: Complete.**
+
+### Domain Structure
+
+Implemented under `app/Domain`:
+
+| Domain | Implemented behavior |
+| --- | --- |
+| Games | Scoring contract/result, Signal Shift scoring, Clear Thought scoring and answer validation, transactional resumable session lifecycle |
+| Workout | Unique daily generation, ordered two-game items, resume, completion, summary, and history |
+| Progress | Bounded current skill values and append-only historical snapshots |
+| Statistics | Accuracy, response time, overall/per-game aggregates, personal bests, training time, streaks, summaries, and rebuild |
+| Achievements | Active local criteria, idempotent unlocks, and persisted evidence |
+| Profile | Validated singleton local profile |
+| Settings | Theme, sound, haptics, reduced motion, reminder, and bounded accessibility preferences |
+
+No repository interfaces, remote providers, base-service inheritance, or general-purpose `GameService` were introduced.
+
+### Database Schema
+
+Implemented tables:
+
+- `profiles`
+- `settings`
+- `games`
+- `game_levels`
+- `challenges`
+- `daily_workouts`
+- `daily_workout_items`
+- `game_sessions`
+- `game_rounds`
+- `progress_snapshots`
+- `statistics`
+- `achievements`
+- `achievement_unlocks`
+
+All six Prompt 2 migrations ran successfully against the existing local SQLite database as batch 2. Fresh migrate, six-step rollback, and reapply also passed against a separate temporary SQLite database.
+
+The automated upgrade test creates only the previous Laravel scaffold schema, inserts a legacy row, applies the Prompt 2 migrations, and confirms that the legacy row and bundled definitions remain.
+
+### Seeded Content
+
+| Definition | Installed count |
+| --- | ---: |
+| Games | 2 |
+| Game levels | 6 |
+| Achievements | 6 |
+| Profiles | 0 |
+| Runtime sessions | 0 |
+
+The content migration invokes `GameDefinitionSeeder`, `GameLevelSeeder`, and `AchievementDefinitionSeeder`. SQLite upserts keep repeat runs idempotent and preserve runtime data. `DatabaseSeeder` no longer creates the scaffold test user.
+
+Gameplay challenges are intentionally not seeded in Prompt 2. Their schema and deterministic validator are ready, while editorial content remains scoped to the Clear Thought gameplay prompt.
+
+### Models and Enums
+
+Thirteen Ennoble Eloquent models implement:
+
+- Explicit fillable fields.
+- Database-default mirrors.
+- Typed relationships.
+- Enum, JSON, boolean, date, and datetime casts.
+- Focused query scopes.
+- Purposeful factories.
+
+Eleven backed enums define stable persisted state:
+
+- `AchievementType`
+- `ClearThoughtMode`
+- `Difficulty`
+- `GameStatus`
+- `GameType`
+- `RoundOutcome`
+- `SessionStatus`
+- `SkillKey`
+- `ThemePreference`
+- `TrainingGoal`
+- `WorkoutStatus`
+
+### Transaction and Idempotency Guarantees
+
+Implemented and tested:
+
+- Unique local profile key and one settings row per profile.
+- One workout per profile/local date.
+- One ordered item per game and position.
+- Atomic round append plus checkpoint update.
+- Session and workout completion markers.
+- One session-backed progress snapshot per skill.
+- One aggregate per profile/scope.
+- One unlock per profile/achievement.
+- Repeat-safe session completion, workout completion, achievement evaluation, and bundled-content seeding.
+- Rebuildable statistics from authoritative completed evidence.
+
+## Automated Verification
+
+| Command/check | Result |
+| --- | --- |
+| `php artisan test --compact` | Passed: 41 tests, 148 assertions |
+| Focused Prompt 2 Pest suite | Passed: 39 tests, 146 assertions |
+| `composer validate --strict` | Passed: `composer.json` valid |
+| `php artisan migrate --no-interaction` | Passed: six Prompt 2 migrations applied to existing SQLite |
+| Temporary fresh migrate | Passed |
+| Temporary six-step rollback | Passed |
+| Temporary migration reapply | Passed |
+| Existing-scaffold upgrade test | Passed with legacy row preserved |
+| Scoped Pint on `app/Domain`, `app/Enums`, `app/Models`, `database`, and `tests` | Passed |
+| `php artisan native:validate --no-interaction` | Exit 0; expected informational warning that no NativeComponents exist |
+| `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
+| `git diff --check` | Passed |
+| Frozen mirror comparison | Only documented maintenance Markdown differences remain |
+| Android/iOS launch or build | Not run, as required |
+
+### Pint Scope Note
+
+Root `vendor/bin/pint --dirty --format agent` treats the untracked frozen path mirror as dirty even when application paths are supplied. It attempted to reformat upstream mirror files; those changes were immediately restored from the installed package and verified by recursive comparison. Final formatting was therefore run against each application-owned PHP directory explicitly, and all scoped checks pass.
+
+## Test Coverage
+
+Prompt 2 tests cover:
+
+- Fresh schema and required columns.
+- SQLite foreign keys and unique constraints.
+- Previous-scaffold upgrade preservation.
+- Seed migration counts, idempotency, and in-progress data preservation.
+- Relationships and casts.
+- Enum values.
+- Singleton profile and settings persistence.
+- Deterministic two-game workout generation and missing-content failure.
+- Round checkpoints and resume.
+- Signal Shift anti-random-tap scoring.
+- Clear Thought hints, attempts, response time, and all three answer modes.
+- Idempotent session/workout completion.
+- Skill history and bounds.
+- Accuracy, compatible response time, personal best aggregates, and streak gaps.
+- Achievement positive/negative boundaries, inactive definitions, evidence, and idempotency.
+
+These are PHP/database tests. They do not claim native rendering, simulator, physical-device, VoiceOver, TalkBack, visual, or airplane-mode evidence.
+
+## Product Roadmap Status
+
+| Area | Status | Evidence or next boundary |
 | --- | --- | --- |
-| Prompt 1 repository audit | Complete | Versions, source, schema, routes, tests, platforms, and worktree inspected |
-| Permanent project rules | Complete | Ennoble rules appended to root `AGENTS.md` |
-| Product specification | Complete | `PRODUCT_SPECIFICATION.md` |
-| Architecture plan | Complete | `ARCHITECTURE.md` |
-| Design system direction | Complete | `DESIGN_SYSTEM.md` |
-| NativePHP component inventory | Complete | `NATIVEPHP_COMPONENT_MAP.md` |
-| Database plan | Complete | `DATABASE_PLAN.md` |
-| Sequential roadmap | Complete | `IMPLEMENTATION_PLAN.md` |
-| Testing strategy | Complete | `TESTING_CHECKLIST.md` |
-| NativePHP v4 build readiness | Blocked | Plugin provider/registration absent; Native UI validation failure |
-| Stable dependency strategy | Blocked | Development branches and unbounded constraints require an explicit decision |
-| Native shell/device validation | Needs device verification | Neither platform was launched in Prompt 1 |
-| Database foundation | Not started | Proposal only; no product migrations/models |
-| Native design system/shell | Not started | No NativeComponents or native routes |
-| Onboarding/local profile | Not started | No product implementation |
-| Today | Not started | No product implementation |
-| Games library | Not started | No product implementation |
-| Signal Shift | Not started | No product implementation |
-| Clear Thought | Not started | No product implementation |
-| Progress/statistics | Not started | No product implementation |
-| Streaks | Not started | No product implementation |
-| Achievements | Not started | No product implementation |
-| Profile/settings | Not started | No product implementation |
-| Accessibility implementation | Not started | Rules/strategy documented only |
-| Complete QA | Not started | Product does not exist yet |
-| Release readiness | Blocked | Build baseline and application implementation incomplete |
+| Prompt 1 audit/rules/docs | Complete | Baseline and project constraints documented |
+| Infrastructure readiness | Frozen | Compatibility strategy and plugin registration preserved |
+| Prompt 2 database foundation | Complete | 13 tables, constraints, seed migration, upgrade test |
+| Prompt 2 domain services | Complete | Games, workout, progress, statistics, achievements, profile, settings |
+| Native design system/shell | Not started | Prompt 3 |
+| Onboarding/local profile UI | Not started | Later prompt |
+| Today UI | Not started | Later prompt; `WorkoutService` is ready |
+| Games library UI | Not started | Later prompt |
+| Signal Shift gameplay | Not started | Scoring/session foundation only |
+| Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
+| Progress UI | Not started | Aggregate services are ready |
+| Profile/settings UI | Not started | Persistence services are ready |
+| Accessibility UI/device evidence | Not started | No screens exist |
+| Complete QA | Not started | Requires integrated product and selected platforms |
+| Release readiness | Blocked | Native application and device evidence do not exist |
 
-## Name and Identifier Inventory
+## Known Infrastructure Risks
 
-Recommended future identity:
+These pre-existing risks remain outside Prompt 2:
 
-- Product name: `Ennoble`
-- Internal slug: `ennoble`
-- Android package recommendation: `com.vipertecpro.ennoble`
-- iOS bundle identifier recommendation: `com.vipertecpro.ennoble`
+1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
+2. Native UI remains a temporary project path mirror.
+3. Neither platform has been built from this compatibility baseline.
+4. Generated native projects still require later identity/build verification.
+5. No static-analysis tool is configured.
+6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-The current runtime configuration resolves `app.name` to Ennoble and `nativephp.app_id` to `com.vipertecpro.ennoble`. These values do not prove that ignored generated platform projects were regenerated with them.
+## Remaining Work Before Prompt 3
 
-| Location | Current state | Later action |
-| --- | --- | --- |
-| Local `.env` through Laravel config | Ennoble | Preserve; do not expose secrets |
-| Local NativePHP config value | `com.vipertecpro.ennoble` | Treat as recommended until production identifier is confirmed |
-| `.env.example` | `APP_NAME=Laravel`; no documented Ennoble mobile identity | Update in an approved configuration stage |
-| `composer.json` | `laravel/laravel`, skeleton description/keywords | Rename metadata after dependency baseline is stabilized |
-| `config/app.php` fallback | `Laravel` | Update only with a coordinated configuration change |
-| Welcome view fallback | `Laravel` | Remove or update when the web scaffold decision is made |
-| `README.md` | Heading is Ennoble; no product guidance yet | Expand only when requested in release/documentation stage |
-| Generic tests | Scaffold test names and web-root assertion | Replace incrementally as real behavior is implemented; do not delete without coverage |
-| Android manifest | Label `NativePHP` | Regenerate/verify from approved config later |
-| Android resources | `AndroidPHP` app name | Regenerate/verify later |
-| Android Gradle | `REPLACE_APP_ID` and SDK/version placeholders; namespace `com.nativephp.mobile` | Do not hand-edit generated project in Prompt 1 |
-| iOS project | Display name `NativePHP`, bundle `com.nativephp.app`, NativePHP target/product names | Regenerate/verify after identifier approval |
-| iOS URL metadata | `com.nativephp.app` and `nativephp` placeholders | Configure later only if deep links are required |
-| PHP namespace | `App\` | No rename needed |
-| Existing public assets | Laravel/Vite-era generated files and Instrument Sans assets | Audit when native asset pipeline is implemented |
+Prompt 3 can begin from the tested local domain layer. It should:
 
-## Known Risks and Conflicts
+- Implement semantic native theming and the native application shell only within its approved scope.
+- Register verified native routes and create NativeComponents/EDGE views.
+- Consume domain services rather than duplicating business logic.
+- Add in-process NativeComponent tests.
+- Keep gameplay content and mechanics outside the shell prompt.
+- Preserve the frozen dependency/plugin/mirror baseline.
 
-1. `nativephp/mobile` and `nativephp/native-ui` are development branches rather than tagged v4 releases.
-2. Composer warns that Native UI and Camera use unbounded constraints.
-3. The NativePHP plugin provider is not published, so plugins are absent from builds.
-4. Native UI plugin validation fails due to missing `ios.min_version`; do not patch `vendor/`.
-5. `config/nativephp.php` contains three duplicate `runtime` keys; PHP uses the last value, obscuring intended configuration.
-6. `package.json`, its lock file, and Vite config are removed while Composer `setup` and `dev` scripts still call npm commands.
-7. The only route is a web welcome page; it is not a native application shell.
-8. The default `User`, authentication/session tables, queue tables, and `DatabaseSeeder` test user reflect a web-first scaffold and are not the approved local-profile model.
-9. Camera is installed but unregistered and has no documented v1 requirement. Do not register or remove it without a dependency decision.
-10. Generated native projects contain placeholder identifiers and must not be described as release-configured.
-11. No static-analysis tool is configured.
-12. NativePHP v4 documentation describes the line as pre-release/beta; installed source must be rechecked before each implementation.
-
-## Prompt 2 Readiness
-
-**Verdict: Not ready for Prompt 2.**
-
-Before the database implementation stage is treated as an application-ready continuation, resolve or explicitly accept:
-
-- The intended NativePHP v4 dependency/branch strategy.
-- Publishing and registering the Native UI provider.
-- The Native UI `ios.min_version` validation failure.
-- Whether the Camera dependency is required.
-- The generated platform/configuration mismatch.
-
-Database design work can be reviewed independently, but the repository must not be represented as a verified native v4 build until these blockers are closed and a later platform run is actually performed.
+No database redesign, placeholder metrics, remote capability, or gameplay screen is required before Prompt 3.

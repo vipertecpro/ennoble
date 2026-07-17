@@ -1,302 +1,277 @@
 # Ennoble Database Plan
 
-## Goals
+## Implemented Status
 
-The v1 schema should support a single local profile, bundled content, resumable daily workouts, granular game evidence, aggregates, streaks, and achievements without creating a table for every concept.
+The first-release domain schema was implemented on 2026-07-18. SQLite is the authoritative local store, NativePHP startup migrations are the installation mechanism, and no runtime feature depends on a network connection.
 
-This is a proposal only. Prompt 1 creates no migrations, models, factories, or seeders.
+The implementation contains 13 Ennoble tables:
+
+1. `profiles`
+2. `settings`
+3. `games`
+4. `game_levels`
+5. `challenges`
+6. `daily_workouts`
+7. `daily_workout_items`
+8. `game_sessions`
+9. `game_rounds`
+10. `progress_snapshots`
+11. `statistics`
+12. `achievements`
+13. `achievement_unlocks`
+
+The existing Laravel scaffold tables remain unchanged. No account, remote-authentication, queue, or server-owned table was added.
 
 ## Storage Rules
 
-- SQLite is the only core data store.
-- User-generated state remains local and must work offline.
-- Foreign keys are enabled and relationships use conventional Laravel keys.
-- Finite states are represented by PHP enums and stored as stable strings.
-- Timestamps are stored consistently and local workout dates are stored separately from event datetimes.
-- JSON is limited to versioned, bounded content payloads and resume snapshots. Queryable metrics use columns.
-- Seeded definitions are versioned through migrations; user-generated history is never overwritten by a content refresh.
+- Every core record is stored in local SQLite.
+- Foreign keys are enabled and tested.
+- Finite states are persisted as stable strings and cast to PHP enums.
+- Local workout dates are separate from event timestamps.
+- JSON is limited to bounded configuration, accepted answers, response evidence, resume snapshots, accessibility preferences, summaries, and unlock evidence.
+- Frequently filtered dates, states, foreign keys, content identifiers, and aggregate scopes are indexed.
+- Bundled definitions are inserted by a dedicated migration. `db:seed` is not required on device.
+- User-generated history is never overwritten by a bundled-content refresh.
 
-## Proposed Tables
+## Implemented Tables
 
 ### `profiles`
 
-One row containing local identity and preferences.
+One local identity row, enforced through unique `singleton_key`.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key; v1 expects a singleton row |
-| `display_name` | Local name shown in the application |
-| `training_goal` | Finite goal enum |
-| `difficulty_preference` | Finite preference enum |
-| `sound_enabled` | Boolean |
-| `haptics_enabled` | Boolean |
-| `theme_preference` | `system`, `light`, or `dark` |
-| `reduced_motion` | Boolean |
-| `onboarding_completed_at` | Nullable completion timestamp |
-| timestamps | Creation/update auditing |
+| `singleton_key` | Stable singleton key, currently `local` |
+| `display_name` | Local player name |
+| `training_goal` | `TrainingGoal` enum |
+| `difficulty_preference` | `Difficulty` enum |
+| timestamps | Local auditing |
 
-The profile also stores settings, avoiding a separate settings table. It is user-generated and retained during a progress-only reset if product behavior confirms that preference.
+Profiles are runtime data and are not seeded.
+
+### `settings`
+
+One settings row per profile, enforced by unique `profile_id`.
+
+| Column | Purpose |
+| --- | --- |
+| `theme_preference` | `system`, `light`, or `dark` |
+| `sound_enabled` | Local sound preference |
+| `haptics_enabled` | Local haptic preference |
+| `reduced_motion` | Reduced-motion preference |
+| `daily_reminder_enabled` | Reminder preference only; notifications are not implemented |
+| `accessibility_preferences` | Bounded JSON booleans for supported accessibility options |
+
+`ProfileService` creates safe defaults with a profile. `SettingsService` filters unsupported accessibility keys before persistence.
 
 ### `games`
 
-Seeded definitions for playable and Coming Soon games.
+Seeded definitions for the two first-release games.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `slug` | Stable unique identifier |
-| `name` | Product name |
-| `description` | Bundled product copy |
-| `status` | `playable` or `coming_soon` |
-| `sort_order` | Stable library order |
-| `skill_keys` | Bounded JSON list of trained skills |
-| `configuration` | Versioned bounded defaults where code constants are insufficient |
-| timestamps | Content version auditing |
+| `type` | Unique `GameType` |
+| `slug` | Stable unique content identifier |
+| `name`, `description` | Original bundled product copy |
+| `status` | `GameStatus` enum |
+| `sort_order` | Deterministic workout/library order |
+| `skill_keys` | Bounded trained-skill list |
+| `configuration` | Versioned game defaults |
 
-Indexes: unique `slug`; index `(status, sort_order)`. Seeded content is retained across Reset Progress.
+The seed migration installs Signal Shift and Clear Thought only.
+
+### `game_levels`
+
+Seeded difficulty definitions owned by a game.
+
+| Column | Purpose |
+| --- | --- |
+| `difficulty` | `Difficulty` enum |
+| `name` | Original level label |
+| `round_count` | Default session size |
+| `target_response_ms` | Optional compatible response target |
+| `configuration` | Bounded game-specific level rules |
+| `is_active` | Eligibility for new workouts |
+
+Unique `(game_id, difficulty)` prevents duplicate levels. Three levels are installed for each playable game.
 
 ### `challenges`
 
-Seeded, versioned content or rule definitions used by game sessions.
+Versioned bundled Clear Thought content and any future persisted rule definitions.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `game_id` | Owning game |
+| `game_id`, `game_level_id` | Owning definition and level |
 | `slug` | Stable identifier within a game |
-| `mode` | Game-specific finite mode |
-| `difficulty` | Bounded integer or stable enum value |
-| `content_version` | Integer schema/content version |
-| `prompt` | Optional local prompt text |
-| `payload` | Bounded JSON instructions, options, and accepted answers |
-| `explanation` | Optional educational explanation |
-| `hint` | Optional local hint |
-| `is_active` | Whether new sessions may select it |
-| timestamps | Content auditing |
+| `mode` | `ClearThoughtMode` enum |
+| `content_version` | Payload compatibility version |
+| `prompt`, `explanation`, `hint` | Bundled educational content |
+| `payload` | Bounded local interaction data |
+| `accepted_answers` | Explicit deterministic answers |
+| `is_active` | New-session eligibility |
 
-Indexes: unique `(game_id, slug)`; index `(game_id, mode, difficulty, is_active)`. Seeded challenges are not deleted when historical sessions reference them; obsolete content is marked inactive.
-
-A separate `game_levels` table is not needed for v1. Difficulty is stored on challenges and snapshotted on sessions. Progression thresholds live in a tested service/configuration until the product needs editable level definitions.
+Prompt 2 creates the schema and validator but intentionally does not seed gameplay challenges. Editorial game content belongs to the gameplay implementation prompt.
 
 ### `daily_workouts`
 
-One generated workout per local calendar date.
+One workout per profile and local calendar date.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `profile_id` | Local profile |
-| `workout_date` | Local date used for uniqueness |
-| `status` | `pending`, `in_progress`, or `completed` |
-| `generation_version` | Generator version for reproducibility |
-| `started_at` | Nullable start |
-| `completed_at` | Nullable completion |
-| `training_seconds` | Final aggregate |
-| `accuracy` | Nullable final normalized accuracy |
-| `summary` | Bounded JSON for non-queryable result display |
-| timestamps | Auditing |
+| `workout_date` | Unique local date per profile |
+| `status` | `WorkoutStatus` enum |
+| `generation_version` | Deterministic generator version |
+| `started_at`, `completed_at` | Lifecycle timestamps |
+| `statistics_recorded_at` | Idempotent aggregate marker |
+| `training_seconds`, `accuracy` | Queryable final metrics |
+| `summary` | Bounded completion summary |
 
-Indexes: unique `(profile_id, workout_date)`; index `(profile_id, status, workout_date)`. User-generated. Reset Progress deletes it.
+Unique `(profile_id, workout_date)` prevents duplicates caused by reopening Today.
 
 ### `daily_workout_items`
 
-Ordered game assignments within a daily workout.
+The two ordered game assignments inside a workout.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `daily_workout_id` | Owning workout |
-| `game_id` | Assigned game |
-| `position` | Stable sequence, one-based or zero-based consistently |
-| `status` | `pending`, `in_progress`, or `completed` |
-| `difficulty` | Assigned difficulty snapshot |
-| `configuration` | Bounded generated round/session configuration |
-| `started_at` | Nullable start |
-| `completed_at` | Nullable completion |
-| timestamps | Auditing |
+| `game_id`, `game_level_id` | Assigned bundled definitions |
+| `position` | Stable one-based order |
+| `status` | `WorkoutStatus` enum |
+| `configuration` | Generated level snapshot |
+| `started_at`, `completed_at` | Item lifecycle |
 
-Indexes: unique `(daily_workout_id, position)`; index `(daily_workout_id, status)`. User-generated and cascade-deleted with its workout.
+Unique `(daily_workout_id, position)` and `(daily_workout_id, game_id)` enforce one ordered item per game.
 
 ### `game_sessions`
 
-One attempt for a game, optionally linked to a daily item.
+One resumable attempt, optionally linked to a daily item.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `profile_id` | Local profile |
-| `game_id` | Played game |
-| `daily_workout_item_id` | Nullable daily assignment; null for free play |
-| `status` | `in_progress`, `completed`, `abandoned`, or `invalid` |
-| `mode` | Session mode |
-| `difficulty` | Difficulty snapshot |
-| `snapshot_version` | Resume-payload format |
-| `current_round` | Resume cursor |
-| `state_snapshot` | Bounded JSON needed to resume |
-| `score` | Nullable final score |
-| `accuracy` | Nullable final accuracy |
-| `average_response_ms` | Nullable compatible metric |
-| `correct_count` | Final/rolling count |
-| `incorrect_count` | Final/rolling count |
-| `hint_count` | Clear Thought hint usage |
-| `best_combo` | Signal Shift combo result |
-| `started_at` | Start |
-| `last_interaction_at` | Latest committed checkpoint |
-| `completed_at` | Nullable completion |
-| timestamps | Auditing |
+| `profile_id`, `game_id`, `game_level_id` | Authoritative ownership and definitions |
+| `daily_workout_item_id` | Nullable for later free play |
+| `status`, `mode` | Session lifecycle and game mode |
+| `snapshot_version`, `current_round`, `state_snapshot` | Bounded resume checkpoint |
+| `score`, `accuracy`, `average_response_ms` | Final result metrics |
+| result counters | Correct, incorrect, missed, hints, and best combo |
+| lifecycle timestamps | Start, interaction, completion, and statistics marker |
 
-Indexes: `(profile_id, game_id, status, started_at)`, `(daily_workout_item_id, status)`, and `(game_id, score)`. User-generated. A daily item may have multiple attempts only if restart behavior is explicitly allowed; at most one may be active.
+The snapshot never duplicates full round history.
 
-The resume snapshot contains no full history. It stores deterministic seed/content identifiers, remaining interaction order, current counters, and mode-specific UI state.
+### `game_rounds`
 
-### `round_results`
-
-Append-only evidence for each meaningful round or challenge response.
+Append-only evidence for each meaningful round or answer.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
 | `game_session_id` | Owning session |
-| `challenge_id` | Nullable seeded challenge |
-| `round_number` | Ordered round index |
-| `outcome` | `correct`, `incorrect`, `missed`, or mode-specific normalized result |
-| `response_ms` | Nullable measured response time |
-| `score_delta` | Round score contribution |
-| `combo` | Nullable combo after the round |
-| `hint_used` | Boolean |
-| `response` | Bounded JSON answer/interaction evidence |
-| `created_at` | Immutable event time |
+| `challenge_id` | Nullable bundled challenge reference |
+| `round_number` | Ordered checkpoint number |
+| `outcome` | `RoundOutcome` enum |
+| `response_ms`, `score_delta`, `combo`, `hint_used` | Queryable evidence |
+| `response` | Bounded interaction/answer evidence |
 
-Indexes: unique `(game_session_id, round_number)` and index `(challenge_id, outcome)`. Rows are appended inside the same transaction that updates the session checkpoint. They are deleted with the session during Reset Progress.
+Unique `(game_session_id, round_number)` prevents duplicate checkpoint writes.
 
-### `skill_scores`
+### `progress_snapshots`
 
-Current rebuildable aggregates for each trained skill.
+Historical skill changes. The newest snapshot per `(profile, skill_key)` is the current value.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `profile_id` | Local profile |
-| `skill_key` | Stable skill identifier |
-| `score` | Normalized current score |
-| `evidence_count` | Completed evidence included |
+| `skill_key` | `SkillKey` enum |
+| `score_before`, `score_after`, `delta` | Bounded 0–1000 change |
+| `evidence_count` | Number of included evidence events |
+| `game_session_id` | Nullable triggering session |
+| `recorded_at` | Historical ordering |
+
+Unique `(game_session_id, skill_key)` makes session-backed progress idempotent.
+
+### `statistics`
+
+Rebuildable overall and per-game aggregates.
+
+| Column group | Purpose |
+| --- | --- |
+| `scope_key`, nullable `game_id` | Unique overall/per-game scope per profile |
+| completion totals | Sessions, workouts, and training seconds |
+| evidence totals | Correct, attempted, response time, and response count |
+| calculated metrics | Accuracy and average response time |
+| personal bests | Best score and longest combo |
+| streaks | Current, longest, and last completed workout date |
 | `last_calculated_at` | Aggregate freshness |
-| timestamps | Auditing |
 
-Indexes: unique `(profile_id, skill_key)`. User-generated cache of completed session evidence. Reset Progress deletes it.
-
-### `streak_states`
-
-One current aggregate row per profile.
-
-| Column | Purpose |
-| --- | --- |
-| `id` | Primary key |
-| `profile_id` | Local profile |
-| `current_streak` | Consecutive completed local dates |
-| `longest_streak` | Historical maximum |
-| `last_completed_date` | Latest counted workout date |
-| timestamps | Auditing |
-
-Index: unique `profile_id`. This row is rebuildable from completed daily workouts. Reset Progress deletes or zeroes it transactionally.
+Unique `(profile_id, scope_key)` avoids SQLite nullable-unique ambiguity. `StatisticsService::rebuild()` recreates these rows from completed sessions and workouts.
 
 ### `achievements`
 
-Seeded achievement definitions.
+Seeded local achievement definitions.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
 | `slug` | Stable unique identifier |
-| `name` | Original display name |
-| `description` | Unlock explanation |
-| `category` | General or game-specific category |
-| `criterion_type` | Evaluator key |
-| `criterion` | Bounded versioned JSON threshold |
-| `sort_order` | Collection order |
-| `is_active` | Whether currently evaluated |
-| timestamps | Content auditing |
+| `name`, `description` | Original bundled copy |
+| `type` | `AchievementType` evaluator key |
+| `game_id` | Nullable game-specific scope |
+| `criterion` | Bounded threshold JSON |
+| `sort_order`, `is_active` | Stable display/evaluation state |
 
-Indexes: unique `slug`; index `(category, is_active, sort_order)`. Seeded and retained across resets.
+Six transparent first-release definitions are installed.
 
 ### `achievement_unlocks`
 
-Idempotent user unlock records.
+One unlock per profile and achievement.
 
 | Column | Purpose |
 | --- | --- |
-| `id` | Primary key |
-| `profile_id` | Local profile |
-| `achievement_id` | Definition |
-| `game_session_id` | Nullable triggering session |
-| `daily_workout_id` | Nullable triggering workout |
-| `unlocked_at` | Unlock time |
-| `evidence` | Optional bounded JSON explanation |
-| timestamps | Auditing |
+| triggering IDs | Nullable session and workout evidence |
+| `unlocked_at` | Local unlock time |
+| `evidence` | Metric, observed value, and threshold |
 
-Indexes: unique `(profile_id, achievement_id)`; index `(profile_id, unlocked_at)`. User-generated and deleted by Reset Progress.
-
-## Relationship Summary
-
-```text
-profiles
-  ├── daily_workouts ── daily_workout_items
-  ├── game_sessions ── round_results
-  ├── skill_scores
-  ├── streak_states
-  └── achievement_unlocks
-
-games
-  ├── challenges
-  ├── daily_workout_items
-  └── game_sessions
-
-achievements ── achievement_unlocks
-```
-
-`game_sessions.daily_workout_item_id` is nullable for free play. `round_results.challenge_id` is nullable for generated Signal Shift rounds whose authoritative configuration is stored in the session snapshot.
+Unique `(profile_id, achievement_id)` makes evaluation idempotent.
 
 ## Transaction Boundaries
 
-Use database transactions for:
+Database transactions protect:
 
-- Creating a daily workout and both ordered items.
-- Appending a round result and advancing the session checkpoint.
-- Completing a game session and its workout item.
-- Completing a workout, recalculating streak/skills, and inserting unlocks.
-- Resetting progress.
+- Singleton profile creation with default settings.
+- Daily workout generation with both ordered items.
+- Session start and workout-item activation.
+- Round append with session checkpoint advancement.
+- Session completion, progress snapshots, statistics, and achievement evaluation.
+- Workout completion, summary, streak update, and achievement evaluation.
+- Statistics rebuilds.
 
-Completion services must be idempotent. Unique constraints prevent duplicate daily workouts, duplicate round numbers, and duplicate achievement unlocks.
+Completion and aggregate markers prevent replayed service calls from counting the same evidence twice.
 
-## Seed and Upgrade Strategy
+## Bundled Content and Upgrade Strategy
 
-NativePHP runs migrations on device startup. Use separate, reversible migrations for schema and content:
+`2026_07_17_202341_seed_ennoble_content.php` invokes three focused seeders:
 
-1. Create definition tables.
-2. Create user-state tables.
-3. Seed games/challenges/achievements from dedicated content migrations, optionally invoking focused Seeder classes.
-4. Add later content through new migrations using stable slugs and idempotent upserts.
+- `GameDefinitionSeeder`
+- `GameLevelSeeder`
+- `AchievementDefinitionSeeder`
 
-Test a fresh database and an existing database containing in-progress sessions before shipping any migration. Never use `migrate:fresh`, destructive replacement, or `db:seed` as an on-device upgrade strategy.
+They use stable identifiers and SQLite upserts. Re-running them updates bundled definitions without duplicating rows or deleting runtime data. Their migration rollback removes only the exact Prompt 2 definitions.
 
-## Data Retention and Reset
+Verified installed counts:
 
-- Keep completed sessions and round results until the user explicitly resets progress.
-- Keep abandoned sessions for history only if the product surfaces them; otherwise prune them through a documented local policy.
-- Preserve seeded definitions during reset.
-- Default Reset Progress deletes workouts, workout items, sessions, round results, skill scores, streak state, and unlocks in one transaction.
-- Whether display name/preferences are retained must be confirmed with the reset UX; default to retaining preferences and resetting training data.
+| Definition | Count |
+| --- | ---: |
+| Games | 2 |
+| Game levels | 6 |
+| Achievements | 6 |
+| Profiles | 0 |
+| Runtime sessions | 0 |
+
+The automated upgrade test creates the previous Laravel scaffold schema, inserts a legacy row, applies only the new product migrations, and confirms that the legacy row and all seeded definitions survive. A separate temporary-SQLite command verified fresh migrate, six-step rollback, and reapply.
+
+## Data Retention and Reset Boundary
+
+Seeded games, levels, challenges, and achievements are durable application content. Profiles, settings, workouts, sessions, rounds, progress, statistics, and unlocks are local runtime data.
+
+The future Reset Progress flow should delete training history, aggregates, and unlocks transactionally while preserving seeded definitions. Profile/settings retention remains a UI/product decision for the later settings prompt; Prompt 2 does not implement reset UI or silently delete any data.
 
 ## Existing Scaffold Tables
 
-The current database also contains `users`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, and `failed_jobs`. They are untouched by Prompt 1.
-
-They originate from the Laravel web scaffold and are not part of this v1 product plan. Removal or repurposing requires a later, explicit decision after NativePHP startup, cache, session, and package requirements are verified.
-
-## References
-
-- [NativePHP v4 Databases](https://nativephp.com/docs/mobile/4/digging-deeper/databases)
-- [Laravel 13 Migrations](https://laravel.com/docs/13.x/migrations)
-- [Laravel 13 Eloquent Relationships](https://laravel.com/docs/13.x/eloquent-relationships)
-- [Laravel 13 Database Transactions](https://laravel.com/docs/13.x/database#database-transactions)
-- Installed startup source that invokes `migrate --force`: `vendor/nativephp/mobile/resources/xcode/NativePHP/NativePHPApp.swift` and `vendor/nativephp/mobile/resources/androidstudio/app/src/main/java/com/nativephp/mobile/bridge/LaravelEnvironment.kt`
+`users`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, and `failed_jobs` remain untouched. They are not used as Ennoble product identity or domain storage.

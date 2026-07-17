@@ -14,8 +14,15 @@
             "url": "https://github.com/nativephp/mobile-air"
         },
         "ui": {
-            "type": "vcs",
-            "url": "https://github.com/nativephp/native-ui"
+            "type": "path",
+            "url": "packages/nativephp/native-ui",
+            "options": {
+                "versions": {
+                    "nativephp/native-ui": "dev-feat/webview-element"
+                },
+                "symlink": false,
+                "reference": "config"
+            }
         },
         "plugins": {
             "type": "composer",
@@ -27,8 +34,7 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "nativephp/mobile": "dev-element",
-        "nativephp/mobile-camera": "*",
-        "nativephp/native-ui": "@dev"
+        "nativephp/native-ui": "dev-feat/webview-element"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

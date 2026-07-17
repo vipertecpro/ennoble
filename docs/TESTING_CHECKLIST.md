@@ -7,11 +7,11 @@
 | Pest | 4.7.5 |
 | PHPUnit | 12.5.30 |
 | Laravel Pint | 1.29.3 |
-| NativePHP test harness | Present in installed `nativephp/mobile` source |
+| NativePHP in-process component harness | Present in installed `nativephp/mobile` source |
 | Static analysis | Not configured |
 | Database under tests | In-memory SQLite from `phpunit.xml` |
 
-Prompt 1 does not add a static-analysis dependency. If one is approved later, document its configuration and command before making it a completion gate.
+Static analysis is not configured. If a tool is approved later, document its configuration and command before making it a completion gate.
 
 ## Check Types
 
@@ -76,17 +76,18 @@ Review every screen and major state for:
 Run each command independently so one failure does not hide later evidence:
 
 ```bash
-composer validate --strict --no-check-publish
+composer validate --strict
+composer install --dry-run --no-interaction --no-scripts
+composer audit
 composer show nativephp/mobile --locked
 composer show nativephp/native-ui --locked
-composer show nativephp/mobile-camera --locked
 php artisan about --only=environment,drivers
 php artisan config:show app.name
 php artisan config:show database.default
 php artisan config:show nativephp
 php artisan route:list --except-vendor
 php artisan test --compact
-vendor/bin/pint --test
+vendor/bin/pint app/Providers/NativeServiceProvider.php config/nativephp.php --format agent
 php artisan native:version
 php artisan native:debug --json
 php artisan native:validate
@@ -94,6 +95,8 @@ php artisan native:plugin:list
 php artisan native:plugin:validate
 git diff --check
 ```
+
+Do not run a Composer update, including an update dry run, during ordinary feature work. Use the targeted NativePHP dependency-resolution dry run only during an explicitly approved compatibility upgrade following `UPSTREAM_TRACKING.md`.
 
 Use the Laravel Boost absolute-URL resolver before sharing or checking a Herd URL. Record the HTTP status and page title for the smoke check.
 
@@ -227,29 +230,52 @@ See [NativePHP v4 Testing](https://nativephp.com/docs/mobile/4/testing/introduct
 - [ ] Database migration failure is visible and does not silently reset data.
 - [ ] Device clock changes do not create duplicate same-date workouts.
 
-## Prompt 1 Baseline Results
+## Prompt 1.1 Readiness Results
 
 | Command/check | Result |
 | --- | --- |
-| `composer validate --strict --no-check-publish` | Exit 1: Composer JSON is valid, with warnings for Native UI `@dev` and Camera `*` unbounded constraints |
+| `composer validate --strict` | Exit 0: Composer JSON and lock file are valid with no warnings |
+| `composer install --dry-run --no-interaction --no-scripts` | Exit 0: lock contents are installable; nothing to install, update, or remove |
+| `composer update nativephp/mobile nativephp/native-ui --with-dependencies --dry-run --no-interaction --no-scripts` | Exit 0: targeted resolution makes no lock or install changes |
+| `composer audit` | Exit 0: no security vulnerability advisories found |
+| `composer reinstall nativephp/native-ui --no-interaction --no-scripts` | Exit 0: Native UI was removed and mirrored again from `packages/nativephp/native-ui`; subsequent plugin validation passed |
 | `composer show nativephp/mobile --locked` | Exit 0: `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
-| `composer show nativephp/native-ui --locked` | Exit 0: `dev-feat/webview-element` at `ce3d8b760c89dd08e14baad8b05afd82494d3c46` |
-| `composer show nativephp/mobile-camera --locked` | Exit 0: 1.0.3 at `b01139ea47029b6eae695d1a16c41e00f265fd54` |
+| `composer show nativephp/native-ui --locked` | Exit 0: `dev-feat/webview-element`, path lock reference `a2c1c943acf70ee1b94599f94c6383e9332bbb2c`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46` |
+| Camera dependency search | No application use found; `nativephp/mobile-camera` removed from Composer, lock data, Boost package guidance, and Camera-specific config examples |
 | `php artisan about --only=environment,drivers` | Exit 0: Laravel 13.20.0, PHP 8.4.23, SQLite, local/debug environment |
 | `php artisan config:show app.name` | Exit 0: Ennoble |
 | `php artisan config:show database.default` | Exit 0: SQLite |
 | `php artisan config:show nativephp` | Exit 0: `app_id` is `com.vipertecpro.ennoble`; effective runtime mode is `persistent` |
 | `php artisan route:list --except-vendor` | Exit 0: one web `GET /` route; no native routes |
 | `php artisan test --compact` | Passed: 2 tests, 2 assertions |
-| `vendor/bin/pint --test` | Passed |
+| `vendor/bin/pint --dirty --format agent` | Exit 0: application provider formatted; path-package formatting was restored to its exact upstream form |
+| `vendor/bin/pint app/Providers/NativeServiceProvider.php config/nativephp.php --format agent` | Exit 0: targeted application PHP formatting passes |
 | `php artisan native:version` | Exit 0: `dev-element` |
-| `php artisan native:debug --json` | Exit 0: package/runtime versions and local Xcode, Android Studio, Gradle, Java, and CocoaPods tools detected |
+| `php artisan native:debug --json` | Exit 0: core plus Native UI detected; local Xcode, Android Studio, Gradle, Java, and CocoaPods tools reported |
 | `php artisan native:validate` | Exit 0 with warning: no NativeComponents found |
-| `php artisan native:plugin:list` | Exit 0 but reports an error-level readiness condition: provider unpublished; Native UI and Camera unregistered |
-| `php artisan native:plugin:validate` | Exit 1: Camera passed; Native UI failed because `ios.min_version` is missing |
+| `php artisan native:plugin:list` | Exit 0: exactly one registered plugin, `nativephp/native-ui`, with both platform renderers and two bridge functions |
+| `php artisan native:plugin:validate` | Exit 0: Native UI passes with Android minimum 26 and iOS minimum 18.2 |
 | Herd HTTP smoke check at resolved root URL | Exit 0: HTTP 200, `text/html`, title Ennoble |
 | `git diff --check` | Exit 0: no whitespace errors |
 | Static analysis | Not run; no tool/configuration exists |
 | Android/iOS simulator/device | Not run |
 
-These results describe Prompt 1 only. Re-run the baseline after any dependency, provider, configuration, route, or native-component change.
+The no-NativeComponents warning is expected until the application-shell prompt and does not change the command's successful exit. These checks do not prove native compilation or device behavior. Re-run the baseline after any dependency, provider, configuration, route, or native-component change.
+
+## Prompt 1.2 Documentation Validation
+
+| Command/check | Result |
+| --- | --- |
+| Pinned Native UI recursive comparison | Exactly three expected differences: `nativephp.json`, the mirror `README.md`, and the new `UPSTREAM_DIFF.md` |
+| Pinned Native UI `nativephp.json` textual diff | Exactly one runtime/source change: `ios.min_version: 18.2` |
+| Pinned Native UI `composer.json` byte comparison | Identical to upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46` |
+| Forbidden legacy product-name search across Markdown | No matches |
+| `composer validate --strict` | Exit 0: `composer.json` and its lock file are valid |
+| `php artisan test --compact` | Passed: 2 tests, 2 assertions |
+| `vendor/bin/pint app/Providers/NativeServiceProvider.php config/nativephp.php --format agent` | Exit 0: passed |
+| `php artisan native:validate --no-interaction` | Exit 0 with the expected warning that no NativeComponents exist yet |
+| `php artisan native:plugin:validate --no-interaction` | Exit 0: Native UI passes with Android minimum 26 and iOS minimum 18.2 |
+| `git diff --check` | Exit 0: no whitespace errors |
+| Android/iOS simulator/device | Not run, as required by Prompt 1.2 |
+
+Prompt 1.2 changed documentation only. It did not update Composer packages, regenerate native projects, or add application code.

@@ -14,7 +14,7 @@
 
 **Objective:** Establish the verified technical/product baseline and permanent development constraints.
 
-**Expected files:** Root `AGENTS.md` and the eight files in `docs/`.
+**Expected files:** Root `AGENTS.md` and the project documentation in `docs/`.
 
 **Dependencies:** Existing Laravel installation, NativePHP v4 documentation, installed package source/tests.
 
@@ -44,11 +44,11 @@
 
 ## Stage 3 — Design System and Native Application Shell
 
-**Objective:** Resolve the Native UI installation blockers, implement semantic theming, and create the four-tab native shell.
+**Objective:** Preserve the frozen NativePHP compatibility baseline, implement semantic theming, and create the four-tab native shell.
 
-**Expected files:** Published Native service provider/config where approved, theme configuration, icon enums, `routes/mobile.php`, `app/NativeLayouts`, shell NativeComponents/EDGE views, and tests.
+**Expected files:** Theme configuration, icon enums, `routes/mobile.php`, `app/NativeLayouts`, shell NativeComponents/EDGE views, and tests.
 
-**Dependencies:** Explicit approval for provider registration and any dependency stabilization; resolution of Native UI manifest validation; final local font/license choice.
+**Dependencies:** Frozen provider, plugin, and dependency baseline from Prompt 1.2; final local font/license choice. Do not reopen Composer strategy or edit the Native UI mirror during this stage.
 
 **NativePHP features:** `Route::native`, `NativeLayout`, tab/nav bars, typed icons, theme tokens, safe-area behavior, NativeComponent testing.
 
