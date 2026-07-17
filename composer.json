@@ -8,14 +8,31 @@
         "framework"
     ],
     "license": "MIT",
+    "repositories": {
+        "mobile": {
+            "type": "vcs",
+            "url": "https://github.com/nativephp/mobile-air"
+        },
+        "ui": {
+            "type": "vcs",
+            "url": "https://github.com/nativephp/native-ui"
+        },
+        "plugins": {
+            "type": "composer",
+            "url": "https://plugins.nativephp.com"
+        }
+    },
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "nativephp/mobile": "dev-element",
+        "nativephp/mobile-camera": "*",
+        "nativephp/native-ui": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel/boost": "^2.2",
+        "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
