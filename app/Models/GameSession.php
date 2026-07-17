@@ -15,6 +15,8 @@ class GameSession extends Model
     /** @use HasFactory<GameSessionFactory> */
     use HasFactory;
 
+    public const FRAMEWORK_PLACEHOLDER_MODE = 'workout_framework_placeholder';
+
     protected $fillable = [
         'profile_id',
         'game_id',
@@ -93,6 +95,20 @@ class GameSession extends Model
     public function scopeCompleted(Builder $query): Builder
     {
         return $query->where('status', SessionStatus::Completed);
+    }
+
+    public function scopeWithGameplayEvidence(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query
+                ->whereNull('mode')
+                ->orWhere('mode', '!=', self::FRAMEWORK_PLACEHOLDER_MODE);
+        });
+    }
+
+    public function isFrameworkPlaceholder(): bool
+    {
+        return $this->mode === self::FRAMEWORK_PLACEHOLDER_MODE;
     }
 
     protected function casts(): array

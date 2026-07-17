@@ -63,6 +63,10 @@ final class StatisticsService
                 throw new LogicException('Only completed sessions may update statistics.');
             }
 
+            if ($lockedSession->isFrameworkPlaceholder()) {
+                throw new LogicException('Framework placeholders cannot update gameplay statistics.');
+            }
+
             if ($lockedSession->statistics_recorded_at !== null) {
                 return;
             }
@@ -136,7 +140,7 @@ final class StatisticsService
     /**
      * Build a truthful workout summary from its completed session evidence.
      *
-     * @return array<string, int|float|null>
+     * @return array<string, bool|int|float|null>
      */
     public function dailySummary(DailyWorkout $dailyWorkout): array
     {
@@ -145,14 +149,21 @@ final class StatisticsService
             ->whereHas('workoutItem', fn ($query) => $query->whereBelongsTo($dailyWorkout, 'workout'))
             ->with('rounds')
             ->get();
-        $correctCount = (int) $sessions->sum('correct_count');
-        $attemptedCount = (int) $sessions->sum(
+        $evidenceSessions = $sessions->reject(
+            fn (GameSession $session): bool => $session->isFrameworkPlaceholder(),
+        );
+        $correctCount = (int) $evidenceSessions->sum('correct_count');
+        $attemptedCount = (int) $evidenceSessions->sum(
             fn (GameSession $session): int => $session->correct_count
                 + $session->incorrect_count
                 + $session->missed_count,
         );
-        $rounds = $sessions->flatMap->rounds;
+        $rounds = $evidenceSessions->flatMap->rounds;
         $trainingSeconds = (int) $sessions->sum(function (GameSession $session): int {
+            if ($session->isFrameworkPlaceholder()) {
+                return max(0, (int) data_get($session->state_snapshot, 'elapsed_seconds', 0));
+            }
+
             if ($session->completed_at === null) {
                 return 0;
             }
@@ -162,11 +173,16 @@ final class StatisticsService
 
         return [
             'sessions_completed' => $sessions->count(),
-            'score' => (int) $sessions->sum('score'),
+            'score' => $evidenceSessions->isEmpty()
+                ? null
+                : (int) $evidenceSessions->sum('score'),
             'accuracy' => $this->calculateAccuracy($correctCount, $attemptedCount),
             'average_response_ms' => $this->calculateAverageResponseTime($rounds),
-            'longest_combo' => (int) ($sessions->max('best_combo') ?? 0),
+            'longest_combo' => $evidenceSessions->isEmpty()
+                ? null
+                : (int) ($evidenceSessions->max('best_combo') ?? 0),
             'training_seconds' => $trainingSeconds,
+            'has_gameplay_evidence' => $evidenceSessions->isNotEmpty(),
         ];
     }
 
@@ -201,6 +217,7 @@ final class StatisticsService
         $statistics = $this->personalBests($profile)->keyBy('game_id');
         $sessionSummaries = GameSession::query()
             ->whereBelongsTo($profile)
+            ->withGameplayEvidence()
             ->select('game_id')
             ->selectRaw('COUNT(*) as session_count')
             ->selectRaw('MAX(started_at) as last_played_at')
@@ -273,16 +290,24 @@ final class StatisticsService
             GameSession::query()
                 ->whereBelongsTo($profile)
                 ->completed()
+                ->withGameplayEvidence()
                 ->update(['statistics_recorded_at' => null]);
             DailyWorkout::query()
                 ->whereBelongsTo($profile)
                 ->completed()
-                ->update(['statistics_recorded_at' => null]);
+                ->get()
+                ->filter(fn (DailyWorkout $workout): bool => (bool) data_get(
+                    $workout->summary,
+                    'has_gameplay_evidence',
+                    true,
+                ))
+                ->each->update(['statistics_recorded_at' => null]);
         });
 
         GameSession::query()
             ->whereBelongsTo($profile)
             ->completed()
+            ->withGameplayEvidence()
             ->with('rounds')
             ->oldest('completed_at')
             ->each(function (GameSession $session): void {
@@ -305,6 +330,12 @@ final class StatisticsService
             ->whereBelongsTo($profile)
             ->completed()
             ->oldest('workout_date')
+            ->get()
+            ->filter(fn (DailyWorkout $workout): bool => (bool) data_get(
+                $workout->summary,
+                'has_gameplay_evidence',
+                true,
+            ))
             ->each(fn (DailyWorkout $workout): Statistic => $this->recordWorkoutCompletion($workout));
 
         return Statistic::query()

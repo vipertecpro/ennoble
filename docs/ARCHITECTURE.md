@@ -4,9 +4,9 @@
 
 Ennoble runs on Laravel 13.20.0, PHP 8.4.23, and local SQLite. NativePHP Mobile remains locked to `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`. Native UI remains the frozen project-owned path mirror based on upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with only the documented iOS 18.2 manifest fix.
 
-Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard. Prompt 6 replaces the Games placeholder with a curated, searchable, filterable native library. Prompts 5 and 6 do not change Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
+Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard. Prompt 6 replaces the Games placeholder with a curated, searchable, filterable native library. Prompt 7 replaces the workout placeholder with a complete reusable workout-session framework while keeping both games explicitly non-playable. Prompts 5–7 do not change Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
 
-The application has nine native routes, including onboarding, the complete Home dashboard, the complete Games library, and an honest future workout-flow placeholder. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Gameplay, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
+The application has thirteen native routes, including onboarding, the complete Home dashboard, the complete Games library, and five workout-session routes. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Signal Shift and Clear Thought gameplay, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
 
 The local database now contains the additive Ennoble schema and bundled definitions for:
 
@@ -116,13 +116,17 @@ The asset directories remain structural and do not ship external artwork, animat
 - `/onboarding`
 - `/`
 - `/workout`
+- `/workout/preparation/{session}`
+- `/workout/game/{session}`
+- `/workout/transition/{item}`
+- `/workout/complete/{workout}`
 - `/games`
 - `/progress`
 - `/profile`
 - `/settings`
 - `/about`
 
-The root route remains Home so the existing NativePHP `start_url` remains unchanged. Home redirects an incomplete local profile to `/onboarding`; returning users receive the current local dashboard. Direct onboarding navigation by a completed profile replaces back to Home. `/workout` is a non-gameplay placeholder with hidden tab chrome and native back navigation. Splash remains an explicit navigation-verification route.
+The root route remains Home so the existing NativePHP `start_url` remains unchanged. Home redirects an incomplete local profile to `/onboarding`; returning users receive the current local dashboard. Direct onboarding navigation by a completed profile replaces back to Home. Workout routes use hidden tab chrome and replace navigation across introduction, preparation, container, transition, and completion so stale phases do not accumulate in the native stack. Splash remains an explicit navigation-verification route.
 
 `EnnobleLayout` opts into installed v4 native chrome. It provides:
 
@@ -253,7 +257,7 @@ The component maps those domain results into serializable native view state. It 
 
 Reusable EDGE components own the greeting, section headers, section loading, Today workout, streak, progress, achievement, and Coming Soon cards. The full dashboard and each data section expose loading and recoverable error states independently. Empty states distinguish no streak, no progress evidence, no workout history, no personal best, and no achievement unlock.
 
-The Today CTA triggers preference-aware haptics and navigates to `/workout`, which explicitly states that no session has started. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
+The Today CTA triggers preference-aware haptics and navigates to `/workout`. The introduction remains side-effect free; its Begin or Resume action creates or retrieves the explicit framework-placeholder session. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
 
 ### Games Library
 
@@ -270,11 +274,21 @@ Signal Shift is both the featured card and one of the two available cards. Clear
 
 Reusable EDGE components own the featured card, playable card, Coming Soon card, illustration placeholder, statistic tile, badge, category chip, and search input. The existing screen container, section header, loading card, empty/error states, dialog host, semantic tokens, typed icons, toast service, and haptic service are reused.
 
-Playable actions trigger preference-aware impact feedback and navigate to `/workout`, the existing explicit non-gameplay placeholder. Coming Soon cards provide native-thread press feedback and selection haptics, then open the shared bottom sheet without navigation or persistence. Search and filters never mutate SQLite.
+Playable actions trigger preference-aware impact feedback and navigate to the workout introduction. Beginning there creates a resumable framework-placeholder session without gameplay evidence. Coming Soon cards provide native-thread press feedback and selection haptics, then open the shared bottom sheet without navigation or persistence. Search and filters never mutate SQLite.
 
 Initial loading, complete-catalog, filtered, no-search-result, no-category-match, no-history, no-statistics, statistics-error, and full recoverable-error states are represented. Reduced Motion resolves authored appearance and press transforms to static values. The in-process accessibility audit covers the complete and conditional trees, while platform reading order, scalable-text layout, and visual behavior remain device-verification work.
 
 ### Workout
+
+Five focused NativeComponents own the workout presentation lifecycle:
+
+1. `WorkoutIntroduction` loads the deterministic daily sequence and presents duration, difficulty, skills, Begin, and Resume without starting a session during mount.
+2. `WorkoutPreparation` presents game-specific guidance and a poll-driven three-second countdown, then persists the prepared checkpoint.
+3. `WorkoutGameContainer` owns elapsed-time polling, pause/resume, restart, exit confirmation, checkpoint persistence, and the explicit placeholder-completion action.
+4. `WorkoutTransition` presents the truthful no-score state and the next game. It advances after three poll ticks or a Continue action; Reduced Motion disables automatic advancement.
+5. `WorkoutComplete` presents training time and completed framework steps while score and accuracy remain “Not recorded.”
+
+Reusable EDGE components own the header, progress, countdown, game container, transition card, completion card, pause sheet, and footer. The screens use typed icons, semantic theme tokens, native modal/bottom-sheet hosts, preference-aware haptics, hidden tab chrome, accessibility labels, and recoverable errors.
 
 `WorkoutService`:
 
@@ -287,7 +301,8 @@ Initial loading, complete-catalog, filtered, no-search-result, no-category-match
 - Estimates two configured rounds per minute, bounded to the product's 5–10 minute duration promise.
 - Hydrates complete resume state.
 - Refuses premature completion.
-- Finalizes the workout summary, statistics, streak, and achievements idempotently.
+- Finalizes the workout summary idempotently and updates statistics, streaks, and achievements only when gameplay evidence exists.
+- Resets only framework-placeholder sessions for the explicit Restart Workout action.
 - Exposes newest-first history.
 
 Missing games or levels raise an explicit domain exception. The service never invents fallback content.
@@ -328,7 +343,7 @@ Accuracy dominates random rapid tapping through explicit penalties.
 6. Finalize session metrics and its workout item.
 7. Persist skill, statistics, and achievement evidence exactly once.
 
-It does not know about navigation, NativeComponents, EDGE, or layout.
+It additionally owns a deliberately separate framework-placeholder path. Placeholder sessions persist prepared, paused, and elapsed-time checkpoints; completion stores no rounds, score, accuracy, personal best, skill progress, statistics, or achievement evidence. The normal scoring pipeline rejects placeholder sessions. It does not know about navigation, NativeComponents, EDGE, or layout.
 
 ### Progress
 
@@ -419,7 +434,7 @@ The frozen NativePHP compatibility boundary remains:
 - Root Composer repositories and constraints are unchanged.
 - `packages/nativephp/native-ui` contains no Ennoble domain logic.
 
-`php artisan native:validate` passes all nine application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include every runtime-registered Native UI manifest type used by the application, so carousel, outlined text input, and Games filter chips are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
+`php artisan native:validate` passes all thirteen application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include every runtime-registered Native UI manifest type used by the application, so carousel, outlined text input, and Games filter chips are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
 
 ## Failure Handling
 
@@ -431,17 +446,20 @@ The frozen NativePHP compatibility boundary remains:
 - Aggregate rebuilds do not alter authoritative rounds or completed sessions.
 - Migration failures are not hidden by database resets.
 - Dashboard section failures retain unrelated local previews and never expose raw exceptions.
-- Invalid Coming Soon identifiers do nothing, and the workout placeholder never starts a session.
+- Invalid Coming Soon identifiers do nothing, and opening the workout introduction never starts a session.
 - Missing playable Games definitions produce a recoverable full-library error rather than invented cards.
 - Games statistics failures preserve the catalog, show unavailable evidence, and offer a focused retry.
 - Invalid category, playable-game, or Coming Soon identifiers do nothing.
+- Missing or foreign workout checkpoints render a recoverable state.
+- Exit preserves the latest local placeholder checkpoint; restart refuses workouts containing real gameplay evidence.
+- Placeholder sessions are excluded from game previews, statistics rebuilds, hint-free achievement evidence, and the real scoring pipeline.
 
 ## Verification Boundary
 
-Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, per-game duration resolution, progress, statistics, Games preview aggregation and completion rate, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, Games featured/available/future sections, filtering, offline search, conditional empty/error states, workout-placeholder and Coming Soon navigation behavior, and in-process accessibility audits.
+Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, per-game duration resolution, progress, statistics, Games preview aggregation and completion rate, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, Games featured/available/future sections, filtering, offline search, conditional empty/error states, all five workout phases, pause/exit/resume/restart persistence, automatic and reduced-motion transitions, non-evidentiary placeholder completion, Coming Soon behavior, and in-process accessibility audits.
 
 These are Laravel in-process/database tests. They are not Android, iOS, simulator, physical-device, VoiceOver, TalkBack, offline-airplane-mode, or visual tests.
 
 ## Next Implementation Boundary
 
-Prompt 7 may build the Signal Shift foundation on the completed domain, Home, and Games-library boundaries. Prompt 6 intentionally does not implement Signal Shift or Clear Thought gameplay, workout execution, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, or remote capability. Device/simulator visual, VoiceOver, TalkBack, large-text, search-keyboard, filter-wrapping, and reduced-motion behavior remain explicit platform-verification work.
+The reusable workout execution framework is complete. A later prompt may replace the Signal Shift placeholder inside `WorkoutGameContainer` with real native gameplay and authoritative round evidence without changing the surrounding phase navigation. Signal Shift and Clear Thought gameplay, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, and remote capability remain unimplemented. Device/simulator visual, VoiceOver, TalkBack, large-text, pause-sheet, countdown, and reduced-motion behavior remain explicit platform-verification work.

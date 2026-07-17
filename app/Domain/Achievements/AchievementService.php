@@ -173,6 +173,7 @@ final class AchievementService
         $session = GameSession::query()
             ->whereBelongsTo($profile)
             ->completed()
+            ->withGameplayEvidence()
             ->where('game_id', $achievement->game_id)
             ->where('hint_count', 0)
             ->where('correct_count', '>=', $minimumCorrect)

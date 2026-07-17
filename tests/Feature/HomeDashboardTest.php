@@ -13,7 +13,7 @@ use App\Models\Profile as LocalProfile;
 use App\Models\ProgressSnapshot;
 use App\Models\Setting;
 use App\Models\Statistic;
-use App\NativeComponents\Screens\WorkoutPreview;
+use App\NativeComponents\Screens\WorkoutIntroduction;
 use Carbon\CarbonImmutable;
 use Database\Seeders\GameLevelSeeder;
 use Native\Mobile\Testing\Native;
@@ -165,9 +165,9 @@ test('the primary workout action navigates with subtle preference-aware feedback
         ->tap('Start Training')
         ->assertNavigatedTo('/workout')
         ->follow()
-        ->assertScreen(WorkoutPreview::class)
-        ->assertSee('Your workout is ready')
-        ->assertSee('No session has been started.')
+        ->assertScreen(WorkoutIntroduction::class)
+        ->assertSee('A focused sequence for today')
+        ->assertSee('Begin Workout')
         ->assertTabBarHidden()
         ->assertAccessible();
 

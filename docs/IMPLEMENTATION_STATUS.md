@@ -21,15 +21,15 @@ Audit date: 2026-07-18
 | NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
-| Native components/routes | Nine NativeComponents/routes, including onboarding, Home dashboard, and workout placeholder |
-| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, and curated Games library; no external media assets |
+| Native components/routes | Thirteen NativeComponents/routes, including five workout-session phases |
+| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, and workout-session framework; no external media assets |
 | Static analysis | Not configured |
 
 ## Infrastructure Status
 
-**Frozen and unchanged by Prompts 2, 3, 4, 5, and 6.**
+**Frozen and unchanged by Prompts 2–7.**
 
-Prompts 2, 3, 4, 5, and 6 did not modify:
+Prompts 2–7 did not modify:
 
 - Root Composer dependencies, repositories, constraints, or lock data.
 - NativePHP plugin registration.
@@ -222,7 +222,7 @@ The Home placeholder is now the central, state-aware native dashboard:
 
 Home consumes `WorkoutService`, `StatisticsService`, `ProgressService`, `AchievementService`, `ProfileService`, and `SettingsService`. Read-only `overview()` and `latestUnlock()` methods were added to the appropriate domain services. Adaptive profiles now deterministically use Intermediate starting levels during workout generation while retaining the Adaptive preference.
 
-The workout CTA navigates to `/workout`, an honest non-gameplay placeholder with hidden tab chrome and native back behavior. It does not create a game session. Completed workouts disable the CTA. Coming Soon cards never navigate or create sessions.
+The workout CTA navigates to the side-effect-free `/workout` introduction with hidden tab chrome. Beginning or resuming from that screen enters Prompt 7's explicit framework-placeholder lifecycle. Completed workouts disable the CTA. Coming Soon cards never navigate or create sessions.
 
 Home uses NativePHP's verified lazy-screen attribute for its initial loading frame. Dashboard, workout, statistics, progress, and achievement loading states are independently renderable. Recoverable section errors preserve unrelated content; workout retry uses the existing semantic toast service if local definitions remain unavailable. Empty streak, progress, history, personal-best, and achievement states remain evidence-based.
 
@@ -240,7 +240,7 @@ The Games placeholder is now a focused native catalog:
 - Debounced offline search matches title, category, and description.
 - Memory Path, Pattern Pulse, Word Forge, Quick Read, Number Sense, and Reaction Pulse appear as explicit Coming Soon cards.
 - Coming Soon cards open the existing shared bottom sheet and never navigate or create sessions.
-- Playable actions open `/workout`, which remains an explicit non-gameplay placeholder and never creates a session.
+- Playable actions open `/workout`; the introduction does not create a session until Begin or Resume is selected.
 
 The screen reuses the native layout, screen container, semantic theme and design tokens, typed icons, section header, loading/empty/error patterns, dialog host, toast service, haptic service, `WorkoutService`, and `StatisticsService`. Reusable Games components own the featured card, available card, future card, statistic, badge, illustration placeholder, filter chip, and search field.
 
@@ -248,24 +248,42 @@ The screen reuses the native layout, screen container, semantic theme and design
 
 Initial loading, complete catalog, filtered results, no search results, no category matches, no history, no statistics, recoverable statistics failure, and recoverable full-library failure are covered. Reduced Motion removes authored durations and press transforms. Search, chips, cards, buttons, and sheets carry semantic labels and pass the in-process accessibility audit in active and conditional states.
 
+## Prompt 7 — Workout Session Experience
+
+**Status: Complete; needs device verification.**
+
+The former workout placeholder is now a complete reusable native session framework:
+
+- Introduction with both ordered games, included skills, selected difficulty, duration estimate, motivation, and Begin or Resume action.
+- Game preparation with focused instructions, a deterministic three-second countdown, Start Now, progress, and Reduced Motion support.
+- Reusable game container with elapsed-time polling, transactional checkpoints, pause/resume, restart, exit confirmation, and explicit placeholder completion.
+- Between-game transition with truthful no-score messaging, upcoming game context, manual Continue, and a three-second automatic advance that is disabled by Reduced Motion.
+- Completion with total framework time, completed-game count, included skills, and “Not recorded” score and accuracy.
+
+Shared `WorkoutHeader`, `WorkoutProgress`, `Countdown`, `GameContainer`, `TransitionCard`, `CompletionCard`, `PauseSheet`, and `WorkoutFooter` EDGE components keep the screens consistent. All workout routes hide tab chrome, use native replace navigation, apply semantic light/dark tokens, trigger preference-aware haptics, expose accessibility labels, and include recoverable error states.
+
+Framework sessions use the explicit `workout_framework_placeholder` mode. They persist only preparation, pause, elapsed-time, and completion state. The real scoring path rejects them, and statistics previews/rebuilds plus hint-free achievement evidence exclude them. Completing both placeholders stores a truthful workout summary without score, accuracy, personal best, skill progress, statistics, or achievement updates. Restart deletes only placeholder sessions and refuses a workout containing real evidence.
+
+Signal Shift and Clear Thought gameplay remain unimplemented by design. The placeholder action exists only to prove the surrounding workout lifecycle end to end.
+
 ## Automated Verification
 
 | Command/check | Result |
 | --- | --- |
-| Focused Games/Home/shell/domain Pest suite | Passed: 37 tests, 591 assertions |
-| `php artisan test` | Passed: 112 tests, 1,178 assertions |
+| Focused Prompt 7 Pest suite | Passed: 7 tests, 373 assertions |
+| `PAO_DISABLE=1 php artisan test` | Passed: 119 tests, 1,562 assertions |
 | `composer validate --strict` | Passed: `composer.json` valid |
 | `vendor/bin/pint --dirty --format agent` | Passed for the current application dirty set |
-| `php artisan route:list` | Passed: nine native application routes plus framework/infrastructure routes |
-| `php artisan native:validate --no-interaction` | Passed: all nine NativeComponents, no warnings |
+| Native route registration | Passed: thirteen native application routes |
+| `php artisan native:validate --no-interaction` | Passed: all thirteen NativeComponents, no warnings |
 | `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
 | `git diff --check` | Passed |
 | Static analysis | Not run; no tool/configuration exists |
-| Android/iOS launch or build | Not run, as required by Prompt 6 |
+| Android/iOS launch or build | Not run, as required by Prompt 7 |
 
 ### Pint Scope Note
 
-The Prompt 6 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
+The Prompt 7 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
 
 ## Test Coverage
 
@@ -342,6 +360,19 @@ Prompt 6 tests cover:
 - Recoverable missing-definition, statistics-loading, and statistics-error states.
 - Onboarding guards and conditional-state accessibility audits.
 
+Prompt 7 tests cover:
+
+- Side-effect-free workout introduction and delayed session creation.
+- Introduction, preparation, countdown, game container, transition, and completion rendering.
+- Poll-driven countdown, elapsed timer, and automatic transition behavior.
+- Reduced Motion durations, transitions, and manual between-game continuation.
+- Preference-aware haptic bridge calls through the existing service.
+- Transactional pause, exit, resume, and restart checkpoints.
+- Exit confirmation, pause sheet, hidden tab chrome, and recoverable missing-checkpoint states.
+- Truthful placeholder completion with null score/accuracy and no progress, statistics, or achievement evidence.
+- Protection against routing placeholder sessions through real scoring.
+- In-process accessibility audits throughout active, overlay, completion, reduced-motion, and error states.
+
 These are PHP/database and NativePHP in-process component tests. They do not claim SwiftUI/Compose rendering, simulator, physical-device, VoiceOver, TalkBack, visual, status-bar, large-text, or airplane-mode evidence.
 
 ## Product Roadmap Status
@@ -356,6 +387,7 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Onboarding/local profile UI | Needs device verification | Prompt 4 automated checks complete |
 | Home/Today dashboard | Needs device verification | Prompt 5 automated checks complete |
 | Games library UI | Needs device verification | Prompt 6 automated checks complete |
+| Workout session framework | Needs device verification | Prompt 7 automated checks complete; gameplay remains explicit placeholders |
 | Signal Shift gameplay | Not started | Scoring/session foundation only |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
@@ -366,7 +398,7 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 
 ## Known Infrastructure Risks
 
-These pre-existing risks remain outside Prompts 2, 3, 4, 5, and 6:
+These pre-existing risks remain outside Prompts 2–7:
 
 1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
 2. Native UI remains a temporary project path mirror.
@@ -375,10 +407,10 @@ These pre-existing risks remain outside Prompts 2, 3, 4, 5, and 6:
 5. No static-analysis tool is configured.
 6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-## Remaining Work Before Prompt 7
+## Remaining Work After Prompt 7
 
-There is no known PHP, persistence, routing, or native-template blocker for the Signal Shift foundation. Prompt 7 can reuse the two-game domain foundation, Games selection flow, typed icons, semantic tokens, haptic service, transactional session checkpoints, scoring service, and existing workout placeholder boundary.
+There is no known PHP, persistence, routing, or native-template blocker for implementing Signal Shift inside the reusable game-container boundary. A future gameplay prompt can reuse the two-game domain foundation, typed icons, semantic tokens, haptic service, transactional session checkpoints, scoring service, and complete workout phase navigation.
 
-Before treating Prompt 6 as platform-verified, run the native app on each selected platform and inspect Games at compact and large sizes, dynamic text, safe areas, vertical scrolling, filter wrapping, search keyboard behavior, light/dark appearance, empty/error states, progress rendering, Reduced Motion, press feedback, sheet presentation, VoiceOver/TalkBack reading order, and workout-placeholder/back navigation.
+Before treating Prompt 7 as platform-verified, run the native app on each selected platform and inspect all workout phases at compact and large sizes, dynamic text, safe areas, vertical scrolling, light/dark appearance, countdown/timer updates, progress rendering, Reduced Motion, haptics, pause and confirmation overlays, VoiceOver/TalkBack reading order, exit/resume, restart, and completion.
 
-Signal Shift gameplay and content generation, Clear Thought gameplay/content, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 6.
+Signal Shift gameplay and content generation, Clear Thought gameplay/content, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 7.

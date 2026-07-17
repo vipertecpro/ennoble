@@ -60,6 +60,11 @@ final class GameSessionService
                 $existingSession = GameSession::query()
                     ->whereBelongsTo($workoutItem, 'workoutItem')
                     ->resumable()
+                    ->when(
+                        $mode === null,
+                        fn ($query) => $query->whereNull('mode'),
+                        fn ($query) => $query->where('mode', $mode),
+                    )
                     ->with(['game', 'level', 'rounds'])
                     ->latest('started_at')
                     ->first();
@@ -91,6 +96,50 @@ final class GameSessionService
                 'started_at' => now(),
                 'last_interaction_at' => now(),
             ])->load(['game', 'level', 'rounds']);
+        });
+    }
+
+    /**
+     * Start or resume a non-evidentiary session used only to exercise the workout framework.
+     */
+    public function startPlaceholder(
+        Profile $profile,
+        DailyWorkoutItem $workoutItem,
+    ): GameSession {
+        return $this->start(
+            profile: $profile,
+            game: $workoutItem->game,
+            level: $workoutItem->level,
+            workoutItem: $workoutItem,
+            mode: GameSession::FRAMEWORK_PLACEHOLDER_MODE,
+        );
+    }
+
+    /**
+     * Persist non-gameplay session state without inventing round evidence.
+     *
+     * @param  array<string, mixed>  $stateSnapshot
+     */
+    public function checkpoint(GameSession $gameSession, array $stateSnapshot): GameSession
+    {
+        return DB::transaction(function () use ($gameSession, $stateSnapshot): GameSession {
+            $session = GameSession::query()
+                ->lockForUpdate()
+                ->findOrFail($gameSession->getKey());
+
+            if ($session->status !== SessionStatus::InProgress) {
+                throw new LogicException('Only an in-progress session can store a checkpoint.');
+            }
+
+            $session->update([
+                'state_snapshot' => [
+                    'version' => $session->snapshot_version,
+                    ...$stateSnapshot,
+                ],
+                'last_interaction_at' => now(),
+            ]);
+
+            return $session->refresh();
         });
     }
 
@@ -167,6 +216,10 @@ final class GameSessionService
                 throw new LogicException('This session cannot be completed from its current state.');
             }
 
+            if ($session->isFrameworkPlaceholder()) {
+                throw new LogicException('Framework placeholder sessions cannot create gameplay evidence.');
+            }
+
             $result = $this->scoringService($session->game->type)->score($session->rounds);
 
             if ($session->status !== SessionStatus::Completed) {
@@ -206,6 +259,61 @@ final class GameSessionService
             );
 
             return $result;
+        });
+    }
+
+    /**
+     * Complete a framework-only placeholder without statistics, progress, or achievements.
+     */
+    public function completePlaceholder(GameSession $gameSession, int $elapsedSeconds): GameSession
+    {
+        return DB::transaction(function () use ($gameSession, $elapsedSeconds): GameSession {
+            $session = GameSession::query()
+                ->with(['game', 'level', 'workoutItem.workout'])
+                ->lockForUpdate()
+                ->findOrFail($gameSession->getKey());
+
+            if (! $session->isFrameworkPlaceholder()) {
+                throw new LogicException('Only a framework placeholder may use placeholder completion.');
+            }
+
+            if (! in_array($session->status, [SessionStatus::InProgress, SessionStatus::Completed], true)) {
+                throw new LogicException('This placeholder cannot be completed from its current state.');
+            }
+
+            if ($session->status === SessionStatus::Completed) {
+                return $session;
+            }
+
+            $boundedElapsedSeconds = max(0, min($elapsedSeconds, 21600));
+
+            $session->update([
+                'status' => SessionStatus::Completed,
+                'state_snapshot' => [
+                    'version' => $session->snapshot_version,
+                    'prepared' => true,
+                    'elapsed_seconds' => $boundedElapsedSeconds,
+                    'placeholder_complete' => true,
+                ],
+                'score' => null,
+                'accuracy' => null,
+                'average_response_ms' => null,
+                'correct_count' => 0,
+                'incorrect_count' => 0,
+                'missed_count' => 0,
+                'hint_count' => 0,
+                'best_combo' => 0,
+                'last_interaction_at' => now(),
+                'completed_at' => now(),
+                'statistics_recorded_at' => null,
+            ]);
+
+            $session->workoutItem?->update([
+                'status' => WorkoutStatus::Completed,
+                'completed_at' => now(),
+            ]);
+
+            return $session->refresh()->load(['game', 'level', 'workoutItem.workout']);
         });
     }
 

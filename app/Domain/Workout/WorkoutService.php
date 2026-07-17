@@ -179,11 +179,53 @@ final class WorkoutService
                 ]);
             }
 
-            $this->statisticsService->recordWorkoutCompletion($workout);
-            $this->achievementService->evaluate(
-                profile: $workout->profile,
-                dailyWorkout: $workout,
-            );
+            if ((bool) data_get($workout->refresh()->summary, 'has_gameplay_evidence', true)) {
+                $this->statisticsService->recordWorkoutCompletion($workout);
+                $this->achievementService->evaluate(
+                    profile: $workout->profile,
+                    dailyWorkout: $workout,
+                );
+            }
+
+            return $workout->refresh()->load(['items.game', 'items.level', 'items.sessions']);
+        });
+    }
+
+    /**
+     * Reset a framework-only workout while preserving bundled definitions and user evidence.
+     */
+    public function restartPlaceholder(DailyWorkout $dailyWorkout): DailyWorkout
+    {
+        return DB::transaction(function () use ($dailyWorkout): DailyWorkout {
+            $workout = DailyWorkout::query()
+                ->with(['items.sessions'])
+                ->lockForUpdate()
+                ->findOrFail($dailyWorkout->getKey());
+
+            $sessions = $workout->items->flatMap->sessions;
+
+            if ($sessions->contains(fn ($session): bool => ! $session->isFrameworkPlaceholder())) {
+                throw new LogicException('A workout containing gameplay evidence cannot use placeholder restart.');
+            }
+
+            foreach ($workout->items as $item) {
+                $item->sessions()->delete();
+                $item->update([
+                    'status' => WorkoutStatus::Pending,
+                    'started_at' => null,
+                    'completed_at' => null,
+                ]);
+            }
+
+            $workout->update([
+                'status' => WorkoutStatus::Pending,
+                'started_at' => null,
+                'completed_at' => null,
+                'statistics_recorded_at' => null,
+                'training_seconds' => 0,
+                'accuracy' => null,
+                'summary' => null,
+            ]);
 
             return $workout->refresh()->load(['items.game', 'items.level', 'items.sessions']);
         });

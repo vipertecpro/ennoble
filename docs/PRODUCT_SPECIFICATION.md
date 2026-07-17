@@ -43,7 +43,7 @@ Home is the central native overview after onboarding. It adapts to first-use, av
 - The latest unlocked local achievement or an encouraging empty state.
 - Informational previews for Memory Path, Pattern Pulse, Word Forge, and Quick Read.
 
-Opening a Coming Soon preview shows local informational content only. Starting or continuing the Today card opens an honest future workout-flow placeholder; it does not create a session or implement gameplay. Dashboard sections recover independently so one unavailable local preview does not hide unrelated content.
+Opening a Coming Soon preview shows local informational content only. Starting or continuing the Today card opens the complete native workout-session framework. The framework creates resumable local placeholder sessions for Signal Shift and Clear Thought, while clearly identifying that their gameplay is not implemented and never fabricating answers, scores, accuracy, personal bests, skill progress, statistics, or achievements. Dashboard sections recover independently so one unavailable local preview does not hide unrelated content.
 
 Authored dashboard motion is restrained to section appearance, progress changes, and press feedback. Reduced Motion removes those transforms and durations. Haptics remain optional and preference-gated.
 
@@ -60,7 +60,7 @@ Today is the default training destination after onboarding. It contains:
 - A Continue action when an unfinished workout or game session has a valid checkpoint.
 - The current daily streak and a concise explanation of what counts as completion.
 - A completion celebration that respects reduced-motion settings.
-- A daily summary containing accuracy, response time or completion time, score, training time, skill changes, personal bests, and newly unlocked achievements.
+- A daily summary containing the evidence that is actually available. Until game implementations provide round evidence, the framework reports training time and completed steps while marking score, accuracy, skill changes, personal bests, and achievements as not recorded.
 
 One workout is generated per local calendar day. Generation uses bundled games and challenges, the local profile, recent history, and difficulty preference. Reopening Today retrieves the existing workout instead of generating a different sequence.
 
@@ -76,7 +76,7 @@ The Games library is a focused, curated native catalog rather than an endless te
 
 Search and filters apply to the featured, available, and Coming Soon sections without fabricating matches. No-result, no-history, and no-statistics states encourage exploration while preserving the distinction between unavailable evidence and zero.
 
-Playable actions open the honest future workout/game-flow placeholder. They do not create a game session or implement gameplay. Coming Soon cards open an informational native sheet with category, estimated duration, and an explicit unavailable state; they never navigate or persist activity.
+Playable actions open the workout introduction. Beginning the workout creates or resumes an explicitly marked framework-placeholder session; it does not implement gameplay or produce gameplay evidence. Coming Soon cards open an informational native sheet with category, estimated duration, and an explicit unavailable state; they never navigate or persist activity.
 
 ### Progress
 
@@ -115,12 +115,24 @@ Preferences apply locally and immediately where the installed NativePHP APIs per
 1. When Today opens, the application loads or creates the workout for the current local date.
 2. The workout contains exactly two ordered items in v1: Signal Shift and Clear Thought.
 3. Starting an item creates or resumes a game session.
-4. Each meaningful answer or round completion writes a transactional checkpoint.
-5. Completing a session finalizes its result and advances the workout item.
-6. Completing both items finalizes the workout, updates aggregates and streak state, evaluates achievements, and shows the summary.
+4. Preparation, elapsed time, and paused state write transactional checkpoints. Future game implementations will add answer and round checkpoints to the same lifecycle.
+5. A real game completion finalizes evidence-backed results. A framework-placeholder completion advances the item without creating round evidence or gameplay metrics.
+6. Completing both items finalizes the workout and shows the summary. Statistics, skill progress, streak aggregates, and achievements update only when gameplay evidence exists.
 7. Reopening an incomplete workout resumes from the latest committed state.
 
 Changing the device clock must not silently duplicate a workout for the same stored local date. Exact anti-tampering policy is deferred; v1 should remain deterministic and avoid punitive behavior.
+
+## Workout Session Experience
+
+The workout runs as five reusable native phases:
+
+1. Introduction with ordered games, included skills, estimated duration, difficulty, motivation, and Begin or Resume action.
+2. Preparation with game-specific guidance, a three-second countdown, an immediate Start action, and Reduced Motion support.
+3. Game container with elapsed time, persisted pause/resume state, explicit restart and exit confirmation, and an honest placeholder completion action.
+4. Between-game transition with completed and upcoming game context, progress, manual Continue, and a short automatic transition that is disabled when Reduced Motion is enabled.
+5. Completion with total framework time, completed games, included skills, and explicit not-recorded states for unavailable gameplay metrics.
+
+All phases hide tab chrome, use native replace navigation, apply preference-gated haptics, expose recoverable error states, and persist locally. Exiting preserves the latest checkpoint; restarting deletes only framework-placeholder sessions and resets the current workout. The flow remains fully offline.
 
 ## Signal Shift
 

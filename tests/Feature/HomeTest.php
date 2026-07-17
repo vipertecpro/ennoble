@@ -10,7 +10,11 @@ use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Progress;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\Splash;
-use App\NativeComponents\Screens\WorkoutPreview;
+use App\NativeComponents\Screens\WorkoutComplete;
+use App\NativeComponents\Screens\WorkoutGameContainer;
+use App\NativeComponents\Screens\WorkoutIntroduction;
+use App\NativeComponents\Screens\WorkoutPreparation;
+use App\NativeComponents\Screens\WorkoutTransition;
 use App\NativeLayouts\EnnobleLayout;
 use Native\Mobile\Edge\NativeRouter;
 use Native\Mobile\Testing\Native;
@@ -25,7 +29,11 @@ test('all application shell routes are registered with the expected layout', fun
         '/splash' => ['class' => Splash::class, 'layout' => null],
         '/onboarding' => ['class' => Onboarding::class, 'layout' => null],
         '/' => ['class' => Home::class, 'layout' => EnnobleLayout::class],
-        '/workout' => ['class' => WorkoutPreview::class, 'layout' => EnnobleLayout::class],
+        '/workout' => ['class' => WorkoutIntroduction::class, 'layout' => EnnobleLayout::class],
+        '/workout/preparation/{session}' => ['class' => WorkoutPreparation::class, 'layout' => EnnobleLayout::class],
+        '/workout/game/{session}' => ['class' => WorkoutGameContainer::class, 'layout' => EnnobleLayout::class],
+        '/workout/transition/{item}' => ['class' => WorkoutTransition::class, 'layout' => EnnobleLayout::class],
+        '/workout/complete/{workout}' => ['class' => WorkoutComplete::class, 'layout' => EnnobleLayout::class],
         '/games' => ['class' => Games::class, 'layout' => EnnobleLayout::class],
         '/progress' => ['class' => Progress::class, 'layout' => EnnobleLayout::class],
         '/profile' => ['class' => Profile::class, 'layout' => EnnobleLayout::class],
@@ -46,7 +54,7 @@ test('application screens render and pass the in-process accessibility audit', f
 })->with([
     'splash' => ['/splash', Splash::class, 'Native application shell ready.'],
     'home' => ['/', Home::class, 'Today’s Workout'],
-    'workout' => ['/workout', WorkoutPreview::class, 'Your workout is ready'],
+    'workout' => ['/workout', WorkoutIntroduction::class, 'A focused sequence for today'],
     'games' => ['/games', Games::class, 'Train with purpose.'],
     'progress' => ['/progress', Progress::class, 'Progress shell ready'],
     'profile' => ['/profile', Profile::class, 'Profile shell ready'],

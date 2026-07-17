@@ -7,7 +7,7 @@ use App\Models\GameSession;
 use App\Models\Profile;
 use App\Models\Setting;
 use App\Models\Statistic;
-use App\NativeComponents\Screens\WorkoutPreview;
+use App\NativeComponents\Screens\WorkoutIntroduction;
 use Carbon\CarbonImmutable;
 use Database\Seeders\GameDefinitionSeeder;
 use Database\Seeders\GameLevelSeeder;
@@ -156,7 +156,7 @@ test('a category with no current matches encourages exploration instead of leavi
         ->assertAccessible();
 });
 
-test('play actions open only the existing future flow placeholder', function () {
+test('play actions open the workout introduction without starting a session', function () {
     $bridge = Native::fakeBridge()
         ->respondTo('Device.Vibrate', ['success' => true]);
 
@@ -164,8 +164,9 @@ test('play actions open only the existing future flow placeholder', function () 
         ->tap('Start Training')
         ->assertNavigatedTo('/workout')
         ->follow()
-        ->assertScreen(WorkoutPreview::class)
-        ->assertSee('No session has been started.')
+        ->assertScreen(WorkoutIntroduction::class)
+        ->assertSee('A focused sequence for today')
+        ->assertSee('Begin Workout')
         ->assertTabBarHidden()
         ->assertAccessible();
 
