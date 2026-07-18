@@ -119,11 +119,9 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->selectRadio('themePreference', ThemePreference::Dark->value)
         ->toggle('soundEnabled', false)
         ->toggle('hapticsEnabled', false)
-        ->toggle('reducedMotion', true)
         ->assertSet('themePreference', ThemePreference::Dark->value)
         ->assertSet('soundEnabled', false)
         ->assertSet('hapticsEnabled', false)
-        ->assertSet('reducedMotion', true)
         ->assertAccessible()
         ->tap('Continue')
         ->assertSet('currentStep', 6)
@@ -135,7 +133,7 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertAccessible()
         ->tap('Start training')
         ->assertReplacedWith('/')
-        ->assertTransition(Transition::None);
+        ->assertTransition(Transition::Fade);
 
     $profile = Profile::query()->with('setting')->sole();
 
@@ -147,7 +145,7 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->and($profile->setting->theme_preference)->toBe(ThemePreference::Dark)
         ->and($profile->setting->sound_enabled)->toBeFalse()
         ->and($profile->setting->haptics_enabled)->toBeFalse()
-        ->and($profile->setting->reduced_motion)->toBeTrue();
+        ->and($profile->setting->reduced_motion)->toBeFalse();
 });
 
 test('goal and difficulty steps remain disabled until one option is selected', function () {

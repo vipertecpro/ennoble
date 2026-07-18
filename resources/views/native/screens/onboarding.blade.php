@@ -191,12 +191,6 @@
                     <native:toggle native:model="soundEnabled" label="Sound" />
                     <native:divider />
                     <native:toggle native:model="hapticsEnabled" label="Haptics" />
-                    <native:divider />
-                    <native:toggle
-                        native:model="reducedMotion"
-                        label="Reduce motion"
-                        a11y-hint="Reduces non-essential movement throughout Ennoble"
-                    />
                 </native:column>
             </native:column>
         @else
