@@ -15,7 +15,7 @@
 ])
 
 <native:column
-    class="w-80 items-center gap-6 py-5"
+    class="w-full items-center gap-6 py-5"
     :animate-duration="$motionDuration"
     :a11y-label="$previousGame.' complete. '.$coaching.' '.$performanceMessage.'. Next '.$nextGame.'.'"
 >
@@ -33,7 +33,7 @@
         <native:text class="text-center text-[17] leading-relaxed text-theme-secondary-text">{{ $coachingDetail }}</native:text>
     </native:column>
 
-    <native:column class="w-72 items-center gap-2 rounded-2xl bg-theme-secondary-surface shadow-sm p-4">
+    <native:column class="w-full items-center gap-2 rounded-2xl bg-theme-secondary-surface shadow-sm p-4">
         <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">YOUR MOMENT</native:text>
         <native:text class="text-center text-[17] font-semibold leading-relaxed text-theme-primary-text">
             {{ $performanceMessage }}

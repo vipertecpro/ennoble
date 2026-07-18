@@ -153,7 +153,7 @@ final class Onboarding extends NativeComponent
     }
 
     /**
-     * Validate the appearance choice before it is applied on the next screen.
+     * Apply a valid appearance choice immediately so the whole flow repaints live.
      */
     public function updatedThemePreference(string $value): void
     {
@@ -164,6 +164,9 @@ final class Onboarding extends NativeComponent
 
             return;
         }
+
+        app(ThemeManager::class)->apply($preference);
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
     }
 
     /**
@@ -240,6 +243,20 @@ final class Onboarding extends NativeComponent
     }
 
     /**
+     * Return the selected pace using the step-three vocabulary.
+     */
+    public function paceLabel(): string
+    {
+        return match (Difficulty::tryFrom($this->difficulty)) {
+            Difficulty::Beginner => 'Gentle',
+            Difficulty::Intermediate => 'Steady',
+            Difficulty::Advanced => 'Challenging',
+            Difficulty::Adaptive => 'Adaptive',
+            default => 'Not selected',
+        };
+    }
+
+    /**
      * Return the selected theme's display label.
      */
     public function themeLabel(): string
@@ -248,7 +265,7 @@ final class Onboarding extends NativeComponent
     }
 
     /**
-     * Return an intentional summary when the optional display name is empty.
+     * Return a defensive summary when no display name has been captured.
      */
     public function displayNameSummary(): string
     {
@@ -258,11 +275,22 @@ final class Onboarding extends NativeComponent
     }
 
     /**
-     * Validate the optional local display name at the domain's shared limit.
+     * Require a present display name within the domain's shared limit.
      */
     public function isDisplayNameValid(): bool
     {
+        $normalizedDisplayName = Str::squish($this->displayName);
+
+        return $normalizedDisplayName !== ''
+            && Str::length($normalizedDisplayName) <= ProfileService::DISPLAY_NAME_MAX_LENGTH;
+    }
+
+    /**
+     * Determine whether the entered display name exceeds the shared limit.
+     */
+    public function isDisplayNameTooLong(): bool
+    {
         return Str::length(Str::squish($this->displayName))
-            <= ProfileService::DISPLAY_NAME_MAX_LENGTH;
+            > ProfileService::DISPLAY_NAME_MAX_LENGTH;
     }
 }

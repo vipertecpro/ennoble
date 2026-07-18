@@ -3,8 +3,8 @@
 
 <native:column class="safe-area h-full w-full bg-theme-background">
     @if ($screenState === 'error')
-        <native:row class="h-full w-full items-center justify-center bg-theme-background px-5">
-            <native:column class="w-80">
+        <native:row class="h-full w-full items-center justify-center bg-theme-background px-4">
+            <native:column class="w-full">
                 <x-native.error-state
                     title="Signal Shift unavailable"
                     :description="$errorMessage"
@@ -67,8 +67,8 @@
         </native:column>
     @else
         <native:scroll-view class="w-full flex-1 bg-theme-background" :shows-indicators="false">
-            <native:column class="w-full items-center bg-theme-background px-5">
-                <native:column class="w-80 mb-12 mt-6 gap-7">
+            <native:column class="w-full items-center bg-theme-background px-4">
+                <native:column class="w-full mb-12 mt-6 gap-7">
                     @if ($phase === 'instructions')
                         <native:column class="items-center gap-5">
                             <native:text class="text-[12] font-semibold tracking-widest text-theme-accent">SIGNAL SHIFT · {{ strtoupper($difficulty) }}</native:text>

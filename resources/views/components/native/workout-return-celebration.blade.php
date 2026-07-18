@@ -9,7 +9,7 @@
 ])
 
 <native:column
-    class="w-80 gap-4 rounded-2xl bg-theme-primary-surface shadow-sm p-5"
+    class="w-full gap-4 rounded-2xl bg-theme-primary-surface shadow-sm p-5"
     :animate-duration="$motionDuration"
     a11y-label="Workout completed. {{ $message }} {{ $streak }}{{ $achievement ? '. Achievement unlocked: '.$achievement : '' }}"
 >

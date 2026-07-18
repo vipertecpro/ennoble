@@ -41,7 +41,7 @@ import com.nativephp.plugins.native_ui.NativeUITokens
  *   - primary     → [Button] (filled) with theme.primary / onPrimary
  *   - secondary   → [FilledTonalButton] with theme.secondary / onSecondary
  *   - destructive → [Button] with theme.error / onError
- *   - ghost       → [TextButton] with theme.primary as content color
+ *   - ghost       → [TextButton] with theme.onSurfaceVariant as content color
  *
  * All colors come from [LocalNativeUITheme]. No per-instance color/radius/shadow
  * overrides are honored — that's intentional (plan doc Model 3). For full visual
@@ -148,14 +148,17 @@ object ButtonRenderer {
                     content = { content() },
                 )
 
+                // Quiet by definition — secondary-text ink, never the accent.
+                // theme.primary is the accent in dark themes, which made every
+                // quiet Back/skip action compete with the screen's CTA.
                 "ghost" -> TextButton(
                     onClick = onClick,
                     enabled = enabled,
                     modifier = buttonModifier,
                     contentPadding = metrics.contentPadding,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = theme.primary,
-                        disabledContentColor = theme.onSurfaceVariant,
+                        contentColor = theme.onSurfaceVariant,
+                        disabledContentColor = theme.onSurfaceVariant.copy(alpha = 0.5f),
                     ),
                     content = { content() },
                 )

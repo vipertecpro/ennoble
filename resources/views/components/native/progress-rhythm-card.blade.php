@@ -6,8 +6,8 @@
     'motionDuration' => 0,
 ])
 
-<native:column class="w-80 items-center rounded-2xl bg-theme-primary-surface py-6" :animate-duration="$motionDuration">
-<native:column class="w-72 gap-5">
+<native:column class="w-full items-center rounded-2xl bg-theme-primary-surface py-6" :animate-duration="$motionDuration">
+<native:column class="w-full px-4 gap-5">
     <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">TRAINING RHYTHM</native:text>
 
     @if ($current === 0)

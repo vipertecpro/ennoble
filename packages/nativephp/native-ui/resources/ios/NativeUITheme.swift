@@ -74,6 +74,15 @@ final class NativeUITheme: ObservableObject {
     @Published private(set) var light: NativeUITokens = .fallback
     @Published private(set) var dark: NativeUITokens = .fallback
 
+    /// App-forced color scheme, pushed from PHP as the optional top-level
+    /// `color-scheme` theme key ("light" | "dark"; anything else = follow
+    /// the OS). Root renderers apply it via `.preferredColorScheme(...)` so
+    /// SwiftUI SYSTEM chrome (toggle off-tracks, default label inks, the
+    /// keyboard, status bar) follows the app theme — palette slots alone
+    /// can't reach those, because SwiftUI styles them from the environment
+    /// colorScheme, which otherwise tracks the OS setting.
+    @Published private(set) var forcedScheme: ColorScheme? = nil
+
     private init() {}
 
     /// Pick the active token set based on the current system color scheme.
@@ -132,6 +141,14 @@ final class NativeUITheme: ObservableObject {
         // assignment on actual change to keep the observable stable.
         if newLight != self.light { self.light = newLight }
         if newDark  != self.dark  { self.dark  = newDark }
+
+        let newScheme: ColorScheme?
+        switch parameters["color-scheme"] as? String {
+        case "dark":  newScheme = .dark
+        case "light": newScheme = .light
+        default:      newScheme = nil
+        }
+        if newScheme != self.forcedScheme { self.forcedScheme = newScheme }
 
         applyChromeFont(fontFamily)
     }

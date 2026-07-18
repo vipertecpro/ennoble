@@ -37,7 +37,8 @@ test('explicit appearance preferences apply one semantic palette to both rendere
     $tokens = Theme::all();
 
     expect($tokens['light']['primary'])->toBe($expectedPrimary)
-        ->and($tokens['dark']['primary'])->toBe($expectedPrimary);
+        ->and($tokens['dark']['primary'])->toBe($expectedPrimary)
+        ->and(Theme::get('color-scheme'))->toBe($preference->value);
 })->with([
     'light' => [ThemePreference::Light, '#1B1B1F'],
     'dark' => [ThemePreference::Dark, '#C5DB55'],
@@ -61,7 +62,8 @@ test('system preference preserves distinct light and dark semantic palettes', fu
 
     expect($tokens['light']['background'])->toBe('#F5F5F2')
         ->and($tokens['dark']['background'])->toBe('#0F0F11')
-        ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background']);
+        ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
+        ->and(Theme::get('color-scheme'))->toBe('system');
 });
 
 test('explicit appearance keeps typed icon colors independent from device appearance', function (

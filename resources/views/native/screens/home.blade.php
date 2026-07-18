@@ -4,7 +4,7 @@
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:row class="w-full justify-center bg-theme-background">
-<native:column class="w-80 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($dashboardState === 'loading')
         <x-native.loading-overlay label="Loading your Ennoble dashboard" />
     @elseif ($dashboardState === 'error')

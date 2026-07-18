@@ -4,7 +4,7 @@
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:row class="w-full justify-center bg-theme-background">
-<native:column class="w-80 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.loading-overlay label="Loading your preferences" />
     @elseif ($screenState === 'error')
@@ -16,8 +16,8 @@
     @else
     <x-native.dashboard-section-header title="Appearance" />
 
-    <native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-72 gap-4">
+    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 gap-4">
         <native:radio-group native:model="themePreference" label="Appearance">
             <native:radio value="system" label="Use device setting" />
             <native:radio value="light" label="Light" />
@@ -32,8 +32,8 @@
 
     <x-native.dashboard-section-header title="Feedback &amp; motion" />
 
-    <native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-72 gap-4">
+    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 gap-4">
         <native:toggle native:model="soundEnabled" label="Sound" />
         <native:divider />
         <native:toggle native:model="hapticsEnabled" label="Haptics" />

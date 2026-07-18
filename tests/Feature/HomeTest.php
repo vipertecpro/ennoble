@@ -79,7 +79,7 @@ test('onboarding uses native layout geometry without exposing application chrome
         ->assertAccessible();
 });
 
-test('primary screens use a bounded scroll viewport and content width', function () {
+test('primary screens use a bounded scroll viewport and symmetric content gutters', function () {
     Native::visit('/')
         ->assertElement(
             'scroll_view',
@@ -88,7 +88,9 @@ test('primary screens use a bounded scroll viewport and content width', function
         )
         ->assertElement(
             'column',
-            fn (array $node): bool => data_get($node, 'layout.width') === 320.0,
+            fn (array $node): bool => data_get($node, 'layout.width') === 'fill'
+                && data_get($node, 'layout.padding.1') === 16.0
+                && data_get($node, 'layout.padding.3') === 16.0,
         );
 });
 

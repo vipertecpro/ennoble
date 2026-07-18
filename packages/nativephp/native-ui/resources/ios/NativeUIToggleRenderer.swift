@@ -26,7 +26,19 @@ struct NativeUIToggleRenderer: View {
         let a11yLabel   = p.getString("a11y_label")
         let a11yHint    = p.getString("a11y_hint")
 
-        Toggle(label, isOn: $isOn)
+        // Explicit label styling: SwiftUI's default `Toggle(label, …)` colors
+        // the label from the ENVIRONMENT colorScheme (the OS setting), not the
+        // app-forced theme — with the app forced dark on a light OS the label
+        // painted near-black on the dark card. Match the radio rows instead:
+        // theme.onSurface at the same 17pt scaled size (Android already does
+        // this in ToggleRenderer.kt).
+        Toggle(isOn: $isOn) {
+            if !label.isEmpty {
+                Text(label)
+                    .nuiScaledFont(size: 17)
+                    .foregroundStyle(disabled ? theme.onSurfaceVariant : theme.onSurface)
+            }
+        }
             .tint(theme.primary)
             .disabled(disabled)
             .onAppear {

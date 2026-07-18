@@ -96,15 +96,30 @@ final class ThemeManager
     }
 
     /**
+     * Build the token payload for a preference, including the top-level
+     * `color-scheme` key ('light'|'dark'|'system') the native shells use to
+     * force the PLATFORM color scheme via preferredColorScheme. Palette slots
+     * alone cannot reach SwiftUI system chrome (toggle off-tracks, default
+     * label inks, the keyboard) — those style from the environment
+     * colorScheme, which follows the OS unless explicitly forced.
+     *
      * @return array<string, mixed>
      */
     private function tokensFor(ThemePreference $preference): array
     {
         $configured = config('native-ui.theme', []);
 
-        if (! is_array($configured) || $preference === ThemePreference::System) {
-            return is_array($configured) ? $configured : [];
+        if (! is_array($configured)) {
+            return [];
         }
+
+        if ($preference === ThemePreference::System) {
+            $configured['color-scheme'] = 'system';
+
+            return $configured;
+        }
+
+        $configured['color-scheme'] = $preference->value;
 
         $palette = $configured[$preference->value] ?? [];
 

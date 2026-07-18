@@ -11,7 +11,7 @@
 ])
 
 <native:column
-    class="w-80 items-center gap-7 py-6"
+    class="w-full items-center gap-7 py-6"
     :animate-duration="$motionDuration"
     :a11y-label="'Workout complete. '.$gamesCompleted.' games completed in '.$duration.'. '.$coaching"
 >
@@ -33,7 +33,7 @@
         </native:text>
     </native:column>
 
-    <native:column class="w-72 items-center gap-2 rounded-2xl bg-theme-primary-surface shadow-sm p-5">
+    <native:column class="w-full items-center gap-2 rounded-2xl bg-theme-primary-surface shadow-sm p-5">
         <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">BEST MOMENT</native:text>
         <native:text class="text-center text-[17] font-semibold text-theme-primary-text">{{ $bestMomentTitle }}</native:text>
         <native:text class="text-center text-[15] leading-relaxed text-theme-secondary-text">{{ $bestMomentDetail }}</native:text>

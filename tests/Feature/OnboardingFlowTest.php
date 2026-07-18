@@ -76,7 +76,9 @@ test('scrolling onboarding steps remain inside chrome-free native layout geometr
         ->assertAccessible();
 });
 
-test('appearance choices remain contrast safe until the next screen is mounted', function () {
+test('appearance choices apply the explicit palette immediately in onboarding', function () {
+    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
+
     Native::visit('/onboarding')
         ->set('currentStep', 5)
         ->selectRadio('themePreference', ThemePreference::Dark->value)
@@ -84,8 +86,11 @@ test('appearance choices remain contrast safe until the next screen is mounted',
         ->assertNoNavigation()
         ->assertAccessible();
 
-    expect(Theme::all()['light']['background'])->toBe('#F5F5F2')
-        ->and(Theme::all()['dark']['background'])->toBe('#0F0F11');
+    $tokens = Theme::all();
+
+    expect(data_get($tokens, 'light.background'))
+        ->toBe(data_get($tokens, 'dark.background'))
+        ->and(data_get($tokens, 'dark.background'))->toBe('#0F0F11');
 });
 
 test('the complete onboarding journey persists local choices and enters home', function () {
@@ -123,6 +128,7 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->tap('Continue')
         ->assertSet('currentStep', 6)
         ->assertSee('Ready for day one.')
+        ->assertSee('Ada Local')
         ->assertSee('Improve Thinking Speed')
         ->assertSee('Adaptive')
         ->assertSee('Dark')
@@ -179,7 +185,7 @@ test('selection controls expose their individual visible labels to assistive tec
         ->assertAccessible();
 });
 
-test('display name is optional trimmed and bounded by the shared domain limit', function () {
+test('the onboarding domain trims display names and enforces the shared limit', function () {
     app(OnboardingService::class)->complete(
         displayName: '   ',
         trainingGoal: TrainingGoal::Balanced,
@@ -197,6 +203,24 @@ test('display name is optional trimmed and bounded by the shared domain limit', 
 
     expect(fn () => app(ProfileService::class)->createOrUpdate(str_repeat('A', 41)))
         ->toThrow(InvalidArgumentException::class);
+});
+
+test('an empty display name cannot advance beyond the name step', function () {
+    Native::test(Onboarding::class)
+        ->set('currentStep', 4)
+        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Continue'
+            && ($node['props']['disabled'] ?? false) === true)
+        ->call('nextStep')
+        ->assertSet('currentStep', 4)
+        ->input('displayName', '   ')
+        ->call('nextStep')
+        ->assertSet('currentStep', 4)
+        ->input('displayName', '  Ada  ')
+        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Continue'
+            && ($node['props']['disabled'] ?? false) === false)
+        ->call('nextStep')
+        ->assertSet('currentStep', 5)
+        ->assertAccessible();
 });
 
 test('an overlong display name cannot advance and exposes its validation state', function () {
@@ -236,6 +260,7 @@ test('a persistence failure remains recoverable on the ready step', function () 
         ->set('currentStep', 6)
         ->set('trainingGoal', TrainingGoal::Balanced->value)
         ->set('difficulty', Difficulty::Intermediate->value)
+        ->set('displayName', 'Ada')
         ->call('completeOnboarding')
         ->assertSee('Your choices could not be saved. Please try again.')
         ->assertSet('isSaving', false)

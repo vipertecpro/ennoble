@@ -4,7 +4,7 @@
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:row class="w-full justify-center bg-theme-background">
-<native:column class="w-80 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.loading-overlay label="Loading your profile" />
     @elseif ($screenState === 'error')
@@ -14,8 +14,8 @@
             retry-method="retryProfile"
         />
     @else
-    <native:column class="w-80 items-center rounded-2xl bg-theme-primary-surface py-6" :animate-duration="$motionDuration">
-    <native:column class="w-72 items-center gap-4">
+    <native:column class="w-full items-center rounded-2xl bg-theme-primary-surface py-6" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
             @if ($monogram !== '')
                 <native:text class="text-[28] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
@@ -42,8 +42,8 @@
 
     <x-native.dashboard-section-header title="Your practice" />
 
-    <native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-72 gap-3">
+    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 gap-3">
         <native:row class="gap-3">
             <x-native.game-stat
                 :ios="Ios::CheckmarkSeal"
@@ -71,11 +71,11 @@
 
     <x-native.dashboard-section-header title="Your details" />
 
-    <native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-72 gap-4">
+    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 gap-4">
         <x-native.onboarding-display-name-input
             :display-name="$displayName"
-            :valid="$this->isDisplayNameValid()"
+            :overlong="! $this->isDisplayNameValid()"
             supporting="Your name never leaves this device."
         />
 

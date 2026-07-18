@@ -1,5 +1,12 @@
-@use('App\Enums\ThemePreference')
-@use('App\NativeUI\Theme\ThemeManager')
+@use('Nativephp\NativeUi\Theme')
+
+{{--
+    Icon colors must follow the LOADED theme tokens, not the OS appearance.
+    When the player forces Light or Dark in-app, ThemeManager loads that
+    palette into both the light and dark token slots — reading both slots
+    here means icons repaint with the rest of the UI. Under the System
+    preference the slots differ and the renderer picks by OS color scheme.
+--}}
 
 @props([
     'ios',
@@ -11,14 +18,13 @@
 ])
 
 @php
-    $theme = app(ThemeManager::class);
-    $preference = $theme->currentPreference();
-    $resolvedColor = $color ?? $theme->color('primary-text', $preference, ThemePreference::Light->value);
-    $resolvedDarkColor = $darkColor ?? (
-        $preference === ThemePreference::System
-            ? $theme->color('primary-text', $preference, ThemePreference::Dark->value)
-            : $resolvedColor
-    );
+    $tokens = Theme::all();
+    $resolvedColor = $color
+        ?? data_get($tokens, 'light.primary-text')
+        ?? config('native-ui.theme.light.primary-text', '#1B1B1F');
+    $resolvedDarkColor = $darkColor
+        ?? data_get($tokens, 'dark.primary-text')
+        ?? config('native-ui.theme.dark.primary-text', '#F5F5F4');
 @endphp
 
 <native:icon

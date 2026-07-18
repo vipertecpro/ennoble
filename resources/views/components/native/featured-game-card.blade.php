@@ -7,11 +7,11 @@
 ])
 
 <native:column
-    class="w-80 items-center rounded-2xl bg-theme-surface-elevated shadow-sm py-5"
+    class="w-full items-center rounded-2xl bg-theme-surface-elevated shadow-sm py-5"
     :animate-duration="$motionDuration"
     a11y-label="Featured game, {{ $game['title'] }}"
 >
-<native:column class="w-72 gap-5">
+<native:column class="w-full px-4 gap-5">
     <x-native.game-illustration
         :slug="$game['slug']"
         :hero="true"

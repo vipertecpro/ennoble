@@ -13,11 +13,11 @@
 ])
 
 <native:column
-    class="w-80 items-center rounded-2xl bg-theme-surface-elevated shadow-sm py-5"
+    class="w-full items-center rounded-2xl bg-theme-surface-elevated shadow-sm py-5"
     :animate-duration="$motionDuration"
     a11y-label="{{ $title }}, {{ $completionPercentage }} percent complete"
 >
-<native:column class="w-72 gap-5">
+<native:column class="w-full px-4 gap-5">
     <native:row class="items-center justify-between gap-4">
         <native:column class="flex-1 gap-1">
             <native:text class="text-[12] font-semibold tracking-widest text-theme-accent">TODAY’S PRACTICE</native:text>

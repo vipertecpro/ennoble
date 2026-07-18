@@ -9,7 +9,7 @@ import SwiftUI
 ///     the theme config, e.g. `'secondary' => 'fuchsia-500/70'`)
 ///   - destructive → `.buttonStyle(.borderedProminent)` + `.tint(theme.destructive)`
 ///   - accent      → `.buttonStyle(.borderedProminent)` + `.tint(theme.accent)`
-///   - ghost       → `.buttonStyle(.plain)` + `.foregroundStyle(theme.primary)`
+///   - ghost       → `.buttonStyle(.plain)` + `.foregroundStyle(theme.onSurfaceVariant)`
 ///
 /// Tailwind `glass` family promotes the button to iOS 26's first-class
 /// glass styles when available, falling back to bordered styles on older iOS.
@@ -278,9 +278,12 @@ struct NativeUIButtonRenderer: View {
                 .modifier(A11yHintModifier(hint: a11yHint))
 
         case "ghost":
+            // Quiet by definition — secondary-text ink, never the accent.
+            // theme.primary is lime in dark mode, which made every quiet
+            // Back/skip action compete with the screen's one accent moment.
             Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.plain)
-                .foregroundStyle(enabled ? theme.primary : theme.onSurfaceVariant)
+                .foregroundStyle(enabled ? theme.onSurfaceVariant : theme.onSurfaceVariant.opacity(0.5))
                 .controlSize(metrics.controlSize)
                 .disabled(!enabled)
                 .modifier(A11yLabelModifier(label: a11yLabel))
@@ -315,7 +318,7 @@ struct NativeUIButtonRenderer: View {
         case "secondary":   return theme.secondary
         case "destructive": return theme.destructive
         case "accent":      return theme.accent
-        case "ghost":       return theme.primary
+        case "ghost":       return theme.onSurfaceVariant
         default:            return theme.primary
         }
     }
@@ -325,7 +328,7 @@ struct NativeUIButtonRenderer: View {
         case "secondary":   return theme.onSecondary
         case "destructive": return theme.onDestructive
         case "accent":      return theme.onAccent
-        case "ghost":       return theme.primary
+        case "ghost":       return theme.onSurfaceVariant
         default:            return theme.onPrimary
         }
     }

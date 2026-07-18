@@ -11,8 +11,8 @@
     'motionDuration' => 0,
 ])
 
-<native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-<native:column class="w-72 gap-4">
+<native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+<native:column class="w-full px-4 gap-4">
     @if (count($skillHighlights) === 0)
         <native:row class="items-center gap-4">
             <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">

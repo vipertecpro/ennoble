@@ -4,7 +4,7 @@
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:row class="w-full justify-center bg-theme-background">
-<native:column class="w-80 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-5 mb-12 gap-6">
     <native:column class="items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-primary-surface">
             <x-native.icon
@@ -17,7 +17,7 @@
 
         <native:column class="items-center gap-2">
             <native:text class="text-[34] font-bold tracking-tight leading-tight text-center text-theme-primary-text">Ennoble</native:text>
-            <native:text class="w-72 text-[17] leading-relaxed text-center text-theme-secondary-text">
+            <native:text class="w-full text-[17] leading-relaxed text-center text-theme-secondary-text">
                 A private daily practice for a clearer mind.
             </native:text>
         </native:column>
