@@ -7,8 +7,10 @@ use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Workout\WorkoutService;
+use App\Enums\GameType;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkout;
+use App\Models\GameSession;
 use App\NativeUI\Feedback\HapticFeedback;
 use App\NativeUI\Feedback\HapticService;
 use App\NativeUI\Theme\ThemeManager;
@@ -120,9 +122,9 @@ final class WorkoutIntroduction extends NativeComponent
             return;
         }
 
-        $session = app(GameSessionService::class)->startPlaceholder($profile, $workoutItem);
+        $session = app(GameSessionService::class)->startForWorkoutItem($profile, $workoutItem);
         $destination = data_get($session->state_snapshot, 'prepared', false)
-            ? 'native.workout.game'
+            ? $this->gameDestination($session)
             : 'native.workout.preparation';
 
         app(HapticService::class)->trigger(HapticFeedback::Impact);
@@ -205,5 +207,12 @@ final class WorkoutIntroduction extends NativeComponent
     private function screenTransition(): Transition
     {
         return $this->reducedMotion ? Transition::None : Transition::Fade;
+    }
+
+    private function gameDestination(GameSession $session): string
+    {
+        return $session->game->type === GameType::SignalShift
+            ? 'native.workout.signal-shift'
+            : 'native.workout.game';
     }
 }

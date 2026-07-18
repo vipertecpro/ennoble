@@ -38,6 +38,8 @@ final class WorkoutComplete extends NativeComponent
 
     public string $accuracySummary = 'Not recorded';
 
+    public string $progressMessage = 'Complete Signal Shift evidence is reflected in your local skill progress.';
+
     public bool $reducedMotion = false;
 
     public int $motionDuration = 0;
@@ -116,6 +118,9 @@ final class WorkoutComplete extends NativeComponent
             $this->accuracySummary = data_get($summary, 'accuracy') === null
                 ? 'Not recorded'
                 : data_get($summary, 'accuracy').'%';
+            $this->progressMessage = (bool) data_get($summary, 'has_gameplay_evidence', false)
+                ? 'Signal Shift evidence updated your local skill progress, statistics, and eligible achievements.'
+                : 'Skill progress was not recorded because no gameplay evidence was available.';
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0

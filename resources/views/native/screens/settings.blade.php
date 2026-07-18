@@ -1,17 +1,19 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<x-native.screen-container :state="$shellState">
-    <x-slot:empty>
-        <x-native.empty-state
-            :ios="Ios::Gearshape"
-            :android="AndroidOutlined::Settings"
-            title="Settings shell ready"
-            description="Saved preferences are available to services; controls arrive later."
-        >
-            <x-slot:action>
-                <native:button label="About Ennoble" variant="secondary" @press="openAbout" />
-            </x-slot:action>
-        </x-native.empty-state>
-    </x-slot:empty>
-</x-native.screen-container>
+<native:column class="h-full w-full bg-theme-background">
+<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:row class="w-full justify-center bg-theme-background">
+<native:column class="w-80 mt-5 mb-12 gap-6">
+    <x-native.empty-state
+        :ios="Ios::Gearshape"
+        :android="AndroidOutlined::Settings"
+        title="Settings shell ready"
+        description="Saved preferences are available to services; controls arrive later."
+        action-label="About Ennoble"
+        action-method="openAbout"
+    />
+</native:column>
+</native:row>
+</native:scroll-view>
+</native:column>

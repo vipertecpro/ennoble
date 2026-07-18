@@ -1,211 +1,279 @@
 # Ennoble Design System
 
-## Direction
+## Product Direction
 
-Ennoble should feel calm, intelligent, energetic, and premium. The experience favors expressive typography, generous spacing, clear hierarchy, and strong full-screen game moments over dense dashboards.
+Ennoble is a calm, private daily practice for cognitive fitness. Its interface should feel minimal, focused, confident, elegant, and intelligent. It should never resemble a corporate dashboard, a component demonstration, or a collection of unrelated cards.
 
-The visual identity is original. It does not reproduce another brain-training product's logo, illustrations, card layouts, motion, or written tone.
+The reference work supplied for Prompt Design-2 informed three principles without being copied:
 
-## Implemented Foundation
+1. Give each screen one dominant idea.
+2. Prefer short copy, generous white space, and precise alignment.
+3. Use one restrained action instead of oversized full-width controls.
 
-Prompt 3 establishes the reusable design-system mechanics without attempting final visual polish.
+Ennoble’s illustrations, copy, geometry, colors, and compositions remain original.
 
-| Foundation | Implemented source |
+## Visual Principles
+
+- **Quiet foundation:** backgrounds recede so typography and the current task lead.
+- **One focal point:** every screen has one visual anchor, one headline, and one obvious next action.
+- **Bounded reading width:** primary phone content is 320 points wide and centered.
+- **Editorial hierarchy:** section titles and spacing separate content before borders do.
+- **Honest states:** unavailable gameplay, statistics, and progress remain explicitly unavailable.
+- **Native behavior:** controls, navigation, sheets, dialogs, scaling, and accessibility remain platform-native.
+
+## Theme Architecture
+
+`config/native-ui.php` is the color source of truth. Application views use semantic `theme-*` utilities; component-specific hex values are prohibited.
+
+The 19 application roles are:
+
+| Role | Purpose |
 | --- | --- |
-| Semantic appearance | `config/native-ui.php` light and dark palettes |
-| Typography, spacing, radii, elevation | `App\NativeUI\Tokens\DesignTokens` |
-| Motion, opacity, and icon sizing | `DesignTokens` plus `MotionToken` |
-| Theme preference integration | `App\NativeUI\Theme\ThemeManager` |
-| Native chrome | `App\NativeLayouts\EnnobleLayout` |
-| Shared screen states | `resources/views/components/native/` |
-| Typed icons | Generated `App\Icons\Ios`, `Android`, and `AndroidOutlined` enums |
+| `background` | Full-screen foundation |
+| `surface` | Standard grouped content |
+| `surface-elevated` | Foreground cards and temporary surfaces |
+| `primary-surface` | Quiet brand-tinted hero areas |
+| `secondary-surface` | Supporting neutral areas |
+| `primary-text` | Headings and essential labels |
+| `secondary-text` | Body copy |
+| `muted-text` | Metadata and tertiary copy |
+| `divider` | Internal separation |
+| `border` | Restrained card definition |
+| `accent` | Primary brand emphasis |
+| `success` | Confirmed positive state |
+| `warning` | Caution requiring attention |
+| `danger` | Error or destructive state |
+| `overlay` | Dialog and sheet scrim |
+| `pressed` | Press feedback |
+| `selected` | Selected control or row |
+| `disabled` | Unavailable controls |
+| `focus-ring` | Keyboard and accessibility focus |
 
-The current semantic palette is intentionally restrained:
+Native control tokens (`primary`, `secondary`, `surface`, `background`, their `on-*` pairs, outline, destructive, and accent) map to the same visual philosophy.
 
-| Token group | Light direction | Dark direction |
-| --- | --- | --- |
-| Primary | Deep violet | Soft violet with dark on-color |
-| Background | Warm near-white | Deep neutral |
-| Surface | White | Raised deep neutral |
-| Accent | Muted warm orange | Soft warm orange |
-| Destructive | Deep red | Soft red with dark on-color |
+### Light Theme
 
-These values are foundation tokens, not final screen art direction. Control visuals remain theme-driven.
+Light mode uses a warm near-white background, white elevated surfaces, dark neutral type, pale mineral-grey support surfaces, and a restrained deep-teal accent. Hierarchy comes from space and tone; borders are reserved for cards that need a visible boundary.
 
-## Brand Personality
+### Dark Theme
 
-- **Calm:** uncluttered surfaces and predictable navigation.
-- **Intelligent:** precise language, legible information, and meaningful metrics.
-- **Energetic:** confident game color, responsive feedback, and restrained celebration.
-- **Premium:** consistent spacing, typography, motion, and authored empty states.
-- **Supportive:** corrective feedback explains the next useful action without shame.
+Dark mode uses a near-black charcoal background, quiet zinc surfaces, high-contrast neutral type, and a soft teal accent. It avoids blue or purple foundations, tinted card collections, and high-chroma decoration. Cards separate through small tonal changes and subtle borders.
+
+### Theme Switching
+
+`ThemeManager` applies the selected semantic palette and clears the Native UI Tailwind parser cache so rerenders do not retain stale semantic values. System appearance follows the platform. Explicit Light and Dark choices use the matching semantic tokens; platform chrome behavior must continue to be verified against the installed NativePHP implementation.
 
 ## Typography
 
-Use one locally bundled, redistribution-safe sans-serif family with regular, medium, semibold, and bold files. The final family requires a separate licensing and visual decision. Do not load fonts at runtime or depend on a CDN.
+Ennoble uses the native system family so iOS and Android retain familiar rendering and Dynamic Type behavior.
 
-Suggested roles:
-
-| Role | Intent |
-| --- | --- |
-| Display | Game title, workout completion, major score |
-| Heading | Screen and section titles |
-| Body | Instructions, explanations, settings |
-| Label | Buttons, tabs, chips, compact metrics |
-| Numeric | Scores, time, accuracy, streaks |
-
-Use native dynamic type behavior and verify wrapping at larger accessibility sizes. A bundled font file represents a specific weight; reference the correct file rather than relying on synthesized bold.
-
-## Spacing and Shape
-
-Use a compact scale based on 4-unit increments: 4, 8, 12, 16, 20, 24, 32, and 40. Default screen padding begins at 20 where space permits and reduces deliberately on compact devices.
-
-Use three radius tiers:
-
-- Small for chips, badges, and compact controls.
-- Medium for settings rows and secondary cards.
-- Large for workout/game cards and result panels.
-
-Avoid making every surface a rounded card. Full-width sections, dividers, spacing, and typography should establish most hierarchy.
-
-## Surface Hierarchy
-
-1. Background: the quiet screen foundation.
-2. Surface: grouped content and standard cards.
-3. Surface variant: selected, disabled, or secondary regions.
-4. Elevated surface: sheets, modals, and temporary foreground content.
-5. Game field: game-specific, high-contrast full-screen area.
-
-Theme implementation uses the verified semantic Native UI tokens in `config/native-ui.php`. Per-control colors are not assumed to override theme behavior.
-
-## Color Direction
-
-### Shared Semantics
-
-Define semantic roles rather than screen-specific hex values:
-
-- Primary action.
-- Secondary action.
-- Background and surface.
-- On-background and on-surface text.
-- Success, warning, and error.
-- Outline and divider.
-- Disabled surface and disabled content.
-- Focus indicator.
-
-Every state needs a non-color cue such as text, icon, position, or shape.
-
-### Signal Shift
-
-Signal Shift is energetic, geometric, and motion-focused. Explore violet, blue, and electric accents on high-contrast fields. Targets and distractors must remain distinguishable under common color-vision deficiencies.
-
-### Clear Thought
-
-Clear Thought is calm, editorial, and language-focused. Explore warm neutral surfaces with coral, amber, or orange accents. Selected words and sentence segments require clear borders or typography changes in addition to color.
-
-These are design directions, not fixed implementation tokens.
-
-## Icon and Illustration Direction
-
-Use typed native icon enums with appropriate iOS and Android symbols. Do not place emoji in navigation or action labels. Icon-only controls require explicit accessibility labels.
-
-Illustrations use original abstract geometry and simple editorial compositions that can be bundled locally. Avoid detailed decorative art that competes with game instructions. Meaningful images require alt text; decorative images remain silent to screen readers.
-
-## Motion Principles
-
-Motion should explain continuity, confirm input, or celebrate progress. It is not decoration required to understand the interface.
-
-| Moment | Standard behavior | Reduced-motion behavior |
+| Role | Token | Intended use |
 | --- | --- | --- |
-| Screen entry | Short native transition preserving direction | Fade or immediate replacement |
-| Card press | Subtle scale or elevation response | Static state change |
-| Correct answer | Brief emphasis and success confirmation | Instant icon/text confirmation |
-| Incorrect answer | Small contained response, never aggressive shaking | Instant error outline and message |
-| Combo increase | Numeric emphasis proportional to change | Direct number update |
-| Score change | Short count or emphasis | Direct final value |
-| Workout completion | Restrained layered celebration | Static completion composition |
-| Achievement unlock | Modal/sheet emphasis with one entrance | Static presentation |
-| Modal | Native modal presentation | Platform default without extra motion |
-| Bottom sheet | Native sheet presentation | Platform default without extra motion |
+| Display XL | `text-5xl font-bold leading-tight` | Rare completion or score moment |
+| Display Large | `text-4xl font-bold leading-tight` | Onboarding statement |
+| Headline | `text-3xl font-bold leading-tight` | Screen heading |
+| Title | `text-2xl font-semibold leading-tight` | Card or major section title |
+| Section | `text-xl font-semibold leading-tight` | Section heading |
+| Body | `text-base leading-relaxed` | Primary explanatory copy |
+| Body Small | `text-sm leading-relaxed` | Supporting copy and metadata |
+| Caption | `text-xs font-semibold` | Eyebrows and compact labels |
+| Button | `text-base font-semibold` | Action labels |
+| Badge | `text-xs font-semibold` | Status and category labels |
+| Numeric | `text-3xl font-bold leading-tight` | Time, scores, and metrics |
 
-Before implementation, verify every animation, gesture, and transition property in [NativePHP v4 Gestures and Animation](https://nativephp.com/docs/mobile/4/digging-deeper/gestures-and-animation) and installed source. Unsupported effects must be simplified rather than invented.
+Rules:
 
-Prompt 3 defines only the `fast`, `normal`, `slow`, `spring`, `success`, and `error` timing tokens. Reduced motion resolves these reusable durations to zero through `ThemeManager`; no product or gameplay animation is present.
+- Keep onboarding titles to one short thought.
+- Keep body blocks within the 288-point inner reading width.
+- Use sentence case for actions and headings.
+- Use uppercase only for short eyebrows.
+- Do not reduce text below the caption role.
+- Avoid fixed-height text containers.
 
-## Haptic and Sound Principles
+## Spacing System
 
-- Correct input: light, optional confirmation.
-- Incorrect input: distinct but not punitive feedback.
-- Achievement or workout completion: a single stronger confirmation.
-- Never emit haptics continuously or for decorative animation.
-- Honor sound and haptic preferences immediately.
-- Pair every sound or haptic cue with visible feedback.
+The base scale is 4, 8, 12, 16, 20, 24, 32, 40, and 48 points.
 
-The installed core exposes one generic short vibration. Prompt 3 types future success, error, warning, selection, and impact intents, but intentionally maps enabled feedback to that one verified capability. Distinct native patterns remain unavailable until a later approved and verified implementation.
+| Layout role | Value |
+| --- | ---: |
+| Screen margin | 20 pt |
+| Main content width | 320 pt |
+| Inner card width | 288 pt |
+| Section gap | 24 pt |
+| Card inset | 20 pt |
+| Standard content gap | 16 pt |
+| Compact gap | 12 pt |
+| Minimum touch target | 44 pt |
 
-## Light and Dark Appearance
+Primary screens use a centered 320-point column. Cards use a 288-point inner column, producing consistent 16-point side insets. Larger devices gain surrounding space without allowing uncontrolled line length.
 
-Light appearance uses quiet warm or neutral backgrounds, dark text, and restrained elevation. Dark appearance uses near-black or deep neutral backgrounds rather than pure black everywhere, with controlled high-chroma game accents.
+## Layout Families
 
-Both modes must:
+### Onboarding
 
-- Meet contrast requirements for text and meaningful controls.
-- Preserve game-state distinctions.
-- Avoid relying on shadows alone.
-- Render disabled controls legibly.
-- Be tested independently; dark mode is not an automatic color inversion.
+- Chrome-free native stack.
+- Compact progress and dots at the top.
+- One dominant original geometric illustration.
+- One short heading, one short support line, and one action row.
+- Back is a quiet ghost action; Continue is a restrained 176-point action.
 
-## Layout and Safe Areas
+### Dashboard
 
-- Use layout-managed safe areas for screens under `NativeLayout`.
-- Use explicit safe-area utilities only on chrome-less screens after verifying layout behavior.
-- Reuse the shared screen container for padding, scrolling, state presentation, and optional chrome-less safe areas.
-- Reuse the shared inline top bar only when layout chrome is unsuitable; its left and right action slots must contain accessible controls.
-- Support compact phone widths without clipping instructions or controls.
-- Allow larger screens to gain breathing room, not uncontrolled line lengths.
-- Keep primary gameplay actions within comfortable reach while preserving platform conventions.
-- Avoid fixed-height text containers that break under dynamic type.
+- The greeting is the header; a redundant system title bar is not shown.
+- Today’s practice is the dominant pale-teal hero.
+- Streak, progress, achievement, and future content follow in a single vertical rhythm.
+- The primary tab bar remains visible.
 
-## Accessibility Rules
+### Games
 
-- Provide `a11y-label` for icon-only buttons, chips, and tabs.
-- Use `a11y-hint` only when it adds information beyond the label.
-- Label meaningful images and keep decorative icons silent.
-- Make press targets comfortably sized and separated.
-- Keep instructions available long enough to read and offer pause/review where timing permits.
-- Do not encode correctness, selection, or difficulty through color alone.
-- Support VoiceOver and TalkBack reading order.
-- Run NativePHP's in-process accessibility audit for every screen, followed by manual assistive-technology verification on each platform.
-- Treat reduced motion, sound off, and haptics off as first-class states.
+- Editorial heading, search, and two predictable filter rows.
+- One featured visual card followed by available and future sections.
+- The same centered width and tab behavior as Dashboard.
 
-Prompt 3's reusable components use native scalable text, 44-point minimum top-bar targets, explicit icon labels where meaningful, text cues for toast semantics, and in-process accessibility audits. Manual VoiceOver, TalkBack, contrast, large-text, and reading-order evidence still requires platform execution.
+### Workout
 
-## State Checklist
+- Native detail title bar; primary tabs are removed.
+- Header, progress, one focused card, and a compact action group.
+- Preparation, placeholder, transition, and completion preserve identical alignment.
 
-Every implemented screen or reusable component must document and verify:
+### Signal Shift Gameplay
 
-- Initial.
-- Active.
-- Loading, when local work can be perceptible.
-- Empty.
-- Completed.
-- Disabled.
-- Recoverable error.
-- Light appearance.
-- Dark appearance.
-- Reduced motion.
-- Large text.
+Signal Shift deliberately leaves the standard Workout layout family once play begins. It is a native game scene, not a content screen:
+
+- Native navigation and tab chrome are hidden for the complete runner.
+- Instructions use one original geometric focal composition, a short premise, and one dominant action.
+- Each round presents its rule as a centered focus moment, then transitions through a full-screen `3 → 2 → 1 → GO` countdown.
+- Active play uses a fixed, non-scrolling composition: compact status, current rule, an expansive play field, and one transient feedback line.
+- The play field has no card border, panel title, section wrapper, form control, or dashboard metric grid.
+- Targets are shape-first pressables with generous invisible touch bounds. Visible labels are removed; authoritative shape, color, size, movement, direction, and rotation remain available to assistive technology.
+- Lives are physical dots that dim and contract when lost. Score remains quiet. Combo appears only after a successful chain, then clears.
+- Round and final results lead with a celebratory score moment, followed by a two-plus-one accuracy, reaction, and best-combo hierarchy plus the personal-best comparison. The arrangement avoids both tables and narrow three-column compression when Dynamic Type grows.
+
+The target composition is approximately 5% status, 10% rule, 75% play field, and 10% transient feedback. Tutorial and result states use a single-column scroll boundary for Dynamic Type, keeping the result action reachable even after several preferred-text-size increases. Active play and countdown never scroll.
+
+### Fullscreen and Settings
+
+- Splash and state shells use a centered composition inside the same bounded scroll structure as content screens.
+- Settings, About, Profile, and Progress placeholders use the same quiet background, bounded width, concise empty-state language, and large-text-safe vertical scrolling.
+
+### Native Tree Composition Rule
+
+NativePHP’s Blade collector materializes child native elements while anonymous component slots are being evaluated. A slot-based wrapper can therefore publish the child once at the caller and again inside the wrapper. Symptoms include phantom borders, unresponsive scrolling, incorrect alignment, and duplicated accessibility nodes.
+
+For screen-level native layout boundaries:
+
+- Author the `column` / `scroll-view` / centered `row` directly in the screen.
+- Use self-closing components driven by scalar props.
+- Use `@include` for conditional native overlays.
+- Do not pass native element trees through anonymous Blade slots.
+
+Scrollable application screens use a screen-filling column and a `h-full flex-1` scroll view. `EnnobleLayout` uses NativePHP’s bounded EDGE chrome path so the scroll view receives a finite viewport. Primary screens receive the bottom navigation only; detail screens receive the title bar only.
+
+## Card Language
+
+| Card | Surface | Radius | Use |
+| --- | --- | --- | --- |
+| Hero | `primary-surface` | 24 pt | Today’s practice and major focus |
+| Workout | `surface-elevated` + border | 24 pt | Workout details and instructions |
+| Game | `surface-elevated` + border | 24 pt | Playable library items |
+| Metric | `secondary-surface` | 16 pt | Small statistics |
+| Achievement | `surface-elevated` + border | 24 pt | Evidence-backed achievement state |
+| Coming Soon | `secondary-surface` + border | 24 pt | Honest future preview |
+
+Cards share a 20-point conceptual inset, a 16-point content rhythm, semantic colors, and a short ease-out appearance. Avoid nesting several bordered cards when spacing or a divider communicates the relationship.
+
+## Button Language
+
+- **Primary:** one main action per screen or card.
+- **Secondary:** an alternative action that remains visually quieter.
+- **Ghost:** Back, Skip, Cancel, and low-emphasis navigation.
+- **Destructive:** irreversible exits or deletion, always paired with confirmation.
+- **Loading:** preserves its width and disables repeat interaction.
+- **Disabled:** uses semantic disabled surfaces and remains legible.
+
+Buttons are content-led, typically 176–224 points wide in centered flows. Full-width buttons are reserved for cases where reach or compact width genuinely requires them. Icon-only controls require an accessibility label.
+
+## Motion Language
+
+Motion communicates continuity and state; it is never required to understand the interface.
+
+| Token | Duration | Use |
+| --- | ---: | --- |
+| Fast | 110 ms | Press feedback |
+| Normal | 180 ms | Card and control transitions |
+| Slow | 260 ms | Illustration and screen emphasis |
+| Spring | 300 ms | Restrained native continuity |
+| Success | 340 ms | Completion emphasis |
+| Error | 180 ms | Recoverable error emphasis |
+
+Onboarding illustrations use small scale and translation loops rather than playful character animation. Cards use short entrance easing. Navigation, dialogs, and sheets use native transitions. Reduced Motion resolves authored durations to zero and removes non-essential transforms.
+
+Signal Shift uses motion only to communicate gameplay:
+
+- Rule reveal: scale and opacity establish the new decision boundary.
+- Countdown: each value owns the scene, expands, fades, and triggers preference-gated haptic feedback.
+- Spawn: keyed targets enter as new native nodes and use restrained scale or directional motion.
+- Correct: the selected wave disappears, a local particle burst expands, score floats briefly, and an active combo flashes.
+- Wrong or missed: the play field shifts laterally, danger feedback appears briefly, and one life contracts.
+- Completion: the score focus expands once before settling into readable evidence.
+
+Reduced Motion keeps the same phases, timing meaning, rule copy, static movement-direction markers, feedback text, and evidence. It removes authored translation, looping, scale, and opacity durations.
+
+### Sound Cue Architecture
+
+The intended offline cue vocabulary is:
+
+| Cue | Meaning | Current capability |
+| --- | --- | --- |
+| Countdown | One restrained pulse per count; confident release on GO | Designed, not played |
+| Correct | Short bright confirmation | Designed, not played |
+| Wrong or missed | Soft low rejection without alarm | Designed, not played |
+| Combo | Brief rising accent at a configured milestone | Designed, not played |
+| Completion | Warm resolved cadence | Designed, not played |
+
+The installed stack still exposes no reviewed bundled-audio playback bridge and the repository contains no approved original cues. Sound remains a documented presentation contract only; haptics and visual feedback carry the current experience without pretending audio exists.
+
+## Illustration Direction
+
+Use original abstract geometry, strong negative space, circles, paths, and typed platform symbols. Illustrations may support a task but must not compete with its headline. Bundle every required asset locally. Never use emoji as interface iconography or copy another product’s artwork.
+
+## Accessibility
+
+- Native text must scale with system settings.
+- Maintain at least 44-point interactive targets.
+- Label icon-only controls and meaningful images.
+- Decorative icons remain silent.
+- Keep focus order aligned with visual order.
+- Do not apply one accessibility label to a container with interactive children.
+- Pair color with copy, icon, position, or shape.
+- Keep Back and recovery actions available without gesture-only navigation.
+- Respect Reduced Motion, sound, and haptic preferences.
+- Run `assertAccessible()` for implemented states, then separately verify VoiceOver, TalkBack, large text, orientation, and real touch behavior before release.
+
+## Screen State Checklist
+
+Every screen must account for:
+
+- Initial and active states.
+- Loading where local work is perceptible.
+- Empty and unavailable states.
+- Completed state.
+- Disabled controls.
+- Recoverable errors.
+- Light, Dark, and System appearance.
+- Reduced Motion.
+- Large text and narrow width.
 - Offline operation.
 
-## QA-2 iOS Foundation Decisions
+## Contributor Checklist
 
-The production UI foundation was exercised on an iPhone 17 Pro simulator running iOS 26.5.
+Before adding a visual component:
 
-- Onboarding uses `OnboardingLayout`, a native navigation-stack host with its bar hidden. This lets iOS own Dynamic Island and status-bar geometry without exposing application chrome.
-- Chrome-less safe-area utilities remain on the inner content column, not the outer stack. Layout-hosted screens do not add a second safe-area inset.
-- Scrollable onboarding steps must not use `flex-1`; doing so compresses large Dynamic Type content. Onboarding actions stack at full width so labels remain complete at accessibility sizes.
-- Game category chips use two intentional rows of three. Intrinsic chip sizing is preserved without relying on renderer-specific flex wrapping.
-- A modal or bottom sheet containing interactive children must not set one group-level `a11y-label`. On iOS that label replaces the children in the accessibility tree. Titles and buttons provide their own semantics.
-- System appearance changes repaint the complete semantic light and dark palettes correctly. NativePHP v4 does not currently expose an application-level preferred-color-scheme setter, so Ennoble's explicit Light and Dark preferences cannot yet force SwiftUI/Compose appearance safely. The frozen Native UI mirror was not modified to conceal this upstream gap.
-
-The screenshot evidence for this pass is stored in `docs/screenshots/ios/`.
+1. Select semantic roles instead of authoring a component color.
+2. Select an existing typography and spacing role.
+3. Choose the correct layout family and card language.
+4. Keep one clear primary action.
+5. Avoid native child slots; prefer scalar props and direct screen composition.
+6. Add initial, disabled, empty/error, and accessibility behavior.
+7. Verify light and dark rendering, large text, and native scrolling.
+8. Add or update Pest coverage and refresh simulator evidence.

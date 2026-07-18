@@ -1,30 +1,35 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<x-native.screen-container :state="$screenState" :scroll="true">
+<native:column class="h-full w-full bg-theme-background">
+<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:row class="w-full justify-center bg-theme-background">
+<native:column class="w-80 mt-5 mb-12 gap-6">
     @if ($screenState === 'error')
-        <x-native.error-state title="Game checkpoint unavailable" :description="$errorMessage">
-            <x-slot:retry>
-                <native:button label="Return home" size="lg" variant="primary" @press="confirmExit" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            title="Game checkpoint unavailable"
+            :description="$errorMessage"
+            retry-label="Return home"
+            retry-method="confirmExit"
+        />
     @else
     <x-native.workout-header
         :eyebrow="$gameOrder"
         :title="$gameTitle"
         subtitle="Focused game container"
         :motion-duration="$motionDuration"
-    >
-        <x-slot:action>
-            <native:button
-                label="Pause"
-                size="sm"
-                variant="secondary"
-                a11y-hint="Pauses the timer and opens workout options"
-                @press="pauseWorkout"
-            />
-        </x-slot:action>
-    </x-native.workout-header>
+    />
+
+    <native:row class="w-80 justify-end">
+        <native:button
+            class="w-28"
+            label="Pause"
+            size="sm"
+            variant="secondary"
+            a11y-hint="Pauses the timer and opens workout options"
+            @press="pauseWorkout"
+        />
+    </native:row>
 
     <x-native.workout-progress
         :current-game="$gameTitle"
@@ -38,17 +43,11 @@
         :message="$placeholderMessage"
         :elapsed-time="$elapsedTime"
         :motion-duration="$motionDuration"
-    >
-        <native:button
-            label="Complete Placeholder"
-            size="lg"
-            variant="secondary"
-            :loading="$isSubmitting"
-            :disabled="$isSubmitting || $paused"
-            a11y-hint="Completes this framework step without creating gameplay evidence"
-            @press="completePlaceholder"
-        />
-    </x-native.game-container>
+        action-label="Complete Placeholder"
+        action-method="completePlaceholder"
+        :action-loading="$isSubmitting"
+        :action-disabled="$isSubmitting || $paused"
+    />
     @endif
 
     @if ($dialogVisible)
@@ -58,4 +57,7 @@
     @if ($bottomSheetVisible)
         @include('native.partials.workout-pause-sheet')
     @endif
-</x-native.screen-container>
+</native:column>
+</native:row>
+</native:scroll-view>
+</native:column>

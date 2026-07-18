@@ -4,9 +4,9 @@
 
 Ennoble runs on Laravel 13.20.0, PHP 8.4.23, and local SQLite. NativePHP Mobile remains locked to `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d`. Native UI remains the frozen project-owned path mirror based on upstream commit `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with only the documented iOS 18.2 manifest fix.
 
-Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard. Prompt 6 replaces the Games placeholder with a curated, searchable, filterable native library. Prompt 7 replaces the workout placeholder with a complete reusable workout-session framework while keeping both games explicitly non-playable. Prompts 5–7 do not change Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
+Prompt 2 adds the complete first-release domain and persistence foundation. Prompt 3 adds the reusable native application shell. Prompt 4 adds the first-launch onboarding journey. Prompt 5 replaces the Home placeholder with the local state-aware dashboard. Prompt 6 replaces the Games placeholder with a curated, searchable, filterable native library. Prompt 7 adds the reusable workout-session framework. Prompt 8 replaces the Signal Shift placeholder with the first production game while retaining Clear Thought as an honest placeholder. Prompts 5–8 do not change Composer, plugin registration, NativePHP configuration, or the Native UI mirror.
 
-The application has thirteen native routes, including onboarding, the complete Home dashboard, the complete Games library, and five workout-session routes. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Signal Shift and Clear Thought gameplay, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
+The application has fourteen native routes, including onboarding, the complete Home dashboard, the complete Games library, five shared workout routes, and the dedicated Signal Shift runner. It retains the four-tab `NativeLayout`, semantic light/dark tokens, settings-aware theme resolution, shared EDGE state components, typed platform icon catalogs, and reusable dialog/toast/haptic infrastructure. Clear Thought gameplay, the detailed Progress screen, Profile editing, and detailed Statistics or Achievements screens remain unimplemented.
 
 The local database now contains the additive Ennoble schema and bundled definitions for:
 
@@ -44,6 +44,9 @@ app/
         ClearThoughtAnswerValidator.php
         ClearThoughtScoringService.php
       SignalShift/
+        SignalShiftGameService.php
+        SignalShiftRule.php
+        SignalShiftRuleEngine.php
         SignalShiftScoringService.php
       GameSessionService.php
     Onboarding/
@@ -118,6 +121,7 @@ The asset directories remain structural and do not ship external artwork, animat
 - `/workout`
 - `/workout/preparation/{session}`
 - `/workout/game/{session}`
+- `/workout/game/signal-shift/{session}`
 - `/workout/transition/{item}`
 - `/workout/complete/{workout}`
 - `/games`
@@ -164,7 +168,7 @@ Shared loading, empty, error, icon, top-bar, modal, and bottom-sheet components 
 
 The installed renderer still derives platform appearance from the operating system. Explicit preferences therefore force Ennoble's semantic colors and chrome colors, but exact system-bar appearance remains a device-verification item.
 
-`DesignTokens` centralizes typography, spacing, corner radius, elevation, motion duration, opacity, icon size, screen padding, component spacing, and minimum touch target values. Onboarding uses those durations for restrained progress, illustration, card, and step transitions. Home uses the same values for section appearance and native-thread press feedback. Both components resolve authored durations and transforms to static values when Reduced Motion is selected. No gameplay motion is implemented.
+`DesignTokens` centralizes typography, spacing, corner radius, elevation, motion duration, opacity, icon size, screen padding, component spacing, and minimum touch target values. Onboarding uses those durations for restrained progress, illustration, card, and step transitions. Home uses the same values for section appearance and native-thread press feedback. Signal Shift derives stimulus translation and duration from the same tokens plus its configured speed modifier. Reduced Motion resolves authored durations and stimulus translation to zero without removing rule meaning.
 
 ### Feedback and Dialog Infrastructure
 
@@ -257,7 +261,7 @@ The component maps those domain results into serializable native view state. It 
 
 Reusable EDGE components own the greeting, section headers, section loading, Today workout, streak, progress, achievement, and Coming Soon cards. The full dashboard and each data section expose loading and recoverable error states independently. Empty states distinguish no streak, no progress evidence, no workout history, no personal best, and no achievement unlock.
 
-The Today CTA triggers preference-aware haptics and navigates to `/workout`. The introduction remains side-effect free; its Begin or Resume action creates or retrieves the explicit framework-placeholder session. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
+The Today CTA triggers preference-aware haptics and navigates to `/workout`. The introduction remains side-effect free; its Begin or Resume action creates or retrieves a real Signal Shift session or the explicit Clear Thought framework placeholder according to the current item. Completed workouts expose a disabled Completed Today action. Coming Soon cards provide native-thread press feedback and open the existing shared bottom-sheet host without navigation or session creation.
 
 ### Games Library
 
@@ -274,21 +278,32 @@ Signal Shift is both the featured card and one of the two available cards. Clear
 
 Reusable EDGE components own the featured card, playable card, Coming Soon card, illustration placeholder, statistic tile, badge, category chip, and search input. The existing screen container, section header, loading card, empty/error states, dialog host, semantic tokens, typed icons, toast service, and haptic service are reused.
 
-Playable actions trigger preference-aware impact feedback and navigate to the workout introduction. Beginning there creates a resumable framework-placeholder session without gameplay evidence. Coming Soon cards provide native-thread press feedback and selection haptics, then open the shared bottom sheet without navigation or persistence. Search and filters never mutate SQLite.
+Playable actions trigger preference-aware impact feedback and navigate to the workout introduction. Beginning there creates a resumable real Signal Shift attempt for its item; only Clear Thought uses the non-evidentiary placeholder path. Coming Soon cards provide native-thread press feedback and selection haptics, then open the shared bottom sheet without navigation or persistence. Search and filters never mutate SQLite.
 
 Initial loading, complete-catalog, filtered, no-search-result, no-category-match, no-history, no-statistics, statistics-error, and full recoverable-error states are represented. Reduced Motion resolves authored appearance and press transforms to static values. The in-process accessibility audit covers the complete and conditional trees, while platform reading order, scalable-text layout, and visual behavior remain device-verification work.
 
 ### Workout
 
-Five focused NativeComponents own the workout presentation lifecycle:
+Five shared NativeComponents and one dedicated game component own the workout presentation lifecycle:
 
 1. `WorkoutIntroduction` loads the deterministic daily sequence and presents duration, difficulty, skills, Begin, and Resume without starting a session during mount.
 2. `WorkoutPreparation` presents game-specific guidance and a poll-driven three-second countdown, then persists the prepared checkpoint.
-3. `WorkoutGameContainer` owns elapsed-time polling, pause/resume, restart, exit confirmation, checkpoint persistence, and the explicit placeholder-completion action.
-4. `WorkoutTransition` presents the truthful no-score state and the next game. It advances after three poll ticks or a Continue action; Reduced Motion disables automatic advancement.
-5. `WorkoutComplete` presents training time and completed framework steps while score and accuracy remain “Not recorded.”
+3. `SignalShiftGame` owns the real instructions, optional tutorial, rule shifts, waves, timer, lives, combo, scoring feedback, pause/resume, restart, failure, completion, and results. `WorkoutGameContainer` remains the explicit non-evidentiary Clear Thought placeholder.
+4. `WorkoutTransition` presents either persisted Signal Shift performance or the truthful placeholder state plus the next game. It advances after three poll ticks or a Continue action; Reduced Motion disables automatic advancement.
+5. `WorkoutComplete` presents training time and completed steps plus only the score and accuracy supported by real evidence.
 
 Reusable EDGE components own the header, progress, countdown, game container, transition card, completion card, pause sheet, and footer. The screens use typed icons, semantic theme tokens, native modal/bottom-sheet hosts, preference-aware haptics, hidden tab chrome, accessibility labels, and recoverable errors.
+
+Signal Shift intentionally diverges from the shared card-based workout composition only inside its dedicated runner. `SignalShiftGame` hides both navigation bars and renders:
+
+- Scrollable instruction, tutorial, rule-reveal, round-result, failure, and final-result states for scalable text.
+- A fixed, non-scrolling full-screen countdown state.
+- A fixed active-play state with compact HUD, physical lives, quiet score, transient combo, rule copy, and a dominant shape play field.
+- Application-owned scalar-prop Blade components that encapsulate canvas/shape primitives. This preserves the project’s native-tree composition rule and works around the installed validator’s direct shape allowlist without editing the frozen Native UI mirror.
+
+The non-playing scroll view owns a single outer column so its intrinsic Dynamic Type height remains scrollable. Result metrics use a two-plus-one hierarchy rather than three compressed equal columns; this preserves readable values and labels at large preferred text sizes while keeping the action reachable below.
+
+Presentation-only checkpoint fields retain the active countdown and transient feedback across process interruption. They do not enter `game_rounds`, scoring, statistics, progress, achievements, or difficulty selection. The existing `SignalShiftGameService`, `SignalShiftRuleEngine`, `SignalShiftScoringService`, and `GameSessionService` remain authoritative and unchanged by the Game-UX-1 redesign.
 
 `WorkoutService`:
 
@@ -302,7 +317,7 @@ Reusable EDGE components own the header, progress, countdown, game container, tr
 - Hydrates complete resume state.
 - Refuses premature completion.
 - Finalizes the workout summary idempotently and updates statistics, streaks, and achievements only when gameplay evidence exists.
-- Resets only framework-placeholder sessions for the explicit Restart Workout action.
+- Leaves game-specific restart semantics to the session service so a Signal Shift restart cannot erase completed workout evidence.
 - Exposes newest-first history.
 
 Missing games or levels raise an explicit domain exception. The service never invents fallback content.
@@ -323,6 +338,24 @@ Missing games or levels raise an explicit domain exception. The service never in
 
 Accuracy dominates random rapid tapping through explicit penalties.
 
+`SignalShiftRule` is the validated immutable rule value object. It supports target color, target shape, excluded shape, movement, size, rotation, speed, density, waves, and timing without encoding named rules in the UI.
+
+`SignalShiftRuleEngine`:
+
+- Requires exactly three bundled player-facing rounds.
+- Produces deterministic waves from the level configuration.
+- Guarantees exactly one eligible target and enough ineligible distractors.
+- Keeps generated labels, direction, and target eligibility authoritative for both interaction and accessibility.
+
+`SignalShiftGameService`:
+
+- Rejects placeholders and non-Signal Shift sessions.
+- Records correct, incorrect, and missed outcomes through `GameSessionService`.
+- Stores round/wave and stimulus metadata with each immutable evidence row.
+- Calculates live round and session metrics with the existing scoring service.
+- Resolves previous-best and tutorial-completion evidence.
+- Completes or restarts the attempt through the shared transactional lifecycle.
+
 `ClearThoughtScoringService` owns:
 
 - Correctness.
@@ -342,6 +375,8 @@ Accuracy dominates random rapid tapping through explicit penalties.
 5. Select the correct scoring implementation by `GameType`.
 6. Finalize session metrics and its workout item.
 7. Persist skill, statistics, and achievement evidence exactly once.
+8. Start the implemented Signal Shift path or the remaining Clear Thought placeholder from one workout-item boundary.
+9. Restart an unfinished real session by deleting only its rounds and resetting its evidence fields while preserving its identity and workout ownership.
 
 It additionally owns a deliberately separate framework-placeholder path. Placeholder sessions persist prepared, paused, and elapsed-time checkpoints; completion stores no rounds, score, accuracy, personal best, skill progress, statistics, or achievement evidence. The normal scoring pipeline rejects placeholder sessions. It does not know about navigation, NativeComponents, EDGE, or layout.
 
@@ -410,7 +445,7 @@ NativePHP runs migrations during application startup, so the bundled definition 
 
 The seeders use stable slugs/types and SQLite upserts. `DatabaseSeeder` calls the same content seeders for development parity but does not create a profile, workout, statistic, attempt, or test user.
 
-Clear Thought challenge content and Signal Shift gameplay configuration beyond the level foundation are intentionally deferred to their gameplay prompts. The schema and validation/scoring boundaries are ready for that content.
+Signal Shift ships versioned local level configuration for Beginner, Intermediate, and Advanced. Every difficulty defines three validated rules plus lives, combo milestone, palette, shapes, density, speed, waves, and timing. The additive content migration invokes the idempotent level seeder so both fresh installs and existing installs receive version 2 configuration without seeding user activity. Clear Thought challenge content remains deferred to its gameplay prompt.
 
 ## Offline Boundary
 
@@ -418,10 +453,14 @@ The domain layer has no HTTP client, remote API, authentication service, analyti
 
 All current inputs are:
 
-- Method parameters from a future local native UI.
+- Native interactions from application-owned EDGE components.
 - Bundled seeded definitions.
 - Local SQLite records.
 - Local time/date supplied by the caller or Laravel.
+
+The project persists a sound preference and reserves `resources/audio`, but the installed core and registered Native UI plugin expose no bundled-audio playback bridge and no audio assets are present. Prompt 8 therefore adds no fake sound facade, remote asset, dependency, or platform patch. Actual cues remain a capability boundary requiring a reviewed local native bridge and original bundled files.
+
+Game-UX-1 defines five future presentation events—countdown, correct, wrong or missed, combo milestone, and completion—but adds no playback call. Existing preference-gated haptics provide current tactile feedback for the same state changes.
 
 ## NativePHP Boundary
 
@@ -434,7 +473,7 @@ The frozen NativePHP compatibility boundary remains:
 - Root Composer repositories and constraints are unchanged.
 - `packages/nativephp/native-ui` contains no Ennoble domain logic.
 
-`php artisan native:validate` passes all thirteen application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include every runtime-registered Native UI manifest type used by the application, so carousel, outlined text input, and Games filter chips are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
+`php artisan native:validate` passes all fourteen application NativeComponents without warnings. The installed validator's static tag allowlist does not yet include every runtime-registered Native UI manifest type used by the application, so carousel, outlined text input, and Games filter chips are isolated behind application Blade components. The registered plugin manifest, in-process render tests, and `native:plugin:validate` remain the runtime evidence; the frozen mirror is unchanged.
 
 ## Failure Handling
 
@@ -451,15 +490,19 @@ The frozen NativePHP compatibility boundary remains:
 - Games statistics failures preserve the catalog, show unavailable evidence, and offer a focused retry.
 - Invalid category, playable-game, or Coming Soon identifiers do nothing.
 - Missing or foreign workout checkpoints render a recoverable state.
-- Exit preserves the latest local placeholder checkpoint; restart refuses workouts containing real gameplay evidence.
+- Exit preserves the latest local checkpoint. Signal Shift restart clears only its unfinished attempt; placeholder restart clears only the active placeholder state.
 - Placeholder sessions are excluded from game previews, statistics rebuilds, hint-free achievement evidence, and the real scoring pipeline.
+- Invalid Signal Shift configuration or a missing/foreign checkpoint produces a recoverable native error instead of guessed gameplay.
+- Tutorial taps never enter the round evidence table.
 
 ## Verification Boundary
 
-Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, per-game duration resolution, progress, statistics, Games preview aggregation and completion rate, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, Games featured/available/future sections, filtering, offline search, conditional empty/error states, all five workout phases, pause/exit/resume/restart persistence, automatic and reduced-motion transitions, non-evidentiary placeholder completion, Coming Soon behavior, and in-process accessibility audits.
+Pest tests cover migrations, upgrade preservation, rollback/reapply evidence, seed idempotency, constraints, relationships, casts, enums, profile/settings persistence, scoring, answer validation, checkpoints, completion, workout generation, Adaptive fallback, per-game duration resolution, progress, statistics, Games preview aggregation and completion rate, streaks, achievements, idempotency, native route registration, navigation/chrome, shared state rendering, settings-aware theme application, reduced motion, feedback bridges, dialogs, typed design tokens, onboarding launch guards, all eight onboarding steps, dashboard greetings and state variants, Games featured/available/future sections, filtering, offline search, conditional empty/error states, all workout phases, Signal Shift rule combinations and deterministic generation, every bundled difficulty, tutorial behavior, correct/incorrect/missed outcomes, lives, combo, timer, failure/restart, pause/exit/resume, completion evidence, personal best, mixed real/placeholder workout completion, Coming Soon behavior, and in-process accessibility audits.
 
 These are Laravel in-process/database tests. They are not Android, iOS, simulator, physical-device, VoiceOver, TalkBack, offline-airplane-mode, or visual tests.
 
 ## Next Implementation Boundary
 
-The reusable workout execution framework is complete. A later prompt may replace the Signal Shift placeholder inside `WorkoutGameContainer` with real native gameplay and authoritative round evidence without changing the surrounding phase navigation. Signal Shift and Clear Thought gameplay, detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, and remote capability remain unimplemented. Device/simulator visual, VoiceOver, TalkBack, large-text, pause-sheet, countdown, and reduced-motion behavior remain explicit platform-verification work.
+Signal Shift is the reference game and Clear Thought remains the only workout placeholder. The next game prompt can reuse the real session-start boundary, transactional evidence model, results/statistics/progress pipeline, and shared workout navigation without copying Signal Shift-specific rules. Detailed Progress, Profile editing, Statistics or Achievements screens, notifications, authentication, and remote capability remain unimplemented.
+
+Signal Shift now has iPhone 17 Simulator evidence for repeated play, relaunch/re-entry, light/dark results and gameplay, large Dynamic Type, Reduced Motion, and Accessibility Inspector order/audit. Physical-device VoiceOver, Android/TalkBack, compact-device, bundled-audio, and physical performance/haptic evidence remain release work.

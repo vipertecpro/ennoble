@@ -19,7 +19,8 @@ return [
     | Theme
     |---------------------------------------------------------------------------
     |
-    | 17 color tokens, 4 radii, 4 font sizes, font family.
+    | Native control colors, 19 Ennoble semantic roles, 4 radii,
+    | 4 control font sizes, and one platform font family.
     |
     | "on-X" means "color of content placed ON a surface of color X"
     |   — i.e., text/icons on that background.
@@ -40,65 +41,81 @@ return [
     'theme' => [
 
         'light' => [
-            // Primary brand color — used for filled buttons, active states, key accents.
-            'primary' => '#5B43D6',
+            // Native control tokens.
+            'primary' => '#1F6F63',
             'on-primary' => '#FFFFFF',
-
-            // Secondary / muted action color.
-            'secondary' => '#405A73',
-            'on-secondary' => '#FFFFFF',
-
-            // Surface = cards, sheets, dialogs. Background = page root.
-            'surface' => '#FFFFFF',
-            'on-surface' => '#1E2430',
-            'background' => '#F7F6FB',
-            'on-background' => '#1E2430',
-
-            // Surface variant = filled text fields, muted tonal surfaces.
-            // on-surface-variant = muted label/hint text on those surfaces.
-            'surface-variant' => '#ECEAF5',
-            'on-surface-variant' => '#5D6472',
-
-            // Outline = neutral borders (text fields, dividers, cards).
-            'outline' => '#D7D3E3',
-
-            // Destructive actions — maps to `variant="destructive"` on components.
-            'destructive' => '#B42332',
+            'secondary' => '#E8EBE8',
+            'on-secondary' => '#242628',
+            'surface' => '#FCFCFB',
+            'on-surface' => '#18191B',
+            'background' => '#F5F5F2',
+            'on-background' => '#18191B',
+            'surface-variant' => '#ECEDEA',
+            'on-surface-variant' => '#62666A',
+            'outline' => '#D9DBD7',
+            'destructive' => '#A63D45',
             'on-destructive' => '#FFFFFF',
-
-            // Tertiary accent — for highlights, badges, emphasis not covered by primary.
-            'accent' => '#B65B24',
+            'accent' => '#1F6F63',
             'on-accent' => '#FFFFFF',
+
+            // Ennoble semantic presentation tokens.
+            'surface-elevated' => '#FFFFFF',
+            'primary-surface' => '#E7F0ED',
+            'secondary-surface' => '#EFF0ED',
+            'primary-text' => '#18191B',
+            'secondary-text' => '#3F4347',
+            'muted-text' => '#73777C',
+            'divider' => '#E5E6E2',
+            'border' => '#D9DBD7',
+            'success' => '#347A52',
+            'warning' => '#9A6A1D',
+            'danger' => '#A63D45',
+            'overlay' => '#0A0B0CB8',
+            'pressed' => '#18191B0F',
+            'selected' => '#D9E9E4',
+            'disabled' => '#E4E5E2',
+            'focus-ring' => '#398F80',
         ],
 
         'dark' => [
-            // Leave empty or partial to auto-derive from `light` (luminance inversion).
-            // Specify any token here to override the derived value.
-            'primary' => '#A99AF5',
-            'on-primary' => '#17161D',
+            // Native control tokens.
+            'primary' => '#70CDBB',
+            'on-primary' => '#0D0F10',
+            'secondary' => '#292B2F',
+            'on-secondary' => '#F3F4F4',
+            'surface' => '#15171A',
+            'on-surface' => '#F3F4F4',
+            'background' => '#0D0F11',
+            'on-background' => '#F3F4F4',
+            'surface-variant' => '#222428',
+            'on-surface-variant' => '#A9ADB2',
+            'outline' => '#32353B',
+            'destructive' => '#EF8B91',
+            'on-destructive' => '#1A0D0F',
+            'accent' => '#70CDBB',
+            'on-accent' => '#0D0F10',
 
-            'secondary' => '#9FB5CC',
-            'on-secondary' => '#151820',
-
-            'surface' => '#24232C',
-            'on-surface' => '#F6F4FA',
-            'background' => '#17161D',
-            'on-background' => '#F6F4FA',
-
-            'surface-variant' => '#32303C',
-            'on-surface-variant' => '#B8B4C4',
-
-            'outline' => '#4A4658',
-
-            'destructive' => '#FF8995',
-            'on-destructive' => '#17161D',
-
-            'accent' => '#F0A46E',
-            'on-accent' => '#17161D',
+            // Ennoble semantic presentation tokens.
+            'surface-elevated' => '#1B1D21',
+            'primary-surface' => '#202327',
+            'secondary-surface' => '#191B1E',
+            'primary-text' => '#F3F4F4',
+            'secondary-text' => '#C5C8CC',
+            'muted-text' => '#8D9299',
+            'divider' => '#25282D',
+            'border' => '#32353B',
+            'success' => '#78C596',
+            'warning' => '#D8B36E',
+            'danger' => '#EF8B91',
+            'overlay' => '#000000C2',
+            'pressed' => '#FFFFFF12',
+            'selected' => '#27332F',
+            'disabled' => '#24262B',
+            'focus-ring' => '#91DCCA',
         ],
 
         // Corner radii (points / dp).
-        'radius-sm' => 8,
+        'radius-sm' => 10,
         'radius-md' => 16,
         'radius-lg' => 24,
         'radius-full' => 9999,

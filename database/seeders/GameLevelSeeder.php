@@ -25,9 +25,104 @@ class GameLevelSeeder extends Seeder
         $now = now();
         $levels = [
             'signal-shift' => [
-                [Difficulty::Beginner, 'Measured', 6, 3200, ['targets' => 3, 'distractors' => 1]],
-                [Difficulty::Intermediate, 'Steady', 8, 2500, ['targets' => 4, 'distractors' => 2]],
-                [Difficulty::Advanced, 'Agile', 10, 1900, ['targets' => 5, 'distractors' => 3]],
+                [
+                    Difficulty::Beginner,
+                    'Measured',
+                    6,
+                    3200,
+                    $this->signalShiftConfiguration([
+                        [
+                            'target_color' => 'teal',
+                            'target_shape' => 'circle',
+                            'speed_modifier' => 0.75,
+                            'spawn_density' => 3,
+                            'wave_count' => 2,
+                            'seconds_per_wave' => 5,
+                        ],
+                        [
+                            'target_color' => 'gold',
+                            'excluded_shape' => 'square',
+                            'speed_modifier' => 0.85,
+                            'spawn_density' => 3,
+                            'wave_count' => 2,
+                            'seconds_per_wave' => 5,
+                        ],
+                        [
+                            'motion_required' => true,
+                            'target_shape' => 'circle',
+                            'speed_modifier' => 0.9,
+                            'spawn_density' => 4,
+                            'wave_count' => 2,
+                            'seconds_per_wave' => 4,
+                        ],
+                    ]),
+                ],
+                [
+                    Difficulty::Intermediate,
+                    'Steady',
+                    8,
+                    2500,
+                    $this->signalShiftConfiguration([
+                        [
+                            'target_color' => 'teal',
+                            'target_shape' => 'circle',
+                            'speed_modifier' => 0.95,
+                            'spawn_density' => 4,
+                            'wave_count' => 2,
+                            'seconds_per_wave' => 4,
+                        ],
+                        [
+                            'target_color' => 'gold',
+                            'excluded_shape' => 'diamond',
+                            'speed_modifier' => 1.0,
+                            'spawn_density' => 4,
+                            'wave_count' => 3,
+                            'seconds_per_wave' => 3,
+                        ],
+                        [
+                            'motion_required' => true,
+                            'size_required' => 'large',
+                            'speed_modifier' => 1.1,
+                            'spawn_density' => 5,
+                            'wave_count' => 3,
+                            'seconds_per_wave' => 3,
+                        ],
+                    ]),
+                ],
+                [
+                    Difficulty::Advanced,
+                    'Agile',
+                    10,
+                    1900,
+                    $this->signalShiftConfiguration([
+                        [
+                            'target_color' => 'coral',
+                            'target_shape' => 'diamond',
+                            'speed_modifier' => 1.15,
+                            'spawn_density' => 5,
+                            'wave_count' => 3,
+                            'seconds_per_wave' => 3,
+                        ],
+                        [
+                            'target_color' => 'gold',
+                            'excluded_shape' => 'square',
+                            'size_required' => 'small',
+                            'speed_modifier' => 1.25,
+                            'spawn_density' => 5,
+                            'wave_count' => 3,
+                            'seconds_per_wave' => 2,
+                        ],
+                        [
+                            'target_shape' => 'square',
+                            'motion_required' => true,
+                            'rotation_required' => true,
+                            'speed_modifier' => 1.35,
+                            'spawn_density' => 6,
+                            'wave_count' => 4,
+                            'seconds_per_wave' => 2,
+                        ],
+                    ]),
+                ],
             ],
             'clear-thought' => [
                 [Difficulty::Beginner, 'Direct', 5, null, ['max_attempts' => 2]],
@@ -59,5 +154,21 @@ class GameLevelSeeder extends Seeder
             ['game_id', 'difficulty'],
             ['name', 'round_count', 'target_response_ms', 'configuration', 'is_active', 'updated_at'],
         );
+    }
+
+    /**
+     * @param  list<array<string, bool|float|int|string>>  $rounds
+     * @return array<string, mixed>
+     */
+    private function signalShiftConfiguration(array $rounds): array
+    {
+        return [
+            'content_version' => 2,
+            'lives' => 3,
+            'combo_milestone' => 4,
+            'palette' => ['teal', 'gold', 'coral'],
+            'shapes' => ['circle', 'square', 'diamond'],
+            'rounds' => $rounds,
+        ];
     }
 }

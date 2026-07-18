@@ -5,7 +5,6 @@
 @props([
     'title',
     'duration',
-    'skills' => [],
     'difficulty',
     'action',
     'status',
@@ -14,64 +13,58 @@
 ])
 
 <native:column
-    class="w-full gap-5 rounded-3xl bg-theme-primary p-5"
+    class="w-80 items-center rounded-3xl bg-theme-primary-surface py-5"
     :animate-duration="$motionDuration"
-    animate-easing="ease-out"
     a11y-label="{{ $title }}, {{ $completionPercentage }} percent complete"
 >
-    <native:row class="w-full items-center gap-4">
+<native:column class="w-72 gap-5">
+    <native:row class="items-center justify-between gap-4">
         <native:column class="flex-1 gap-1">
-            <native:text class="text-xs font-semibold text-theme-on-primary">TODAY’S TRAINING</native:text>
-            <native:text class="text-2xl font-bold leading-tight text-theme-on-primary">{{ $title }}</native:text>
+            <native:text class="text-xs font-semibold text-theme-accent">TODAY’S PRACTICE</native:text>
+            <native:text class="text-2xl font-bold leading-tight text-theme-primary-text">{{ $title }}</native:text>
         </native:column>
-
-        <native:column class="items-center justify-center rounded-2xl bg-theme-secondary p-3">
+        <native:column class="w-20 h-20 items-center justify-center rounded-3xl bg-theme-surface-elevated">
             <x-native.icon
-                :ios="$status === WorkoutStatus::Completed->value ? Ios::Checkmark : Ios::Brain"
-                :android="$status === WorkoutStatus::Completed->value ? AndroidOutlined::Check : AndroidOutlined::Psychology"
-                :size="28"
+                :ios="$status === WorkoutStatus::Completed->value ? Ios::CheckmarkSeal : Ios::BrainHeadProfile"
+                :android="$status === WorkoutStatus::Completed->value ? AndroidOutlined::CheckCircle : AndroidOutlined::Psychology"
+                :size="36"
                 :a11y-label="$status === WorkoutStatus::Completed->value ? 'Workout completed' : 'Brain training'"
             />
         </native:column>
     </native:row>
 
-    <native:row class="w-full items-center gap-4">
+    <native:column class="gap-2">
         <native:row class="items-center gap-2">
-            <x-native.icon :ios="Ios::Clock" :android="AndroidOutlined::Timer" :size="18" />
-            <native:text class="text-sm font-semibold text-theme-on-primary">{{ $duration }}</native:text>
+            <x-native.icon :ios="Ios::Clock" :android="AndroidOutlined::Timer" :size="16" />
+            <native:text class="text-sm font-semibold text-theme-secondary-text">{{ $duration }}</native:text>
         </native:row>
-        <native:row class="items-center gap-2">
-            <x-native.icon :ios="Ios::Gauge" :android="AndroidOutlined::Speed" :size="18" />
-            <native:text class="text-sm font-semibold text-theme-on-primary">{{ $difficulty }}</native:text>
-        </native:row>
-    </native:row>
-
-    <native:column class="w-full gap-2">
-        <native:text class="text-xs font-semibold text-theme-on-primary">SKILLS INCLUDED</native:text>
-        <native:text class="text-sm leading-relaxed text-theme-on-primary">
-            {{ implode(' · ', $skills) }}
-        </native:text>
+        <native:text class="text-sm font-semibold text-theme-secondary-text">{{ $difficulty }}</native:text>
     </native:column>
 
-    <native:column class="w-full gap-2">
-        <native:row class="w-full items-center justify-between">
-            <native:text class="text-xs font-semibold text-theme-on-primary">TODAY’S PROGRESS</native:text>
-            <native:text class="text-xs font-semibold text-theme-on-primary">{{ $completionPercentage }}%</native:text>
+    @if ($completionPercentage > 0)
+        <native:column class="gap-2">
+        <native:row class="items-center justify-between">
+            <native:text class="text-xs font-semibold text-theme-muted-text">PROGRESS</native:text>
+            <native:text class="text-xs font-semibold text-theme-accent">{{ $completionPercentage }}%</native:text>
         </native:row>
         <native:progress-bar
             :value="$completionPercentage / 100"
-            color="white"
-            track-color="white/30"
             a11y-label="Today’s workout is {{ $completionPercentage }} percent complete"
         />
-    </native:column>
+        </native:column>
+    @endif
 
-    <native:button
-        :label="$action"
-        size="lg"
-        variant="secondary"
-        :disabled="$status === WorkoutStatus::Completed->value"
-        a11y-hint="{{ $status === WorkoutStatus::Completed->value ? 'Today’s workout is complete' : 'Opens the workout flow preview' }}"
-        @press="openWorkout"
-    />
+    @if ($status === WorkoutStatus::Completed->value)
+        <native:text class="text-sm font-semibold text-theme-accent">Complete for today</native:text>
+    @else
+        <native:button
+            class="w-40"
+            :label="$action"
+            size="md"
+            variant="primary"
+            a11y-hint="Opens the workout flow preview"
+            @press="openWorkout"
+        />
+    @endif
+</native:column>
 </native:column>

@@ -11,6 +11,7 @@ use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Onboarding;
 use Native\Mobile\Edge\Transition;
 use Native\Mobile\Testing\Native;
+use Nativephp\NativeUi\Theme;
 
 test('first launch replaces the shell home with onboarding', function () {
     Native::visit('/')
@@ -38,7 +39,7 @@ test('returning users remain in the existing application shell', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
         ->assertNoNavigation()
-        ->assertSee('Today’s Workout')
+        ->assertSee('TODAY’S PRACTICE')
         ->assertAccessible();
 });
 
@@ -56,13 +57,12 @@ test('returning users cannot restart onboarding accidentally', function () {
 
 test('welcome communicates Ennoble and exposes accessible animated progress', function () {
     Native::visit('/onboarding')
-        ->assertSee('A clearer mind, one day at a time.')
-        ->assertSee('Begin')
+        ->assertSee('Train a sharper mind.')
+        ->assertSee('Get started')
         ->assertElement('native_root_stack')
         ->assertMissingElement('native_root_tabs')
         ->assertNavBarHidden()
-        ->assertElement('progress_bar', fn (array $node): bool => ($node['props']['value'] ?? null) === 0.125
-            && ($node['props']['a11y_label'] ?? null) === 'Onboarding progress, step 1 of 8')
+        ->assertElement('row', fn (array $node): bool => ($node['props']['a11y_label'] ?? null) === 'Onboarding progress, step 1 of 6')
         ->assertElement('column', fn (array $node): bool => ($node['props']['animate-loop'] ?? false) === true)
         ->assertAccessible();
 });
@@ -76,37 +76,41 @@ test('scrolling onboarding steps remain inside chrome-free native layout geometr
         ->assertAccessible();
 });
 
+test('appearance choices remain contrast safe until the next screen is mounted', function () {
+    Native::visit('/onboarding')
+        ->set('currentStep', 5)
+        ->selectRadio('themePreference', ThemePreference::Dark->value)
+        ->assertSet('themePreference', ThemePreference::Dark->value)
+        ->assertNoNavigation()
+        ->assertAccessible();
+
+    expect(Theme::all()['light']['background'])->toBe('#F5F5F2')
+        ->and(Theme::all()['dark']['background'])->toBe('#0D0F11');
+});
+
 test('the complete onboarding journey persists local choices and enters home', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
     $screen = Native::visit('/onboarding')
-        ->tap('Begin')
+        ->tap('Get started')
         ->assertSet('currentStep', 2)
-        ->assertSee('Why Ennoble?')
-        ->assertSee('Processing Speed')
-        ->assertElement('carousel', fn (array $node): bool => ($node['props']['a11y_label'] ?? null) === 'Why Ennoble training areas')
-        ->assertAccessible()
-        ->tap('Continue')
-        ->assertSet('currentStep', 3)
-        ->assertSee('Everything stays on this device')
-        ->assertAccessible()
-        ->tap('Continue')
-        ->assertSet('currentStep', 4)
+        ->assertSee('What should we train first?')
         ->selectRadio('trainingGoal', TrainingGoal::ThinkingSpeed->value)
         ->assertSet('trainingGoal', TrainingGoal::ThinkingSpeed->value)
         ->assertAccessible()
         ->tap('Continue')
-        ->assertSet('currentStep', 5)
+        ->assertSet('currentStep', 3)
+        ->assertSee('Choose your pace.')
         ->selectRadio('difficulty', Difficulty::Adaptive->value)
         ->assertSet('difficulty', Difficulty::Adaptive->value)
         ->assertAccessible()
         ->tap('Continue')
-        ->assertSet('currentStep', 6)
+        ->assertSet('currentStep', 4)
         ->input('displayName', '  Ada   Local  ')
         ->assertSet('displayName', '  Ada   Local  ')
         ->assertAccessible()
         ->tap('Continue')
-        ->assertSet('currentStep', 7)
+        ->assertSet('currentStep', 5)
         ->selectRadio('themePreference', ThemePreference::Dark->value)
         ->toggle('soundEnabled', false)
         ->toggle('hapticsEnabled', false)
@@ -117,15 +121,13 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertSet('reducedMotion', true)
         ->assertAccessible()
         ->tap('Continue')
-        ->assertSet('currentStep', 8)
-        ->assertSee('Your training space is ready.')
+        ->assertSet('currentStep', 6)
+        ->assertSee('Ready for day one.')
         ->assertSee('Improve Thinking Speed')
         ->assertSee('Adaptive')
         ->assertSee('Dark')
-        ->assertSee('Ada Local')
-        ->assertSee('5–10 minutes')
         ->assertAccessible()
-        ->tap('Start Training')
+        ->tap('Start training')
         ->assertReplacedWith('/')
         ->assertTransition(Transition::None);
 
@@ -146,33 +148,33 @@ test('goal and difficulty steps remain disabled until one option is selected', f
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
     Native::test(Onboarding::class)
-        ->set('currentStep', 4)
+        ->set('currentStep', 2)
         ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Continue'
             && ($node['props']['disabled'] ?? false) === true)
         ->call('nextStep')
-        ->assertSet('currentStep', 4)
+        ->assertSet('currentStep', 2)
         ->selectRadio('trainingGoal', TrainingGoal::Focus->value)
         ->call('nextStep')
-        ->assertSet('currentStep', 5)
+        ->assertSet('currentStep', 3)
         ->call('nextStep')
-        ->assertSet('currentStep', 5)
+        ->assertSet('currentStep', 3)
         ->selectRadio('difficulty', Difficulty::Beginner->value)
         ->call('nextStep')
-        ->assertSet('currentStep', 6);
+        ->assertSet('currentStep', 4);
 });
 
 test('selection controls expose their individual visible labels to assistive technology', function () {
     Native::test(Onboarding::class)
-        ->set('currentStep', 4)
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Improve Focus')
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Improve Communication')
+        ->set('currentStep', 2)
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Focus')
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Communication')
         ->assertAccessible()
-        ->set('currentStep', 5)
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Beginner')
+        ->set('currentStep', 3)
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Gentle')
         ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Adaptive')
         ->assertAccessible()
-        ->set('currentStep', 7)
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Use Device Setting')
+        ->set('currentStep', 5)
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Use device setting')
         ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Dark')
         ->assertAccessible();
 });
@@ -199,14 +201,14 @@ test('display name is optional trimmed and bounded by the shared domain limit', 
 
 test('an overlong display name cannot advance and exposes its validation state', function () {
     Native::test(Onboarding::class)
-        ->set('currentStep', 6)
+        ->set('currentStep', 4)
         ->input('displayName', str_repeat('A', 41))
         ->assertSee('Use 40 characters or fewer.')
         ->assertElement('outlined_text_input', fn (array $node): bool => ($node['props']['is_error'] ?? false) === true)
         ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Continue'
             && ($node['props']['disabled'] ?? false) === true)
         ->call('nextStep')
-        ->assertSet('currentStep', 6)
+        ->assertSet('currentStep', 4)
         ->assertAccessible();
 });
 
@@ -216,12 +218,12 @@ test('back navigation stays inside the journey and ready exposes a loading actio
         ->pressBack()
         ->assertSet('currentStep', 2)
         ->assertNoNavigation()
-        ->set('currentStep', 8)
+        ->set('currentStep', 6)
         ->set('trainingGoal', TrainingGoal::Balanced->value)
         ->set('difficulty', Difficulty::Intermediate->value)
         ->set('isSaving', true)
-        ->assertElement('column', fn (array $node): bool => ($node['ref'] ?? null) === 'onboarding-actions')
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Start Training'
+        ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'onboarding-actions')
+        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Start training'
             && ($node['props']['loading'] ?? false) === true);
 });
 
@@ -231,7 +233,7 @@ test('a persistence failure remains recoverable on the ready step', function () 
     });
 
     Native::test(Onboarding::class)
-        ->set('currentStep', 8)
+        ->set('currentStep', 6)
         ->set('trainingGoal', TrainingGoal::Balanced->value)
         ->set('difficulty', Difficulty::Intermediate->value)
         ->call('completeOnboarding')

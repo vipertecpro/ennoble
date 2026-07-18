@@ -6,6 +6,7 @@ use App\Domain\Games\GameSessionService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Workout\WorkoutService;
+use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkoutItem;
 use App\NativeUI\Theme\ThemeManager;
@@ -31,7 +32,7 @@ final class WorkoutTransition extends NativeComponent
 
     public string $nextGame = '';
 
-    public string $performanceMessage = 'No gameplay score was recorded in this framework placeholder.';
+    public string $performanceMessage = 'This step did not record gameplay evidence.';
 
     public int $gamesRemaining = 0;
 
@@ -110,7 +111,7 @@ final class WorkoutTransition extends NativeComponent
         }
 
         $this->isTransitioning = true;
-        $session = app(GameSessionService::class)->startPlaceholder($profile, $nextItem);
+        $session = app(GameSessionService::class)->startForWorkoutItem($profile, $nextItem);
         $this->replace(
             $this->route('native.workout.preparation', ['session' => $session->getKey()]),
         )->transition($this->screenTransition());
@@ -158,6 +159,7 @@ final class WorkoutTransition extends NativeComponent
             $settings = app(SettingsService::class)->forProfile($profile);
             $this->previousGame = $completedItem->game->name;
             $this->nextGame = $nextItem->game->name;
+            $this->performanceMessage = $this->performanceFor($completedItem);
             $this->gamesRemaining = $workout->items
                 ->where('status', '!=', WorkoutStatus::Completed)
                 ->count();
@@ -206,5 +208,23 @@ final class WorkoutTransition extends NativeComponent
     private function screenTransition(): Transition
     {
         return $this->reducedMotion ? Transition::None : Transition::Fade;
+    }
+
+    private function performanceFor(DailyWorkoutItem $completedItem): string
+    {
+        $session = $completedItem->sessions
+            ->where('status', SessionStatus::Completed)
+            ->sortByDesc('completed_at')
+            ->first();
+
+        if ($session === null || $session->isFrameworkPlaceholder()) {
+            return 'No gameplay score was recorded for this framework placeholder.';
+        }
+
+        $accuracy = $session->accuracy === null
+            ? 'accuracy unavailable'
+            : rtrim(rtrim(number_format($session->accuracy, 1), '0'), '.').'% accuracy';
+
+        return number_format($session->score ?? 0).' points · '.$accuracy.' · best combo '.$session->best_combo.'.';
     }
 }

@@ -38,12 +38,12 @@ afterEach(function () {
 test('a first-time dashboard renders an intentional pending workout and honest empty previews', function () {
     Native::visit('/')
         ->assertSee('Good Morning')
-        ->assertSee('Ada.')
-        ->assertSee('Today’s Workout')
+        ->assertSee('Ada')
+        ->assertSee('TODAY’S PRACTICE')
         ->assertSee('Daily Momentum')
         ->assertSee('About 7 min')
         ->assertSee('Intermediate')
-        ->assertSee('Focus · Speed · Precision · Adaptability')
+        ->assertDontSee('Focus · Speed · Precision')
         ->assertSee('Start Training')
         ->assertSee('No streak yet')
         ->assertSee('No skill progress yet')
@@ -70,7 +70,7 @@ test('the dashboard uses a friendly name when the optional local display name is
 
     Native::visit('/')
         ->assertSee('Good Morning')
-        ->assertSee('friend.')
+        ->assertSee('friend')
         ->assertSet('displayName', 'friend')
         ->assertAccessible();
 });
@@ -152,11 +152,10 @@ test('a completed workout presents a non-interactive success state', function ()
     ]);
 
     Native::visit('/')
-        ->assertSee('Completed Today')
+        ->assertSee('Complete for today')
         ->assertSee('100%')
         ->assertSet('workoutCompletionPercentage', 100)
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Completed Today'
-            && ($node['props']['disabled'] ?? false) === true)
+        ->assertMissingElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Completed Today')
         ->assertAccessible();
 });
 
@@ -171,7 +170,7 @@ test('the primary workout action navigates with subtle preference-aware feedback
         ->assertScreen(WorkoutIntroduction::class)
         ->assertSee('A focused sequence for today')
         ->assertSee('Begin Workout')
-        ->assertTabBarHidden()
+        ->assertMissingElement('bottom_nav')
         ->assertAccessible();
 
     expect($bridge->callsTo('Device.Vibrate'))->toHaveCount(1);
@@ -215,8 +214,8 @@ test('a missing local workout definition is recoverable without blocking other p
 
     $dashboard = Native::visit('/')
         ->assertSee('Today’s workout could not be prepared')
-        ->assertSee('Current Streak')
-        ->assertSee('Progress Snapshot')
+        ->assertSee('Your rhythm')
+        ->assertSee('Progress')
         ->assertSee('Recent Achievement')
         ->assertAccessible();
 
@@ -236,7 +235,7 @@ test('section error states remain recoverable and accessible without blocking th
         ->assertSee('Statistics preview unavailable.')
         ->assertSee('Progress preview unavailable.')
         ->assertSee('Achievement preview unavailable.')
-        ->assertSee('Today’s Workout')
+        ->assertSee('TODAY’S PRACTICE')
         ->assertSee('On the Horizon')
         ->assertAccessible();
 });

@@ -6,6 +6,7 @@ use App\Domain\Games\GameSessionService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Workout\WorkoutService;
+use App\Enums\GameType;
 use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\GameSession;
@@ -113,7 +114,7 @@ final class WorkoutPreparation extends NativeComponent
         app(HapticService::class)->trigger(HapticFeedback::Success);
 
         $this->replace(
-            $this->route('native.workout.game', ['session' => $session->getKey()]),
+            $this->route($this->gameDestination($session), ['session' => $session->getKey()]),
         )->transition($this->screenTransition());
     }
 
@@ -133,7 +134,7 @@ final class WorkoutPreparation extends NativeComponent
             $profile = app(ProfileService::class)->current();
             $session = $this->session();
 
-            if ($profile === null || $session === null || ! $session->isFrameworkPlaceholder()) {
+            if ($profile === null || $session === null || ! $this->hasSupportedRunner($session)) {
                 $this->screenState = 'error';
 
                 return;
@@ -193,14 +194,29 @@ final class WorkoutPreparation extends NativeComponent
 
     private function instructionsFor(GameSession $session): string
     {
-        return match ($session->game->type->value) {
-            'signal_shift' => 'Watch the rule, keep your attention steady, and respond only when the target matches.',
-            'clear_thought' => 'Read for meaning, favor the clearest choice, and take the time you need.',
+        return match ($session->game->type) {
+            GameType::SignalShift => 'Watch the rule, keep your attention steady, and respond only when the target matches.',
+            GameType::ClearThought => 'Read for meaning, favor the clearest choice, and take the time you need.',
         };
     }
 
     private function screenTransition(): Transition
     {
         return $this->reducedMotion ? Transition::None : Transition::Fade;
+    }
+
+    private function hasSupportedRunner(GameSession $session): bool
+    {
+        return match ($session->game->type) {
+            GameType::SignalShift => ! $session->isFrameworkPlaceholder(),
+            GameType::ClearThought => $session->isFrameworkPlaceholder(),
+        };
+    }
+
+    private function gameDestination(GameSession $session): string
+    {
+        return $session->game->type === GameType::SignalShift
+            ? 'native.workout.signal-shift'
+            : 'native.workout.game';
     }
 }

@@ -8,7 +8,7 @@
     'showBack' => false,
 ])
 
-<native:row class="w-full min-h-[56] items-center gap-3 px-5 py-3 bg-theme-background">
+<native:row class="min-h-[56] items-center gap-3 bg-theme-background px-5 py-3">
     @if ($showBack)
         <native:pressable
             :width="DesignTokens::MINIMUM_TOUCH_TARGET"
@@ -30,9 +30,9 @@
     @endif
 
     <native:column class="flex-1 gap-1">
-        <native:text class="text-lg font-semibold text-theme-on-background">{{ $title }}</native:text>
+        <native:text class="text-lg font-semibold text-theme-primary-text">{{ $title }}</native:text>
         @if ($subtitle)
-            <native:text class="text-sm text-theme-on-surface-variant">{{ $subtitle }}</native:text>
+            <native:text class="text-sm text-theme-secondary-text">{{ $subtitle }}</native:text>
         @endif
     </native:column>
 

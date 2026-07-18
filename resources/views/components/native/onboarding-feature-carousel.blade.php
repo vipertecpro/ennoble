@@ -6,7 +6,6 @@
 ])
 
 <native:carousel
-    class="w-full"
     :item-width="272"
     :item-spacing="14"
     variant="uncontained"

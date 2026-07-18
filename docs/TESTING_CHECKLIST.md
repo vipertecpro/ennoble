@@ -109,7 +109,7 @@ Simulator: iPhone 17 Pro, iOS 26.5, Debug build, `com.vipertecpro.ennoble`.
 ### Manually exercised
 
 - [x] Clean install, bundled-app extraction, migrations, cold launch, and initial onboarding route.
-- [x] All eight onboarding steps, previous/next, progress, required goal/difficulty, optional display name, completion, and returning launch.
+- [x] All six onboarding steps, previous/next, progress, required goal/difficulty, optional display name, completion, and returning launch.
 - [x] Keyboard input, Return dismissal, 40-character boundary, and visible primary action while editing.
 - [x] System, Light, and Dark selections exercised; Light failed contrast/rendering verification and remains open.
 - [x] Sound, haptics, and Reduced Motion controls exercised; physical haptics are not claimed.
@@ -181,13 +181,33 @@ Use model factories and specific assertions. Prefer `LazilyRefreshDatabase` when
 
 ### Signal Shift Scoring
 
-- [ ] Correct, incorrect, and missed events are distinct.
-- [ ] Accuracy uses the documented denominator.
-- [ ] Faster valid responses improve only the speed contribution.
-- [ ] Random rapid taps cannot outperform accurate play.
-- [ ] Combo and mistake allowance update predictably.
-- [ ] Score boundaries and rounding are deterministic.
-- [ ] Resume produces the same final result as uninterrupted play.
+- [x] Correct, incorrect, and missed events are distinct in automated domain and native-component tests.
+- [x] Accuracy uses the documented denominator.
+- [x] Faster valid responses improve only the speed contribution.
+- [x] Random rapid taps cannot outperform accurate play.
+- [x] Combo, lives, failure, and restart update predictably.
+- [x] Score boundaries and rounding are deterministic.
+- [x] Checkpoint re-entry preserves the same rule, wave, timer, lives, combo, score, and stimuli.
+
+### Signal Shift Prompt 8 / Game-UX-1 Gameplay
+
+- [x] Exactly three data-driven rounds are configured for Beginner, Intermediate, and Advanced.
+- [x] Adaptive resolves to the current Intermediate starting configuration.
+- [x] Generated waves are deterministic and contain exactly one eligible target.
+- [x] Target color, target shape, excluded shape, movement, size, rotation, speed, density, wave count, and time bounds are covered.
+- [x] First-play tutorial and requested tutorial paths create no round evidence.
+- [x] Correct taps, wrong taps, misses, timer expiry, combo milestones, lives, round results, failure, and completion are covered.
+- [x] Pause, confirmed exit, component re-entry, resume, and restart preserve or clear only the intended local evidence.
+- [x] Completion updates score, accuracy, response time, personal best, statistics, progress, and eligible achievements.
+- [x] The mixed workout records Signal Shift evidence while Clear Thought remains non-evidentiary.
+- [x] Reduced Motion removes authored stimulus movement without changing the rule.
+- [x] In-process accessibility audits pass for instructions, tutorial, active play, results, pause, failure, reduced motion, and error states.
+- [x] Rebuilt iOS Simulator play-through completed across multiple sessions with tutorial, all rules, correct/wrong/missed outcomes, combo, failure, restart, pause/exit/re-entry, results, mixed workout completion, and persisted Home evidence.
+- [x] Light/dark gameplay and results, four-step larger Dynamic Type with result scrolling, app-level Reduced Motion checkpoints, and Accessibility Inspector order/audit verified on iPhone 17 / iOS 26.5.
+- [ ] Physical-device VoiceOver and haptic quality, compact-device coverage, Android, and TalkBack verified.
+- [ ] Correct/error/round/completion/failure audio verified. The current registered native capability exposes no bundled playback function.
+
+The final Game-UX-1 capture matrix is stored in `docs/screenshots/ios/signal-shift-v2/`. Apple documents that VoiceOver is unavailable in Simulator, so the Accessibility Inspector evidence is not described as a physical VoiceOver pass.
 
 ### Clear Thought Scoring
 
@@ -356,7 +376,7 @@ Prompt 3 automated coverage confirms:
 
 This evidence is in-process only. Safe areas, SwiftUI/Compose rendering, status bars, light/dark appearance, large text, VoiceOver, TalkBack, offline launch, haptics, and visual balance remain unverified on platforms.
 
-## QA-2 iOS Simulator Results
+## Prompt Design-2 iOS Simulator Results
 
 ### Device
 
@@ -366,20 +386,22 @@ This evidence is in-process only. Safe areas, SwiftUI/Compose rendering, status 
 
 ### Manual journeys
 
-- [x] Fresh install → eight-step onboarding → Home.
+- [x] Fresh install → six-step onboarding → Home.
 - [x] Keyboard shown on display-name input; content and actions remained above the software keyboard.
 - [x] Required onboarding selections, back navigation, local persistence, and Reduced Motion control exercised.
 - [x] System Light and System Dark repainted all visible semantic surfaces.
-- [ ] Explicit Light/Dark preference can force the native platform appearance. Blocked by the installed NativePHP v4 appearance API.
-- [x] Accessibility-extra-extra-extra-large layout rerun after the compression fix; content no longer overlaps and action labels are not truncated.
-- [ ] Native scroll and carousel gestures verified through reliable automation. AX actions worked, but injected drags did not move these native surfaces.
+- [x] Explicit Light on a dark device appearance and explicit Dark on a light device appearance repainted semantic surfaces and typed content icons consistently.
+- [x] Standard extra-extra-extra-large layout rerun after simplifying the practice hero; content remains readable and vertically scrollable.
+- [ ] Accessibility-category Dynamic Type above the standard range completed as release QA.
+- [x] Native scroll view geometry verified at runtime: finite viewport, larger content size, scrolling enabled, and pan recognizer enabled.
+- [ ] Physical-touch scroll and carousel gestures verified. Desktop-injected drags remained unreliable and are not treated as device-touch evidence.
 - [x] Home initial state, completed state, greeting, workout card, empty progress/history/achievement states, and relaunch persistence exercised.
 - [x] Games search, reset, no-results state, Language and Memory filtering, two-row chip layout, hero content, game cards, and Coming Soon sheet exercised.
 - [x] Progress, Profile, Settings, and About placeholder routes exercised without adding restricted features.
 - [x] Coming Soon and pause sheets expose their titles and buttons individually.
 - [x] Exit modal exposes Close, Keep Training, and Exit to Home individually.
 - [x] Portrait, landscape, upside-down rotation handling, and return to upright portrait exercised.
-- [x] Two complete placeholder workout cycles executed across the QA pass.
+- [x] A complete final-binary placeholder workout cycle executed, in addition to the earlier QA-2 cycles.
 - [x] Final workout completion survived process terminate/relaunch.
 
 ### Screenshots
@@ -404,13 +426,14 @@ This evidence is in-process only. Safe areas, SwiftUI/Compose rendering, status 
 - [ ] Full VoiceOver rotor order verified. Simulator AX labels and focusable children were inspected; a complete VoiceOver session was not performed.
 - [ ] TalkBack verified. Android was outside this iOS-only QA prompt.
 
-### Final QA-2 regression
+### Final Prompt Design-2 regression
 
-Run before closing QA-2:
+Run before closing Prompt Design-2:
 
 - [x] `composer validate --strict` — valid.
-- [x] `PAO_DISABLE=1 php artisan test --compact` — 122 tests, 1,648 assertions.
+- [x] `php artisan test --compact` — 127 tests, 1,676 assertions.
 - [x] `vendor/bin/pint --dirty --format agent` — passed.
 - [x] `php artisan native:validate --no-interaction` — all components passed.
 - [x] `php artisan native:plugin:validate --no-interaction` — Native UI passed for Android 26 and iOS 18.2.
+- [x] `xcodebuild -workspace nativephp/ios/NativePHP.xcworkspace -scheme NativePHP-simulator ... build` — iOS simulator bundle built successfully.
 - [x] `git diff --check` — passed.

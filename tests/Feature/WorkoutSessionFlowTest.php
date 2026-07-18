@@ -1,18 +1,16 @@
 <?php
 
 use App\Domain\Games\GameSessionService;
-use App\Domain\Statistics\StatisticsService;
+use App\Domain\Games\SignalShift\SignalShiftGameService;
+use App\Domain\Workout\WorkoutService;
 use App\Enums\Difficulty;
 use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
-use App\Models\AchievementUnlock;
 use App\Models\DailyWorkout;
 use App\Models\GameSession;
 use App\Models\Profile;
-use App\Models\ProgressSnapshot;
 use App\Models\Setting;
-use App\Models\Statistic;
-use App\NativeComponents\Screens\WorkoutComplete;
+use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\WorkoutGameContainer;
 use App\NativeComponents\Screens\WorkoutIntroduction;
 use App\NativeComponents\Screens\WorkoutPreparation;
@@ -20,6 +18,7 @@ use App\NativeComponents\Screens\WorkoutTransition;
 use Carbon\CarbonImmutable;
 use Native\Mobile\Edge\Transition;
 use Native\Mobile\Testing\Native;
+use Native\Mobile\Testing\TestableComponent;
 
 beforeEach(function () {
     CarbonImmutable::setTestNow('2026-07-18 10:30:00');
@@ -40,6 +39,17 @@ afterEach(function () {
     CarbonImmutable::setTestNow();
 });
 
+function enterWorkoutSignalShiftRound(TestableComponent $game): TestableComponent
+{
+    $game->tap('Ready');
+
+    while ($game->get('phase') === 'round_countdown') {
+        $game->firePoll('tickGame');
+    }
+
+    return $game->assertSet('phase', 'playing');
+}
+
 test('the introduction presents the complete local workout before creating a session', function () {
     Native::visit('/workout')
         ->assertScreen(WorkoutIntroduction::class)
@@ -50,15 +60,16 @@ test('the introduction presents the complete local workout before creating a ses
         ->assertSee('Signal Shift')
         ->assertSee('Clear Thought')
         ->assertSee('Focus · Speed · Precision · Adaptability')
-        ->assertSee('No gameplay data is invented.')
+        ->assertSee('Signal Shift records real local gameplay evidence.')
+        ->assertSee('Clear Thought remains an explicit framework-only step')
         ->assertSee('Begin Workout')
-        ->assertTabBarHidden()
+        ->assertMissingElement('bottom_nav')
         ->assertAccessible();
 
     expect(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(0);
 });
 
-test('the placeholder workout completes every native phase without creating gameplay evidence', function () {
+test('the workout framework routes Signal Shift into its real native runner', function () {
     $introduction = Native::visit('/workout')
         ->tap('Begin Workout');
 
@@ -82,112 +93,22 @@ test('the placeholder workout completes every native phase without creating game
         ->firePoll('advanceCountdown')
         ->assertSet('countdown', 1)
         ->firePoll('advanceCountdown')
-        ->assertReplacedWith('/workout/game/'.$firstSession->getKey());
+        ->assertReplacedWith('/workout/game/signal-shift/'.$firstSession->getKey());
 
     $game = $preparation
         ->follow()
-        ->assertScreen(WorkoutGameContainer::class)
-        ->assertSee('FRAMEWORK PLACEHOLDER')
-        ->assertSee('No answers, score, accuracy, personal best, or skill progress will be created.')
-        ->assertSee('0:00')
-        ->assertAccessible()
-        ->firePoll('tickTimer')
-        ->firePoll('tickTimer')
-        ->assertSet('elapsedSeconds', 2)
-        ->tap('Pause')
-        ->assertSet('paused', true)
-        ->assertSet('bottomSheetVisible', true)
-        ->assertSee('Workout paused')
-        ->assertElement('bottom_sheet', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Resume')
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Restart Workout')
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Exit Workout')
-        ->firePoll('tickTimer')
-        ->assertSet('elapsedSeconds', 2)
-        ->tap('Resume')
-        ->assertSet('paused', false)
-        ->tap('Complete Placeholder');
-
-    $firstItemId = $firstSession->daily_workout_item_id;
-    $transition = $game
-        ->assertReplacedWith('/workout/transition/'.$firstItemId)
-        ->follow()
-        ->assertScreen(WorkoutTransition::class)
-        ->assertSee('No gameplay score was recorded in this framework placeholder.')
-        ->assertSee('UP NEXT')
-        ->assertSet('autoTransitionSeconds', 3)
-        ->assertAccessible()
-        ->firePoll('advanceAutoTransition')
-        ->firePoll('advanceAutoTransition')
-        ->firePoll('advanceAutoTransition');
-
-    $secondSession = GameSession::query()
-        ->whereBelongsTo($this->profile)
-        ->whereKeyNot($firstSession->getKey())
-        ->firstOrFail();
-
-    $secondPreparation = $transition
-        ->assertReplacedWith('/workout/preparation/'.$secondSession->getKey())
-        ->follow()
-        ->assertScreen(WorkoutPreparation::class)
-        ->assertSee('Game 2 of 2')
-        ->tap('Start Now')
-        ->assertReplacedWith('/workout/game/'.$secondSession->getKey());
-
-    $workout = DailyWorkout::query()
-        ->whereBelongsTo($this->profile)
-        ->firstOrFail();
-
-    $completion = $secondPreparation
-        ->follow()
-        ->assertScreen(WorkoutGameContainer::class)
-        ->firePoll('tickTimer')
-        ->tap('Complete Placeholder')
-        ->assertReplacedWith('/workout/complete/'.$workout->getKey())
-        ->follow()
-        ->assertScreen(WorkoutComplete::class)
-        ->assertNavTitle('Workout Complete')
-        ->assertSee('Workout complete')
-        ->assertSee('3 sec')
-        ->assertSee('2')
-        ->assertSee('Skill progress was not recorded because gameplay is intentionally deferred.')
-        ->assertSee('Not recorded')
+        ->assertScreen(SignalShiftGame::class)
+        ->assertNavBarHidden()
+        ->assertSee('Follow the rule. Ignore the noise.')
+        ->assertSee('Learn the Signal')
         ->assertAccessible();
 
-    $workout->refresh();
-    $sessions = GameSession::query()
-        ->whereBelongsTo($this->profile)
-        ->orderBy('id')
-        ->get();
+    $firstSession->refresh();
 
-    expect($workout->status)->toBe(WorkoutStatus::Completed)
-        ->and($workout->training_seconds)->toBe(3)
-        ->and($workout->accuracy)->toBeNull()
-        ->and(data_get($workout->summary, 'has_gameplay_evidence'))->toBeFalse()
-        ->and(data_get($workout->summary, 'score'))->toBeNull()
-        ->and(data_get($workout->summary, 'accuracy'))->toBeNull()
-        ->and($sessions)->toHaveCount(2)
-        ->and($sessions->every->isFrameworkPlaceholder())->toBeTrue()
-        ->and($sessions->every(fn (GameSession $session): bool => $session->status === SessionStatus::Completed))->toBeTrue()
-        ->and($sessions->every(fn (GameSession $session): bool => $session->score === null && $session->accuracy === null))->toBeTrue()
-        ->and($sessions->every(fn (GameSession $session): bool => $session->statistics_recorded_at === null))->toBeTrue()
-        ->and(Statistic::query()->whereBelongsTo($this->profile)->count())->toBe(0)
-        ->and(ProgressSnapshot::query()->whereBelongsTo($this->profile)->count())->toBe(0)
-        ->and(AchievementUnlock::query()->whereBelongsTo($this->profile)->count())->toBe(0);
-
-    $gamePreviews = app(StatisticsService::class)->gamePreviews($this->profile);
-    $rebuiltStatistics = app(StatisticsService::class)->rebuild($this->profile);
-
-    expect($gamePreviews->every(
-        fn (array $preview): bool => $preview['session_count'] === 0
-            && $preview['completion_count'] === 0
-            && $preview['best_score'] === null,
-    ))->toBeTrue()
-        ->and($rebuiltStatistics)->toBeEmpty();
-
-    $completion
-        ->tap('Continue to Home')
-        ->assertReplacedWith('/');
+    expect($firstSession->isFrameworkPlaceholder())->toBeFalse()
+        ->and($firstSession->status)->toBe(SessionStatus::InProgress)
+        ->and(data_get($firstSession->state_snapshot, 'game'))->toBe('signal_shift')
+        ->and($firstSession->rounds)->toHaveCount(0);
 });
 
 test('pause exit confirmation and resume preserve the local checkpoint', function () {
@@ -198,9 +119,12 @@ test('pause exit confirmation and resume preserve the local checkpoint', functio
         ->follow()
         ->tap('Start Now')
         ->follow()
-        ->firePoll('tickTimer')
+        ->tap('Learn the Signal')
+        ->tap('Skip Practice');
+    enterWorkoutSignalShiftRound($game)
+        ->firePoll('tickGame')
         ->tap('Pause')
-        ->tap('Exit Workout')
+        ->tap('Exit')
         ->assertSet('dialogVisible', true)
         ->assertSee('Leave workout?')
         ->assertElement('modal', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
@@ -210,7 +134,7 @@ test('pause exit confirmation and resume preserve the local checkpoint', functio
         ->assertSet('dialogVisible', false)
         ->assertSet('paused', false)
         ->tap('Pause')
-        ->tap('Exit Workout')
+        ->tap('Exit')
         ->tap('Exit to Home')
         ->assertReplacedWith('/');
 
@@ -224,66 +148,80 @@ test('pause exit confirmation and resume preserve the local checkpoint', functio
     Native::visit('/workout')
         ->assertSee('Resume Workout')
         ->tap('Resume Workout')
-        ->assertReplacedWith('/workout/game/'.$session->getKey())
+        ->assertReplacedWith('/workout/game/signal-shift/'.$session->getKey())
         ->follow()
         ->assertSet('elapsedSeconds', 1)
         ->assertSet('paused', true)
-        ->assertSee('Workout paused')
+        ->assertSee('Paused')
         ->tap('Resume')
         ->assertSet('paused', false)
-        ->firePoll('tickTimer')
+        ->firePoll('tickGame')
         ->assertSet('elapsedSeconds', 2)
         ->assertAccessible();
 });
 
-test('restart clears only placeholder session state and returns to a fresh introduction', function () {
+test('restart clears only the unfinished Signal Shift attempt', function () {
     $introduction = Native::visit('/workout')->tap('Begin Workout');
     $workout = DailyWorkout::query()->whereBelongsTo($this->profile)->firstOrFail();
+    $session = GameSession::query()->whereBelongsTo($this->profile)->firstOrFail();
 
-    $introduction
+    $game = $introduction
         ->follow()
         ->tap('Start Now')
         ->follow()
-        ->firePoll('tickTimer')
+        ->tap('Learn the Signal')
+        ->tap('Skip Practice');
+    enterWorkoutSignalShiftRound($game);
+    $target = collect($game->get('stimuli'))->firstWhere('is_target', true);
+
+    $game->tap($target['id'])
         ->tap('Pause')
-        ->tap('Restart Workout')
-        ->assertReplacedWith('/workout')
-        ->follow()
-        ->assertScreen(WorkoutIntroduction::class)
-        ->assertSee('Begin Workout')
+        ->tap('Restart')
+        ->assertSet('phase', 'instructions')
+        ->assertSet('score', 0)
+        ->assertSet('lives', 3)
+        ->assertNoNavigation()
         ->assertAccessible();
 
     $workout->refresh()->load('items');
+    $session->refresh();
 
-    expect($workout->status)->toBe(WorkoutStatus::Pending)
-        ->and($workout->started_at)->toBeNull()
+    expect($workout->status)->toBe(WorkoutStatus::InProgress)
+        ->and($workout->started_at)->not->toBeNull()
         ->and($workout->summary)->toBeNull()
-        ->and($workout->items->every(fn ($item): bool => $item->status === WorkoutStatus::Pending))->toBeTrue()
-        ->and(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(0);
+        ->and($workout->items->first()->status)->toBe(WorkoutStatus::InProgress)
+        ->and($workout->items->last()->status)->toBe(WorkoutStatus::Pending)
+        ->and($session->rounds)->toHaveCount(0)
+        ->and($session->current_round)->toBe(0)
+        ->and(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(1);
 });
 
 test('reduced motion removes authored motion and requires an intentional transition action', function () {
     $this->profile->setting->update(['reduced_motion' => true]);
 
-    $introduction = Native::visit('/workout')
-        ->assertSet('reducedMotion', true)
-        ->assertSet('motionDuration', 0)
-        ->tap('Begin Workout')
-        ->assertTransition(Transition::None);
-    $session = GameSession::query()->whereBelongsTo($this->profile)->firstOrFail();
+    $workout = app(WorkoutService::class)->generateToday($this->profile);
+    $signalItem = $workout->items->firstOrFail();
+    $session = app(GameSessionService::class)->startForWorkoutItem($this->profile, $signalItem);
+    app(SignalShiftGameService::class)->recordTap(
+        session: $session,
+        stimulus: [
+            'id' => 'transition-target',
+            'color' => 'teal',
+            'shape' => 'circle',
+            'size' => 'large',
+            'moving' => false,
+            'rotated' => false,
+            'is_target' => true,
+        ],
+        responseMs: 500,
+        combo: 1,
+        gameRound: 1,
+        wave: 1,
+        stateSnapshot: ['prepared' => true],
+    );
+    app(SignalShiftGameService::class)->complete($session);
 
-    $game = $introduction
-        ->follow()
-        ->assertSet('motionDuration', 0)
-        ->tap('Start Now')
-        ->assertTransition(Transition::None)
-        ->follow()
-        ->assertSet('motionDuration', 0)
-        ->tap('Complete Placeholder')
-        ->assertTransition(Transition::None);
-
-    $transition = $game
-        ->follow()
+    $transition = Native::visit('/workout/transition/'.$signalItem->getKey())
         ->assertScreen(WorkoutTransition::class)
         ->assertSet('reducedMotion', true)
         ->assertSet('motionDuration', 0)
@@ -306,8 +244,9 @@ test('reduced motion removes authored motion and requires an intentional transit
 });
 
 test('placeholder sessions cannot enter the real scoring pipeline', function () {
-    Native::visit('/workout')->tap('Begin Workout');
-    $session = GameSession::query()->whereBelongsTo($this->profile)->firstOrFail();
+    $workout = app(WorkoutService::class)->generateToday($this->profile);
+    $clearThoughtItem = $workout->items->last();
+    $session = app(GameSessionService::class)->startPlaceholder($this->profile, $clearThoughtItem);
 
     expect(fn () => app(GameSessionService::class)->complete($session))
         ->toThrow(LogicException::class, 'Framework placeholder sessions cannot create gameplay evidence.');

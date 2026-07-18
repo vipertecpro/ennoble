@@ -9,6 +9,7 @@ use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Progress;
 use App\NativeComponents\Screens\Settings;
+use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
 use App\NativeComponents\Screens\WorkoutComplete;
 use App\NativeComponents\Screens\WorkoutGameContainer;
@@ -33,6 +34,7 @@ test('all application shell routes are registered with the expected layout', fun
         '/workout' => ['class' => WorkoutIntroduction::class, 'layout' => EnnobleLayout::class],
         '/workout/preparation/{session}' => ['class' => WorkoutPreparation::class, 'layout' => EnnobleLayout::class],
         '/workout/game/{session}' => ['class' => WorkoutGameContainer::class, 'layout' => EnnobleLayout::class],
+        '/workout/game/signal-shift/{session}' => ['class' => SignalShiftGame::class, 'layout' => EnnobleLayout::class],
         '/workout/transition/{item}' => ['class' => WorkoutTransition::class, 'layout' => EnnobleLayout::class],
         '/workout/complete/{workout}' => ['class' => WorkoutComplete::class, 'layout' => EnnobleLayout::class],
         '/games' => ['class' => Games::class, 'layout' => EnnobleLayout::class],
@@ -53,8 +55,8 @@ test('application screens render and pass the in-process accessibility audit', f
         ->assertSee($visibleText)
         ->assertAccessible();
 })->with([
-    'splash' => ['/splash', Splash::class, 'Native application shell ready.'],
-    'home' => ['/', Home::class, 'Today’s Workout'],
+    'splash' => ['/splash', Splash::class, 'A private daily practice for a clearer mind.'],
+    'home' => ['/', Home::class, 'TODAY’S PRACTICE'],
     'workout' => ['/workout', WorkoutIntroduction::class, 'A focused sequence for today'],
     'games' => ['/games', Games::class, 'Train with purpose.'],
     'progress' => ['/progress', Progress::class, 'Progress shell ready'],
@@ -77,18 +79,34 @@ test('onboarding uses native layout geometry without exposing application chrome
         ->assertAccessible();
 });
 
+test('primary screens use a bounded scroll viewport and content width', function () {
+    Native::visit('/')
+        ->assertElement(
+            'scroll_view',
+            fn (array $node): bool => data_get($node, 'layout.overflow') === 2
+                && data_get($node, 'layout.flex_grow') === 1.0,
+        )
+        ->assertElement(
+            'column',
+            fn (array $node): bool => data_get($node, 'layout.width') === 320.0,
+        );
+});
+
 test('the native tab bar exposes all destinations and tracks the active route', function (
     string $uri,
     string $activeTab,
 ) {
     Native::visit($uri)
-        ->assertHasTabBar()
-        ->assertHasTab('Home')
-        ->assertHasTab('Games')
-        ->assertHasTab('Progress')
-        ->assertHasTab('Profile')
-        ->assertTabActive($activeTab)
-        ->assertTabBarVisible();
+        ->assertElement('bottom_nav')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Home')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Games')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Progress')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Profile')
+        ->assertElement(
+            'bottom_nav_item',
+            fn (array $node): bool => data_get($node, 'props.label') === $activeTab
+                && data_get($node, 'props.active') === true,
+        );
 })->with([
     'home' => ['/', 'Home'],
     'games' => ['/games', 'Games'],
@@ -103,13 +121,13 @@ test('profile settings and about placeholders form a working native flow', funct
         ->follow()
         ->assertScreen(Settings::class)
         ->assertNavTitle('Settings')
-        ->assertTabBarHidden()
+        ->assertMissingElement('bottom_nav')
         ->tap('About Ennoble')
         ->assertNavigatedTo('/about')
         ->follow()
         ->assertScreen(About::class)
         ->assertNavTitle('About')
-        ->assertTabBarHidden();
+        ->assertMissingElement('bottom_nav');
 });
 
 test('home shared screen container renders full loading and recoverable error states', function () {
@@ -119,5 +137,5 @@ test('home shared screen container renders full loading and recoverable error st
         ->set('dashboardState', 'error')
         ->assertSee('Your dashboard could not be loaded')
         ->tap('Retry dashboard')
-        ->assertSee('Today’s Workout');
+        ->assertSee('TODAY’S PRACTICE');
 });

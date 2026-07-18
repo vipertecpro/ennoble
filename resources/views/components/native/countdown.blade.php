@@ -8,7 +8,7 @@
 ])
 
 <native:column
-    class="w-full items-center gap-4 rounded-3xl bg-theme-primary p-8"
+    class="items-center gap-4 rounded-3xl border border-theme-border bg-theme-primary-surface p-8"
     :animate-duration="$motionDuration"
     animate-easing="ease-out"
     :a11y-label="$announcement"
@@ -20,12 +20,12 @@
         a11y-label="Preparation countdown"
     />
     <native:text
-        class="text-5xl font-bold text-theme-on-primary"
+        class="text-5xl font-bold text-theme-primary-text"
         :a11y-label="$announcement"
     >
         {{ $count > 0 ? $count : 'GO' }}
     </native:text>
-    <native:text class="text-base font-semibold text-theme-on-primary">
+    <native:text class="text-base font-semibold text-theme-secondary-text">
         {{ $count > 0 ? 'Breathe and get ready' : 'Begin when ready' }}
     </native:text>
 </native:column>

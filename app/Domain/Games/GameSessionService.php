@@ -116,6 +116,19 @@ final class GameSessionService
     }
 
     /**
+     * Start the implemented game runner or the remaining honest placeholder for a workout item.
+     */
+    public function startForWorkoutItem(
+        Profile $profile,
+        DailyWorkoutItem $workoutItem,
+    ): GameSession {
+        return match ($workoutItem->game->type) {
+            GameType::ClearThought => $this->startPlaceholder($profile, $workoutItem),
+            GameType::SignalShift => $this->startSignalShift($profile, $workoutItem),
+        };
+    }
+
+    /**
      * Persist non-gameplay session state without inventing round evidence.
      *
      * @param  array<string, mixed>  $stateSnapshot
@@ -140,6 +153,91 @@ final class GameSessionService
             ]);
 
             return $session->refresh();
+        });
+    }
+
+    /**
+     * Restart an unfinished evidence-backed attempt while preserving the same session identity.
+     *
+     * @param  array<string, mixed>  $stateSnapshot
+     */
+    public function restart(GameSession $gameSession, array $stateSnapshot): GameSession
+    {
+        return DB::transaction(function () use ($gameSession, $stateSnapshot): GameSession {
+            $session = GameSession::query()
+                ->with('workoutItem')
+                ->lockForUpdate()
+                ->findOrFail($gameSession->getKey());
+
+            if ($session->isFrameworkPlaceholder()) {
+                throw new LogicException('Framework placeholders must use placeholder restart.');
+            }
+
+            if ($session->status !== SessionStatus::InProgress) {
+                throw new LogicException('Only an in-progress session can be restarted.');
+            }
+
+            $session->rounds()->delete();
+            $session->update([
+                'current_round' => 0,
+                'state_snapshot' => [
+                    'version' => $session->snapshot_version,
+                    ...$stateSnapshot,
+                ],
+                'score' => null,
+                'accuracy' => null,
+                'average_response_ms' => null,
+                'correct_count' => 0,
+                'incorrect_count' => 0,
+                'missed_count' => 0,
+                'hint_count' => 0,
+                'best_combo' => 0,
+                'last_interaction_at' => now(),
+                'completed_at' => null,
+                'statistics_recorded_at' => null,
+            ]);
+
+            $session->workoutItem?->update([
+                'status' => WorkoutStatus::InProgress,
+                'completed_at' => null,
+            ]);
+
+            return $session->refresh()->load(['game', 'level', 'rounds', 'workoutItem.workout']);
+        });
+    }
+
+    /**
+     * Reset only the current placeholder item without deleting completed gameplay evidence.
+     */
+    public function restartPlaceholder(GameSession $gameSession): GameSession
+    {
+        return DB::transaction(function () use ($gameSession): GameSession {
+            $session = GameSession::query()
+                ->with('workoutItem')
+                ->lockForUpdate()
+                ->findOrFail($gameSession->getKey());
+
+            if (! $session->isFrameworkPlaceholder() || $session->status !== SessionStatus::InProgress) {
+                throw new LogicException('Only an in-progress framework placeholder can be restarted.');
+            }
+
+            $session->rounds()->delete();
+            $session->update([
+                'current_round' => 0,
+                'state_snapshot' => ['version' => $session->snapshot_version],
+                'correct_count' => 0,
+                'incorrect_count' => 0,
+                'missed_count' => 0,
+                'hint_count' => 0,
+                'best_combo' => 0,
+                'last_interaction_at' => now(),
+            ]);
+            $session->workoutItem?->update([
+                'status' => WorkoutStatus::InProgress,
+                'completed_at' => null,
+            ]);
+
+            return $session->refresh()->load(['game', 'level', 'workoutItem.workout']);
         });
     }
 
@@ -336,6 +434,24 @@ final class GameSessionService
             GameType::SignalShift => $this->signalShiftScoringService,
             GameType::ClearThought => $this->clearThoughtScoringService,
         };
+    }
+
+    private function startSignalShift(
+        Profile $profile,
+        DailyWorkoutItem $workoutItem,
+    ): GameSession {
+        GameSession::query()
+            ->whereBelongsTo($workoutItem, 'workoutItem')
+            ->where('mode', GameSession::FRAMEWORK_PLACEHOLDER_MODE)
+            ->resumable()
+            ->delete();
+
+        return $this->start(
+            profile: $profile,
+            game: $workoutItem->game,
+            level: $workoutItem->level,
+            workoutItem: $workoutItem,
+        );
     }
 
     private function skillDelta(ScoringResult $result): int

@@ -6,6 +6,7 @@ use App\Domain\Games\GameSessionService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Workout\WorkoutService;
+use App\Enums\GameType;
 use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\GameSession;
@@ -163,11 +164,13 @@ final class WorkoutGameContainer extends NativeComponent
             return;
         }
 
-        app(WorkoutService::class)->restartPlaceholder($session->workoutItem->workout);
+        app(GameSessionService::class)->restartPlaceholder($session);
         $this->bottomSheetVisible = false;
         app(HapticService::class)->trigger(HapticFeedback::Warning);
 
-        $this->replace('/workout')->transition($this->screenTransition());
+        $this->replace(
+            $this->route('native.workout.preparation', ['session' => $session->getKey()]),
+        )->transition($this->screenTransition());
     }
 
     public function completePlaceholder(): void
@@ -231,7 +234,10 @@ final class WorkoutGameContainer extends NativeComponent
             $profile = app(ProfileService::class)->current();
             $session = $this->session();
 
-            if ($profile === null || $session === null || ! $session->isFrameworkPlaceholder()) {
+            if ($profile === null
+                || $session === null
+                || ! $session->isFrameworkPlaceholder()
+                || $session->game->type !== GameType::ClearThought) {
                 $this->screenState = 'error';
 
                 return;
@@ -263,7 +269,7 @@ final class WorkoutGameContainer extends NativeComponent
             $this->workoutId = $workout->getKey();
             $this->gameTitle = $session->game->name;
             $this->gameOrder = 'Game '.$session->workoutItem->position.' of '.$items->count();
-            $this->placeholderMessage = $this->placeholderFor($session);
+            $this->placeholderMessage = $this->placeholderFor();
             $this->gamesRemaining = max(0, $items->count() - $completedItems - 1);
             $this->progress = $items->isEmpty() ? 0.0 : round($completedItems / $items->count(), 3);
             $this->timeEstimate = 'About '.app(WorkoutService::class)->estimatedGameDurationMinutes($session->level).' min';
@@ -319,12 +325,9 @@ final class WorkoutGameContainer extends NativeComponent
             ->first();
     }
 
-    private function placeholderFor(GameSession $session): string
+    private function placeholderFor(): string
     {
-        return match ($session->game->type->value) {
-            'signal_shift' => 'Signal Shift gameplay is intentionally not implemented. Complete this placeholder to verify timer, pause, resume, and workout navigation.',
-            'clear_thought' => 'Clear Thought gameplay is intentionally not implemented. Complete this placeholder without recording answers, score, or skill evidence.',
-        };
+        return 'Clear Thought gameplay is intentionally not implemented. Complete this placeholder without recording answers, score, or skill evidence.';
     }
 
     private function formatDuration(int $seconds): string

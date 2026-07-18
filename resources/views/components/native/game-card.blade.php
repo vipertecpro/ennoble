@@ -7,30 +7,30 @@
 ])
 
 <native:column
-    class="w-full gap-5 rounded-3xl bg-theme-surface p-5"
+    class="w-80 items-center rounded-3xl border border-theme-border bg-theme-surface-elevated py-5"
     :animate-duration="$motionDuration"
-    animate-easing="ease-out"
     a11y-label="{{ $game['title'] }} game"
 >
-    <native:row class="w-full items-center gap-4">
+<native:column class="w-72 gap-5">
+    <native:row class="items-center gap-4">
         <x-native.game-illustration :slug="$game['slug']" :motion-duration="$motionDuration" />
         <native:column class="flex-1 gap-2">
-            <native:row class="w-full flex-wrap items-center gap-2">
+            <native:row class="flex-wrap items-center gap-2">
                 <x-native.game-badge :label="$game['category']" :motion-duration="$motionDuration" />
-                <native:text class="text-xs font-semibold text-theme-primary">{{ $game['duration'] }}</native:text>
+                <native:text class="text-xs font-semibold text-theme-accent">{{ $game['duration'] }}</native:text>
             </native:row>
-            <native:text class="text-2xl font-bold leading-tight text-theme-on-surface">{{ $game['title'] }}</native:text>
+            <native:text class="text-2xl font-bold leading-tight text-theme-primary-text">{{ $game['title'] }}</native:text>
         </native:column>
     </native:row>
 
-    <native:text class="text-base leading-relaxed text-theme-on-surface-variant">{{ $game['description'] }}</native:text>
+    <native:text class="text-base leading-relaxed text-theme-secondary-text">{{ $game['description'] }}</native:text>
 
-    <native:column class="w-full gap-1">
-        <native:text class="text-xs font-semibold text-theme-primary">TRAINS</native:text>
-        <native:text class="text-sm leading-relaxed text-theme-on-surface">{{ implode(' · ', $game['skills']) }}</native:text>
+    <native:column class="gap-1">
+        <native:text class="text-xs font-semibold text-theme-accent">TRAINS</native:text>
+        <native:text class="text-sm leading-relaxed text-theme-secondary-text">{{ implode(' · ', $game['skills']) }}</native:text>
     </native:column>
 
-    <native:row class="w-full gap-3">
+    <native:row class="gap-3">
         <x-native.game-stat
             :ios="Ios::Trophy"
             :android="AndroidOutlined::EmojiEvents"
@@ -45,7 +45,7 @@
         />
     </native:row>
 
-    <native:row class="w-full gap-3">
+    <native:row class="gap-3">
         <x-native.game-stat
             :ios="Ios::CheckmarkSeal"
             :android="AndroidOutlined::CheckCircle"
@@ -60,7 +60,7 @@
         />
     </native:row>
 
-    <native:row class="w-full gap-3">
+    <native:row class="gap-3">
         <x-native.game-stat
             :ios="Ios::Gauge"
             :android="AndroidOutlined::Speed"
@@ -69,10 +69,10 @@
         />
     </native:row>
 
-    <native:column class="w-full gap-2">
-        <native:row class="w-full items-center justify-between">
-            <native:text class="text-xs font-semibold text-theme-on-surface-variant">COMPLETION RATE</native:text>
-            <native:text class="text-xs font-semibold text-theme-primary">
+    <native:column class="gap-2">
+        <native:row class="items-center justify-between">
+            <native:text class="text-xs font-semibold text-theme-muted-text">COMPLETION RATE</native:text>
+            <native:text class="text-xs font-semibold text-theme-accent">
                 {{ $game['completion_rate'] === null ? 'No data yet' : $game['completion_rate'].'%' }}
             </native:text>
         </native:row>
@@ -83,16 +83,18 @@
     </native:column>
 
     @if (! $game['has_history'])
-        <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">
+        <native:text class="text-sm leading-relaxed text-theme-secondary-text">
             No history yet. Your first completed session will add a personal best and completion evidence here.
         </native:text>
     @endif
 
     <native:button
         label="Play"
-        size="lg"
+        class="w-32"
+        size="md"
         variant="primary"
         a11y-hint="Opens the future {{ $game['title'] }} game flow preview"
         @press="openGame('{{ $game['slug'] }}')"
     />
+</native:column>
 </native:column>

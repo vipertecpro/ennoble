@@ -11,13 +11,13 @@
 ])
 
 <native:column
-    class="w-full gap-5 rounded-3xl bg-theme-surface p-5"
+    class="w-80 items-center rounded-3xl border border-theme-border bg-theme-surface-elevated py-5"
     :animate-duration="$motionDuration"
-    animate-easing="ease-out"
-    a11y-label="{{ $previousGame }} complete. Next game {{ $nextGame }}."
+    :a11y-label="$previousGame.' complete. Next game '.$nextGame.'.'"
 >
-    <native:row class="w-full items-center gap-4">
-        <native:column class="items-center justify-center rounded-full bg-theme-primary p-4">
+<native:column class="w-72 gap-5">
+    <native:row class="items-center gap-4">
+        <native:column class="items-center justify-center rounded-2xl bg-theme-primary-surface p-4">
             <x-native.icon
                 :ios="Ios::Checkmark"
                 :android="AndroidOutlined::Check"
@@ -26,20 +26,20 @@
             />
         </native:column>
         <native:column class="flex-1 gap-1">
-            <native:text class="text-xs font-semibold text-theme-primary">GAME COMPLETE</native:text>
-            <native:text class="text-2xl font-bold leading-tight text-theme-on-surface">{{ $previousGame }}</native:text>
+            <native:text class="text-xs font-semibold text-theme-accent">GAME COMPLETE</native:text>
+            <native:text class="text-2xl font-bold leading-tight text-theme-primary-text">{{ $previousGame }}</native:text>
         </native:column>
     </native:row>
 
-    <native:column class="w-full gap-2 rounded-2xl bg-theme-surface-variant p-4">
-        <native:text class="text-xs font-semibold text-theme-on-surface-variant">PERFORMANCE</native:text>
-        <native:text class="text-base leading-relaxed text-theme-on-surface">{{ $performanceMessage }}</native:text>
+    <native:column class="gap-2 rounded-2xl bg-theme-secondary-surface p-4">
+        <native:text class="text-xs font-semibold text-theme-muted-text">PERFORMANCE</native:text>
+        <native:text class="text-base leading-relaxed text-theme-primary-text">{{ $performanceMessage }}</native:text>
     </native:column>
 
-    <native:column class="w-full gap-2">
-        <native:text class="text-xs font-semibold text-theme-primary">UP NEXT</native:text>
-        <native:text class="text-2xl font-bold text-theme-on-surface">{{ $nextGame }}</native:text>
-        <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">
+    <native:column class="gap-2">
+        <native:text class="text-xs font-semibold text-theme-accent">UP NEXT</native:text>
+        <native:text class="text-2xl font-bold text-theme-primary-text">{{ $nextGame }}</native:text>
+        <native:text class="text-sm leading-relaxed text-theme-secondary-text">
             @if ($autoTransitionEnabled)
                 Continuing automatically in {{ $autoTransitionSeconds }} {{ $autoTransitionSeconds === 1 ? 'second' : 'seconds' }}.
             @else
@@ -47,4 +47,5 @@
             @endif
         </native:text>
     </native:column>
+</native:column>
 </native:column>

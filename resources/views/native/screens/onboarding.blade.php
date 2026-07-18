@@ -3,7 +3,10 @@
 @use('App\NativeComponents\Screens\Onboarding')
 @use('App\NativeUI\Tokens\MotionToken')
 
-<x-native.screen-container :scroll="$currentStep !== 1">
+<native:column class="h-full w-full bg-theme-background">
+<native:scroll-view class="flex-1 bg-theme-background" :shows-indicators="false">
+<native:row class="w-full justify-center bg-theme-background">
+<native:column class="w-80 mt-5 mb-12 gap-6">
     <x-native.onboarding-progress
         :current-step="$currentStep"
         :total-steps="Onboarding::TOTAL_STEPS"
@@ -11,150 +14,102 @@
     />
 
     <native:column
-        class="w-full gap-5 {{ $currentStep === 1 ? 'flex-1' : '' }}"
-        :translate-x="$reducedMotion ? 0 : ($currentStep % 2 === 0 ? 6 : 0)"
+        native:key="onboarding-step-{{ $currentStep }}"
+        class="w-80 gap-6"
+        :translate-x="$reducedMotion ? 0 : 8"
+        :opacity="$reducedMotion ? 1 : 0.98"
         :animate-duration="$this->motionDuration()"
         animate-easing="ease-out"
     >
         @if ($currentStep === 1)
-            <native:spacer />
+            <x-native.onboarding-illustration
+                :ios="Ios::BrainHeadProfile"
+                :android="AndroidOutlined::Psychology"
+                a11y-label="Ennoble brain training"
+                :animated="true"
+                :motion-duration="$this->motionDuration(MotionToken::Slow)"
+            />
 
-            <native:column class="w-full items-center gap-5">
-                <x-native.onboarding-illustration
-                    :ios="Ios::BrainHeadProfile"
-                    :android="AndroidOutlined::Psychology"
-                    a11y-label="Ennoble"
-                    :animated="true"
-                    :motion-duration="$this->motionDuration(MotionToken::Slow)"
-                />
-
-                <native:text class="text-4xl font-bold leading-tight text-center text-theme-on-background">
-                    A clearer mind, one day at a time.
+            <native:column class="items-center gap-3">
+                <native:text class="text-4xl font-bold leading-tight text-center text-theme-primary-text">
+                    Train a sharper mind.
                 </native:text>
-                <native:text class="text-base leading-relaxed text-center text-theme-on-surface-variant">
-                    Ennoble turns a few focused minutes into private, purposeful mental training.
+                <native:text class="w-72 text-base leading-relaxed text-center text-theme-secondary-text">
+                    Short, private exercises designed for calm daily progress.
                 </native:text>
             </native:column>
-
-            <native:spacer />
         @elseif ($currentStep === 2)
-            <native:column class="w-full gap-2">
-                <native:text class="text-3xl font-bold leading-tight text-theme-on-background">
-                    Why Ennoble?
+            <x-native.onboarding-illustration
+                :ios="Ios::Scope"
+                :android="AndroidOutlined::CenterFocusStrong"
+                a11y-label="Choose a training focus"
+                :motion-duration="$this->motionDuration()"
+                compact
+            />
+
+            <native:column class="gap-2">
+                <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">
+                    What should we train first?
                 </native:text>
-                <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
-                    Train the skills that help thought feel steadier, quicker, and more expressive.
+                <native:text class="w-72 text-sm leading-relaxed text-theme-secondary-text">
+                    Pick one focus. You can change it later.
                 </native:text>
             </native:column>
 
-            <x-native.onboarding-feature-carousel :motion-duration="$this->motionDuration()" />
-        @elseif ($currentStep === 3)
-            <native:column class="w-full items-center gap-4">
-                <x-native.onboarding-illustration
-                    :ios="Ios::LockShield"
-                    :android="AndroidOutlined::PrivacyTip"
-                    a11y-label="Private offline training"
-                    :motion-duration="$this->motionDuration()"
-                    compact
-                />
-                <native:text class="text-3xl font-bold leading-tight text-center text-theme-on-background">
-                    Training built around you.
-                </native:text>
-                <native:text class="text-base leading-relaxed text-center text-theme-on-surface-variant">
-                    Small daily improvements matter more than long, exhausting sessions.
-                </native:text>
-            </native:column>
-
-            <native:column class="w-full gap-1 rounded-3xl bg-theme-surface p-5">
-                <native:row class="w-full items-center gap-3 py-3">
-                    <x-native.icon :ios="Ios::WifiSlash" :android="AndroidOutlined::WifiOff" :size="24" />
-                    <native:text class="flex-1 text-base text-theme-on-surface">Works fully offline</native:text>
-                </native:row>
-                <native:divider />
-                <native:row class="w-full items-center gap-3 py-3">
-                    <x-native.icon :ios="Ios::ShieldLefthalfFilled" :android="AndroidOutlined::Shield" :size="24" />
-                    <native:text class="flex-1 text-base text-theme-on-surface">Private by design</native:text>
-                </native:row>
-                <native:divider />
-                <native:row class="w-full items-center gap-3 py-3">
-                    <x-native.icon :ios="Ios::PersonCropCircle" :android="AndroidOutlined::Person" :size="24" />
-                    <native:text class="flex-1 text-base text-theme-on-surface">No account required</native:text>
-                </native:row>
-                <native:divider />
-                <native:row class="w-full items-center gap-3 py-3">
-                    <x-native.icon :ios="Ios::Sparkles" :android="AndroidOutlined::AutoAwesome" :size="24" />
-                    <native:text class="flex-1 text-base text-theme-on-surface">No advertisements</native:text>
-                </native:row>
-                <native:divider />
-                <native:row class="w-full items-center gap-3 py-3">
-                    <x-native.icon :ios="Ios::LockShield" :android="AndroidOutlined::Lock" :size="24" />
-                    <native:text class="flex-1 text-base text-theme-on-surface">Everything stays on this device</native:text>
-                </native:row>
-            </native:column>
-        @elseif ($currentStep === 4)
-            <native:column class="w-full gap-2">
-                <native:text class="text-3xl font-bold leading-tight text-theme-on-background">
-                    What would you like to strengthen?
-                </native:text>
-                <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
-                    Choose one starting goal. You can refine it later.
-                </native:text>
-            </native:column>
-
-            <native:column class="w-full rounded-3xl bg-theme-surface p-5">
-                <native:radio-group
-                    native:model="trainingGoal"
-                    label="Training goal"
-                >
-                    <native:radio value="focus" label="Improve Focus" />
-                    <native:radio value="thinking_speed" label="Improve Thinking Speed" />
-                    <native:radio value="language" label="Improve Communication" />
-                    <native:radio value="mental_sharpness" label="Stay Mentally Sharp" />
-                    <native:radio value="balanced" label="General Improvement" />
+            <native:column class="w-80 items-center">
+            <native:column class="w-72 gap-4">
+                <native:radio-group native:model="trainingGoal" label="Training focus">
+                    <native:radio value="focus" label="Focus" />
+                    <native:radio value="thinking_speed" label="Thinking speed" />
+                    <native:radio value="language" label="Communication" />
+                    <native:radio value="mental_sharpness" label="Mental sharpness" />
+                    <native:radio value="balanced" label="Balanced training" />
                 </native:radio-group>
             </native:column>
-        @elseif ($currentStep === 5)
-            <native:column class="w-full items-center gap-4">
-                <x-native.onboarding-illustration
-                    :ios="Ios::GaugeOpenWithLinesNeedle33percent"
-                    :android="AndroidOutlined::Speed"
-                    a11y-label="Training difficulty"
-                    :motion-duration="$this->motionDuration()"
-                    compact
-                />
-                <native:text class="text-3xl font-bold leading-tight text-center text-theme-on-background">
-                    Choose your starting pace.
+            </native:column>
+        @elseif ($currentStep === 3)
+            <x-native.onboarding-illustration
+                :ios="Ios::GaugeOpenWithLinesNeedle33percent"
+                :android="AndroidOutlined::Speed"
+                a11y-label="Choose a training pace"
+                :motion-duration="$this->motionDuration()"
+                compact
+            />
+
+            <native:column class="gap-2">
+                <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">
+                    Choose your pace.
                 </native:text>
-                <native:text class="text-base leading-relaxed text-center text-theme-on-surface-variant">
-                    Adaptive starts steady and responds to your future training evidence.
+                <native:text class="w-72 text-sm leading-relaxed text-theme-secondary-text">
+                    Start comfortably. Ennoble will adapt with you.
                 </native:text>
             </native:column>
 
-            <native:column class="w-full rounded-3xl bg-theme-surface p-5">
-                <native:radio-group
-                    native:model="difficulty"
-                    label="Difficulty"
-                >
-                    <native:radio value="beginner" label="Beginner" />
-                    <native:radio value="intermediate" label="Intermediate" />
-                    <native:radio value="advanced" label="Advanced" />
+            <native:column class="w-80 items-center">
+            <native:column class="w-72 gap-4">
+                <native:radio-group native:model="difficulty" label="Training pace">
+                    <native:radio value="beginner" label="Gentle" />
+                    <native:radio value="intermediate" label="Steady" />
+                    <native:radio value="advanced" label="Challenging" />
                     <native:radio value="adaptive" label="Adaptive" />
                 </native:radio-group>
             </native:column>
-        @elseif ($currentStep === 6)
-            <native:column class="w-full items-center gap-4">
-                <x-native.onboarding-illustration
-                    :ios="Ios::PersonCropCircle"
-                    :android="AndroidOutlined::Person"
-                    a11y-label="Local profile"
-                    :motion-duration="$this->motionDuration()"
-                    compact
-                />
-                <native:text class="text-3xl font-bold leading-tight text-center text-theme-on-background">
-                    What should Ennoble call you?
+            </native:column>
+        @elseif ($currentStep === 4)
+            <x-native.onboarding-illustration
+                :ios="Ios::PersonCropCircle"
+                :android="AndroidOutlined::Person"
+                a11y-label="Local profile"
+                :motion-duration="$this->motionDuration()"
+                compact
+            />
+
+            <native:column class="gap-2">
+                <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">
+                    What should we call you?
                 </native:text>
-                <native:text class="text-base leading-relaxed text-center text-theme-on-surface-variant">
-                    This is optional. Your profile remains only on this device.
+                <native:text class="w-72 text-sm leading-relaxed text-theme-secondary-text">
+                    Optional. Your name stays on this device.
                 </native:text>
             </native:column>
 
@@ -162,118 +117,112 @@
                 :display-name="$displayName"
                 :valid="$this->isDisplayNameValid()"
             />
-        @elseif ($currentStep === 7)
-            <native:column class="w-full gap-2">
-                <native:text class="text-3xl font-bold leading-tight text-theme-on-background">
-                    Make Ennoble comfortable.
+        @elseif ($currentStep === 5)
+            <native:column class="gap-2">
+                <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">
+                    Make it feel right.
                 </native:text>
-                <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
-                    These preferences apply locally and can be changed later.
+                <native:text class="w-72 text-sm leading-relaxed text-theme-secondary-text">
+                    Set your appearance and feedback preferences.
                 </native:text>
             </native:column>
 
-            <native:column class="w-full gap-4 rounded-3xl bg-theme-surface p-5">
-                <native:radio-group
-                    native:model="themePreference"
-                    label="Theme"
-                >
-                    <native:radio value="system" label="Use Device Setting" />
+            <native:column class="w-80 items-center">
+            <native:column class="w-72 gap-4">
+                <native:radio-group native:model="themePreference" label="Appearance">
+                    <native:radio value="system" label="Use device setting" />
                     <native:radio value="light" label="Light" />
                     <native:radio value="dark" label="Dark" />
                 </native:radio-group>
+            </native:column>
+            </native:column>
 
+            <native:column class="w-80 items-center">
+            <native:column class="w-72 gap-4 rounded-3xl bg-theme-secondary-surface">
+                <native:toggle native:model="soundEnabled" label="Sound" />
                 <native:divider />
-
-                <native:toggle
-                    native:model="soundEnabled"
-                    label="Sound"
-                    a11y-label="Sound feedback"
-                />
-                <native:toggle
-                    native:model="hapticsEnabled"
-                    label="Haptics"
-                    a11y-label="Haptic feedback"
-                />
+                <native:toggle native:model="hapticsEnabled" label="Haptics" />
+                <native:divider />
                 <native:toggle
                     native:model="reducedMotion"
-                    label="Reduced Motion"
-                    a11y-label="Reduced motion"
+                    label="Reduce motion"
                     a11y-hint="Reduces non-essential movement throughout Ennoble"
                 />
             </native:column>
+            </native:column>
         @else
-            <native:column class="w-full items-center gap-4">
-                <x-native.onboarding-illustration
-                    :ios="Ios::CheckmarkSeal"
-                    :android="AndroidOutlined::Verified"
-                    a11y-label="Onboarding ready"
-                    :animated="true"
-                    :motion-duration="$this->motionDuration(MotionToken::Success)"
-                    compact
-                />
-                <native:text class="text-3xl font-bold leading-tight text-center text-theme-on-background">
-                    Your training space is ready.
+            <x-native.onboarding-illustration
+                :ios="Ios::CheckmarkSeal"
+                :android="AndroidOutlined::Verified"
+                a11y-label="Training setup complete"
+                :animated="true"
+                :motion-duration="$this->motionDuration(MotionToken::Success)"
+            />
+
+            <native:column class="items-center gap-3">
+                <native:text class="text-3xl font-bold leading-tight text-center text-theme-primary-text">
+                    Ready for day one.
                 </native:text>
-                <native:text class="text-base leading-relaxed text-center text-theme-on-surface-variant">
-                    A short daily rhythm is enough to begin.
+                <native:text class="w-72 text-sm leading-relaxed text-center text-theme-secondary-text">
+                    Your private training space is ready.
                 </native:text>
             </native:column>
 
-            <native:column class="w-full rounded-3xl bg-theme-surface px-5 py-2">
-                <x-native.onboarding-summary-row label="Goal" :value="$this->trainingGoalLabel()" />
+            <native:column class="w-80 items-center">
+            <native:column class="w-72 gap-4">
+                <x-native.onboarding-summary-row label="Focus" :value="$this->trainingGoalLabel()" />
                 <native:divider />
-                <x-native.onboarding-summary-row label="Difficulty" :value="$this->difficultyLabel()" />
+                <x-native.onboarding-summary-row label="Pace" :value="$this->difficultyLabel()" />
                 <native:divider />
-                <x-native.onboarding-summary-row label="Theme" :value="$this->themeLabel()" />
-                <native:divider />
-                <x-native.onboarding-summary-row label="Display name" :value="$this->displayNameSummary()" />
-                <native:divider />
-                <x-native.onboarding-summary-row label="Daily training" value="5–10 minutes" />
+                <x-native.onboarding-summary-row label="Appearance" :value="$this->themeLabel()" />
             </native:column>
-
-            <native:text class="text-sm leading-relaxed text-center text-theme-on-surface-variant">
-                No account will be created. Your choices stay on this device.
-            </native:text>
+            </native:column>
         @endif
     </native:column>
 
     @if ($errorMessage)
-        <native:column class="w-full rounded-2xl bg-theme-surface-variant p-4">
-            <native:text class="text-sm font-semibold text-theme-destructive">
+        <native:column class="rounded-2xl bg-theme-secondary-surface p-4">
+            <native:text class="text-sm font-semibold text-theme-danger">
                 {{ $errorMessage }}
             </native:text>
         </native:column>
     @endif
 
-    <native:column ref="onboarding-actions" class="w-full gap-3">
+    <native:row ref="onboarding-actions" class="w-80 items-center justify-between">
         @if ($currentStep > 1)
             <native:button
-                class="w-full"
+                class="w-24"
                 label="Back"
-                variant="secondary"
+                size="sm"
+                variant="ghost"
                 :disabled="$isSaving"
                 @press="previousStep"
             />
+        @else
+            <native:spacer />
         @endif
 
         @if ($currentStep < Onboarding::TOTAL_STEPS)
             <native:button
-                class="w-full"
-                :label="$currentStep === 1 ? 'Begin' : 'Continue'"
-                size="lg"
+                class="w-44"
+                :label="$currentStep === 1 ? 'Get started' : 'Continue'"
+                size="md"
                 :disabled="! $this->canContinue()"
                 @press="nextStep"
             />
         @else
             <native:button
-                class="w-full"
-                label="Start Training"
-                size="lg"
+                class="w-44"
+                label="Start training"
+                size="md"
                 :loading="$isSaving"
                 :disabled="! $this->canContinue()"
                 a11y-hint="Saves your local choices and opens Ennoble"
                 @press="completeOnboarding"
             />
         @endif
-    </native:column>
-</x-native.screen-container>
+    </native:row>
+</native:column>
+</native:row>
+</native:scroll-view>
+</native:column>

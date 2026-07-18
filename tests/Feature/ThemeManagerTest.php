@@ -5,13 +5,18 @@ use App\Domain\Settings\SettingsService;
 use App\Enums\Difficulty;
 use App\Enums\ThemePreference;
 use App\Enums\TrainingGoal;
+use App\Models\Profile;
+use App\Models\Setting;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
+use Native\Mobile\Edge\TailwindParser;
+use Native\Mobile\Testing\Native;
 use Nativephp\NativeUi\Theme;
 
 afterEach(function () {
     Theme::load(config('native-ui.theme', []));
+    TailwindParser::clearCache();
 });
 
 test('theme manager resolves light dark and system appearances', function () {
@@ -34,18 +39,52 @@ test('explicit appearance preferences apply one semantic palette to both rendere
     expect($tokens['light']['primary'])->toBe($expectedPrimary)
         ->and($tokens['dark']['primary'])->toBe($expectedPrimary);
 })->with([
-    'light' => [ThemePreference::Light, '#5B43D6'],
-    'dark' => [ThemePreference::Dark, '#A99AF5'],
+    'light' => [ThemePreference::Light, '#1F6F63'],
+    'dark' => [ThemePreference::Dark, '#70CDBB'],
 ]);
+
+test('changing appearance clears parsed semantic colors before the next native frame', function () {
+    app(ThemeManager::class)->apply(ThemePreference::Light);
+
+    expect(TailwindParser::parse('bg-theme-background'))
+        ->toMatchArray(['bg' => '#F5F5F2']);
+
+    app(ThemeManager::class)->apply(ThemePreference::Dark);
+
+    expect(TailwindParser::parse('bg-theme-background'))
+        ->toMatchArray(['bg' => '#0D0F11']);
+});
 
 test('system preference preserves distinct light and dark semantic palettes', function () {
     app(ThemeManager::class)->apply(ThemePreference::System);
     $tokens = Theme::all();
 
-    expect($tokens['light']['background'])->toBe('#F7F6FB')
-        ->and($tokens['dark']['background'])->toBe('#17161D')
+    expect($tokens['light']['background'])->toBe('#F5F5F2')
+        ->and($tokens['dark']['background'])->toBe('#0D0F11')
         ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background']);
 });
+
+test('explicit appearance keeps typed icon colors independent from device appearance', function (
+    ThemePreference $preference,
+    string $expectedColor,
+) {
+    $profile = Profile::factory()->onboarded()->create();
+    Setting::factory()->for($profile)->create([
+        'theme_preference' => $preference,
+    ]);
+
+    app(ThemeManager::class)->apply($preference);
+
+    Native::visit('/')
+        ->assertElement(
+            'icon',
+            fn (array $node): bool => data_get($node, 'props.color') === $expectedColor
+                && data_get($node, 'props.dark_color') === $expectedColor,
+        );
+})->with([
+    'light' => [ThemePreference::Light, '#18191B'],
+    'dark' => [ThemePreference::Dark, '#F3F4F4'],
+]);
 
 test('saved Prompt 2 settings drive theme and reduced motion behavior', function () {
     $profile = app(ProfileService::class)->createOrUpdate(
@@ -72,12 +111,57 @@ test('saved Prompt 2 settings drive theme and reduced motion behavior', function
 });
 
 test('design tokens expose the complete reusable foundation', function () {
-    expect(DesignTokens::TYPOGRAPHY)->toHaveKeys(['display', 'heading', 'body', 'label', 'numeric'])
-        ->and(DesignTokens::SPACING)->toHaveKeys(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl'])
+    $theme = config('native-ui.theme');
+
+    expect(DesignTokens::SEMANTIC_COLORS)->toHaveCount(19)
+        ->and($theme['light'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
+        ->and($theme['dark'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
+        ->and(DesignTokens::TYPOGRAPHY)->toHaveKeys([
+            'display-xl',
+            'display-large',
+            'headline',
+            'title',
+            'section',
+            'body',
+            'body-small',
+            'caption',
+            'button',
+            'badge',
+            'numeric',
+        ])
+        ->and(DesignTokens::SPACING)->toHaveKeys(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'])
+        ->and(DesignTokens::LAYOUT_SPACING)->toHaveKeys(['screen-margin', 'section', 'card', 'content', 'compact', 'touch'])
         ->and(DesignTokens::CORNER_RADII)->toHaveKeys(['small', 'medium', 'large', 'full'])
         ->and(DesignTokens::ELEVATION)->toHaveKeys(['none', 'low', 'medium', 'high'])
         ->and(DesignTokens::MOTION_DURATION)->toHaveKeys(['fast', 'normal', 'slow', 'spring', 'success', 'error'])
         ->and(DesignTokens::OPACITY)->toHaveKeys(['disabled', 'muted', 'overlay', 'pressed'])
+        ->and(DesignTokens::CARD_VARIANTS)->toHaveKeys([
+            'hero',
+            'workout',
+            'game',
+            'metric',
+            'achievement',
+            'coming-soon',
+            'standard',
+        ])
+        ->and(DesignTokens::CARD_CONTENT_VARIANTS)->toHaveKeys([
+            'hero',
+            'workout',
+            'game',
+            'metric',
+            'achievement',
+            'coming-soon',
+            'standard',
+        ])
+        ->and(DesignTokens::CARD_INSET_VARIANTS)->toHaveKeys([
+            'hero',
+            'workout',
+            'game',
+            'metric',
+            'achievement',
+            'coming-soon',
+            'standard',
+        ])
         ->and(DesignTokens::ICON_SIZE)->toHaveKeys(['small', 'medium', 'large', 'hero'])
         ->and(DesignTokens::SCREEN_PADDING)->toBe(20)
         ->and(DesignTokens::COMPONENT_SPACING)->toBe(16)

@@ -1,15 +1,18 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<x-native.screen-container :state="$dashboardState" :scroll="true">
+<native:column class="h-full w-full bg-theme-background">
+<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:row class="w-full justify-center bg-theme-background">
+<native:column class="w-80 mt-5 mb-12 gap-6">
     @if ($dashboardState === 'loading')
         <x-native.loading-overlay label="Loading your Ennoble dashboard" />
     @elseif ($dashboardState === 'error')
-        <x-native.error-state :description="$dashboardError">
-            <x-slot:retry>
-                <native:button label="Retry dashboard" variant="secondary" @press="retryDashboard" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$dashboardError"
+            retry-label="Retry dashboard"
+            retry-method="retryDashboard"
+        />
     @else
     <x-native.dashboard-greeting
         :greeting="$greeting"
@@ -18,21 +21,18 @@
         :motion-duration="$motionDuration"
     />
 
-    <x-native.dashboard-section-header title="Today’s Workout" eyebrow="YOUR DAILY PRACTICE" />
-
     @if ($isWorkoutLoading)
         <x-native.dashboard-loading-card label="Preparing today’s workout" />
     @elseif ($workoutError)
-        <x-native.error-state :description="$workoutError">
-            <x-slot:retry>
-                <native:button label="Retry workout" variant="secondary" @press="retryWorkout" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$workoutError"
+            retry-label="Retry workout"
+            retry-method="retryWorkout"
+        />
     @else
         <x-native.dashboard-workout-card
             :title="$workoutTitle"
             :duration="$workoutDuration"
-            :skills="$workoutSkills"
             :difficulty="$workoutDifficulty"
             :action="$workoutAction"
             :status="$workoutStatus"
@@ -41,16 +41,16 @@
         />
     @endif
 
-    <x-native.dashboard-section-header title="Current Streak" />
+    <x-native.dashboard-section-header title="Your rhythm" />
 
     @if ($isStatisticsLoading)
         <x-native.dashboard-loading-card label="Loading streak and personal bests" />
     @elseif ($statisticsError)
-        <x-native.error-state :description="$statisticsError">
-            <x-slot:retry>
-                <native:button label="Retry statistics" variant="secondary" @press="retryStatistics" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$statisticsError"
+            retry-label="Retry statistics"
+            retry-method="retryStatistics"
+        />
     @else
         <x-native.dashboard-streak-card
             :current="$currentStreak"
@@ -59,16 +59,16 @@
         />
     @endif
 
-    <x-native.dashboard-section-header title="Progress Snapshot" />
+    <x-native.dashboard-section-header title="Progress" />
 
     @if ($isProgressLoading)
         <x-native.dashboard-loading-card label="Loading skill progress" />
     @elseif ($progressError)
-        <x-native.error-state :description="$progressError">
-            <x-slot:retry>
-                <native:button label="Retry progress" variant="secondary" @press="retryProgress" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$progressError"
+            retry-label="Retry progress"
+            retry-method="retryProgress"
+        />
     @else
         <x-native.dashboard-progress-card
             :skill-highlights="$skillHighlights"
@@ -86,11 +86,11 @@
     @if ($isAchievementLoading)
         <x-native.dashboard-loading-card label="Loading latest achievement" />
     @elseif ($achievementError)
-        <x-native.error-state :description="$achievementError">
-            <x-slot:retry>
-                <native:button label="Retry achievement" variant="secondary" @press="retryAchievement" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$achievementError"
+            retry-label="Retry achievement"
+            retry-method="retryAchievement"
+        />
     @else
         <x-native.dashboard-achievement-card
             :title="$achievementTitle"
@@ -104,7 +104,7 @@
         eyebrow="COMING SOON"
     />
 
-    <native:column class="w-full rounded-3xl bg-theme-surface">
+    <native:column class="rounded-3xl border border-theme-border bg-theme-surface-elevated">
         <x-native.dashboard-coming-soon-card
             experience="memory-path"
             title="Memory Path"
@@ -150,4 +150,7 @@
     @if ($bottomSheetVisible)
         @include('native.partials.home-coming-soon-sheet')
     @endif
-</x-native.screen-container>
+</native:column>
+</native:row>
+</native:scroll-view>
+</native:column>

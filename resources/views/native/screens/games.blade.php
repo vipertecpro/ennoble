@@ -1,29 +1,32 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<x-native.screen-container :state="$libraryState" :scroll="true">
+<native:column class="h-full w-full bg-theme-background">
+<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:row class="w-full justify-center bg-theme-background">
+<native:column class="w-80 mt-5 mb-12 gap-6">
     @if ($libraryState === 'loading')
         <x-native.loading-overlay label="Loading the offline games library" />
     @elseif ($libraryState === 'error')
-        <x-native.error-state :description="$libraryError">
-            <x-slot:retry>
-                <native:button label="Retry games library" variant="secondary" @press="retryLibrary" />
-            </x-slot:retry>
-        </x-native.error-state>
+        <x-native.error-state
+            :description="$libraryError"
+            retry-label="Retry games library"
+            retry-method="retryLibrary"
+        />
     @else
-    <native:column class="w-full gap-2">
-        <native:text class="text-xs font-semibold text-theme-primary">CURATED TRAINING</native:text>
-        <native:text class="text-3xl font-bold leading-tight text-theme-on-background">Train with purpose.</native:text>
-        <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
+    <native:column class="gap-2">
+        <native:text class="text-xs font-semibold text-theme-accent">CURATED TRAINING</native:text>
+        <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">Train with purpose.</native:text>
+        <native:text class="text-base leading-relaxed text-theme-secondary-text">
             Choose a focused experience, understand what it trains, and see only progress backed by your local history.
         </native:text>
     </native:column>
 
     <x-native.games-search-input :search-query="$searchQuery" />
 
-    <native:column class="w-full gap-2" a11y-label="Game category filters">
+    <native:column class="gap-2" a11y-label="Game category filters">
         @foreach (array_chunk($categories, 3) as $categoryRow)
-            <native:row ref="game-filter-row-{{ $loop->iteration }}" class="w-full gap-2">
+            <native:row ref="game-filter-row-{{ $loop->iteration }}" class="gap-2">
                 @foreach ($categoryRow as $category)
                     <x-native.game-filter-chip
                         :category="$category['key']"
@@ -38,9 +41,9 @@
     @if ($statisticsLoading)
         <x-native.dashboard-loading-card label="Loading game statistics" />
     @elseif ($statisticsError)
-        <native:column class="w-full gap-3 rounded-2xl border border-theme-outline bg-theme-surface p-4">
-            <native:text class="text-base font-semibold text-theme-on-surface">Statistics unavailable</native:text>
-            <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">{{ $statisticsError }}</native:text>
+        <native:column class="gap-3 rounded-2xl border border-theme-border bg-theme-secondary-surface p-4">
+            <native:text class="text-base font-semibold text-theme-primary-text">Statistics unavailable</native:text>
+            <native:text class="text-sm leading-relaxed text-theme-secondary-text">{{ $statisticsError }}</native:text>
             <native:button label="Retry statistics" variant="secondary" @press="retryStatistics" />
         </native:column>
     @endif
@@ -51,13 +54,9 @@
             :android="AndroidOutlined::SearchOff"
             :title="$emptyTitle"
             :description="$emptyDescription"
-        >
-            <x-slot:action>
-                @if ($selectedCategory !== 'all')
-                    <native:button label="Show all games" variant="secondary" @press="showAllGames" />
-                @endif
-            </x-slot:action>
-        </x-native.empty-state>
+            :action-label="$selectedCategory !== 'all' ? 'Show all games' : null"
+            :action-method="$selectedCategory !== 'all' ? 'showAllGames' : null"
+        />
     @else
         @if ($featuredVisible && $featuredGame)
             <x-native.dashboard-section-header title="Featured" eyebrow="A FOCUSED PLACE TO BEGIN" />
@@ -96,4 +95,7 @@
     @if ($bottomSheetVisible)
         @include('native.partials.games-coming-soon-sheet')
     @endif
-</x-native.screen-container>
+</native:column>
+</native:row>
+</native:scroll-view>
+</native:column>

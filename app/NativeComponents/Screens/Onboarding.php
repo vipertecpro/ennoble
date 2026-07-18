@@ -22,7 +22,7 @@ use Throwable;
 
 final class Onboarding extends NativeComponent
 {
-    public const TOTAL_STEPS = 8;
+    public const TOTAL_STEPS = 6;
 
     public int $currentStep = 1;
 
@@ -153,7 +153,7 @@ final class Onboarding extends NativeComponent
     }
 
     /**
-     * Apply an appearance choice immediately for an honest preview.
+     * Validate the appearance choice before it is applied on the next screen.
      */
     public function updatedThemePreference(string $value): void
     {
@@ -164,8 +164,6 @@ final class Onboarding extends NativeComponent
 
             return;
         }
-
-        app(ThemeManager::class)->apply($preference);
     }
 
     /**
@@ -202,10 +200,10 @@ final class Onboarding extends NativeComponent
     public function canContinue(): bool
     {
         return match ($this->currentStep) {
-            4 => TrainingGoal::tryFrom($this->trainingGoal) !== null,
-            5 => Difficulty::tryFrom($this->difficulty) !== null,
-            6 => $this->isDisplayNameValid(),
-            8 => TrainingGoal::tryFrom($this->trainingGoal) !== null
+            2 => TrainingGoal::tryFrom($this->trainingGoal) !== null,
+            3 => Difficulty::tryFrom($this->difficulty) !== null,
+            4 => $this->isDisplayNameValid(),
+            6 => TrainingGoal::tryFrom($this->trainingGoal) !== null
                 && Difficulty::tryFrom($this->difficulty) !== null
                 && ThemePreference::tryFrom($this->themePreference) !== null
                 && $this->isDisplayNameValid(),

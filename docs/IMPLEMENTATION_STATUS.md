@@ -21,8 +21,8 @@ Audit date: 2026-07-18
 | NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
-| Native components/routes | Thirteen NativeComponents/routes, including five workout-session phases |
-| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, and workout-session framework; no external media assets |
+| Native components/routes | Fourteen NativeComponents/routes, including the dedicated Signal Shift runner |
+| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, workout-session framework, and production Signal Shift UI; no external media assets |
 | Static analysis | Not configured |
 
 ## Prompt QA-1 — iOS Simulator Validation
@@ -236,22 +236,20 @@ The current core haptic API provides one generic short vibration, so semantic in
 
 ## Prompt 4 — Premium Onboarding Experience
 
-**Status: Complete; needs device verification.**
+**Status: Complete and visually verified on iOS for Prompt Design-2.**
 
-Implemented one native eight-step first-launch journey:
+Prompt Design-2 replaced the original verbose journey with one native six-step first-launch flow:
 
-1. Welcome with an animated, abstract Ennoble mark and Begin action.
-2. Why Ennoble with horizontally paged Focus, Processing Speed, Language, and Daily Growth cards.
-3. Training philosophy covering small improvements, offline operation, privacy, no advertisements, no account, and on-device data.
-4. Required training-goal selection.
-5. Required Beginner, Intermediate, Advanced, or Adaptive difficulty selection.
-6. Optional, whitespace-normalized display name with a 40-character maximum.
-7. Theme, sound, haptics, and Reduced Motion settings.
-8. Ready summary with the selected choices, 5–10 minute estimate, and Start Training action.
+1. A short welcome statement with one original geometric illustration.
+2. Required training-focus selection.
+3. Required Gentle, Steady, Challenging, or Adaptive pace selection.
+4. Optional, whitespace-normalized display name with a 40-character maximum.
+5. System, Light, or Dark appearance plus sound, haptics, and Reduced Motion.
+6. A concise ready summary and Start Training action.
 
 The root Home component redirects incomplete profiles to onboarding. Completion persists the profile, settings, and `onboarding_completed_at` in one transaction, then replaces navigation into the existing Home shell. Returning profiles skip onboarding, and direct onboarding navigation also returns them Home.
 
-Prompt 4 reuses the shared screen container, semantic theme/tokens, typed platform icons, haptic service, profile service, and settings service. New reusable components own progress, geometric illustration placeholders, feature cards and paging, display-name input, and summary rows. Reduced Motion resolves authored durations and final navigation transition to zero/none.
+The flow uses direct native screen composition, semantic theme/tokens, typed platform icons, haptic service, profile service, and settings service. Reusable components own progress, geometric illustrations, display-name input, and summary rows. Reduced Motion resolves authored durations and final navigation transition to zero/none.
 
 No Today, Games library, gameplay, Progress, Profile editing, statistics, achievements, notifications, authentication, or remote behavior was added.
 
@@ -262,7 +260,7 @@ No Today, Games library, gameplay, Progress, Profile editing, statistics, achiev
 The Home placeholder is now the central, state-aware native dashboard:
 
 - Device-time Good Morning, Good Afternoon, or Good Evening greeting with normalized local name or “friend” fallback.
-- Reusable Daily Momentum workout card showing a bounded duration estimated from configured round counts, included skills, selected difficulty, completion percentage, and Start Training, Continue Training, or Completed Today state.
+- Reusable Daily Momentum workout card showing a bounded duration, selected difficulty, completion percentage, and Start Training or Continue Training state. Completed workouts use a compact non-interactive status label.
 - Current and longest streak preview with a seven-marker visual and encouraging zero-streak state.
 - Progress snapshot with up to three persisted skill values, seven-day completion percentage, per-game personal best, and explicit no-progress/no-history states.
 - Latest persisted achievement preview with an encouraging no-unlock state.
@@ -312,26 +310,101 @@ Shared `WorkoutHeader`, `WorkoutProgress`, `Countdown`, `GameContainer`, `Transi
 
 Framework sessions use the explicit `workout_framework_placeholder` mode. They persist only preparation, pause, elapsed-time, and completion state. The real scoring path rejects them, and statistics previews/rebuilds plus hint-free achievement evidence exclude them. Completing both placeholders stores a truthful workout summary without score, accuracy, personal best, skill progress, statistics, or achievement updates. Restart deletes only placeholder sessions and refuses a workout containing real evidence.
 
-Signal Shift and Clear Thought gameplay remain unimplemented by design. The placeholder action exists only to prove the surrounding workout lifecycle end to end.
+This section records the Prompt 7 boundary. Prompt 8 supersedes Signal Shift’s placeholder behavior; Clear Thought remains the only framework placeholder.
+
+## Prompt 8 — Signal Shift Reference Game
+
+**Status: In progress; automated implementation is complete, native audio capability and device verification remain outstanding.**
+
+Signal Shift now runs as a real offline native game through `/workout/game/signal-shift/{session}`:
+
+- Instructions explain lives, combo, score, and the full-rule requirement.
+- A tutorial is required until the profile has a completed Signal Shift session and remains available on request thereafter. Tutorial taps never create round evidence.
+- Exactly three player-facing rounds shift the rule, reset attention, and finish with round-specific results.
+- Deterministic waves contain exactly one eligible target and data-driven distractors.
+- Correct taps, wrong taps, expired targets, response time, combo, best combo, score, lives, timer, failure, pause, exit, resume, restart, and completion all use local transactional state.
+- Final results record score, accuracy, average response time, best combo, personal-best comparison, progress snapshots, overall/per-game statistics, and eligible achievement evidence.
+- The workout transition and completion screens now report Signal Shift evidence while preserving the explicit non-evidentiary Clear Thought placeholder.
+
+The rule engine supports target color, target shape, excluded shape, movement, size, rotation, speed, spawn density, wave count, and response allowance without named-rule branches in the screen. Version 2 bundled level configuration provides three rules for Beginner, Intermediate, and Advanced. Adaptive continues to resolve to Intermediate until performance-driven level selection is introduced.
+
+Signal Shift is built entirely from application-owned `NativeComponent` state and EDGE primitives. It uses typed platform icons, semantic light/dark theme tokens, existing dialog and haptic infrastructure, scalable text, minimum target sizing, accessibility labels, and static reduced-motion alternatives. No WebView, remote API, runtime asset download, new Composer package, plugin registration, generated-platform edit, or frozen-mirror change was introduced.
+
+The installed NativePHP core exposes generic vibration but no bundled-audio playback function; Native UI is the only registered plugin, and `resources/audio` contains no original sound assets. The local sound preference is respected as a product setting, but Prompt 8 does not pretend that sounds played. Correct/error/round/completion/failure audio remains blocked on a reviewed local native capability plus bundled original cues.
+
+### Prompt 8 Automated Coverage
+
+- Rule composition, validation bounds, deterministic generation, exactly-one-target invariant, and future modifiers.
+- Beginner, Intermediate, Advanced, and Adaptive level behavior.
+- First-play and requested tutorial paths with zero tutorial evidence.
+- Correct, incorrect, missed, timer, life, combo, score, milestone, round, failure, and restart behavior.
+- Transactional pause/exit/resume checkpoints and process-style component re-entry.
+- Reduced Motion stimulus presentation with unchanged gameplay meaning.
+- Three-round completion, results, previous-best behavior, progress, statistics, and achievements.
+- Mixed workout completion with real Signal Shift evidence and null Clear Thought gameplay metrics.
+- Invalid/foreign checkpoint recovery and conditional-state accessibility audits.
+
+## Prompt Game-UX-1 — Premium Signal Shift Gameplay
+
+**Status: Presentation redesign and iOS Simulator gameplay evidence complete; physical-device, Android, and audio verification remain.**
+
+Game-UX-1 replaces the Prompt 8 application-style runner presentation without changing its engine:
+
+- Signal Shift now hides native navigation and tab chrome for an uninterrupted runner.
+- Instructions use one original geometric focal composition, one short premise, and one primary action.
+- Tutorial targets are shape-first native pressables with accessible labels and no visible button cards.
+- Each round reveals its rule, then enters a dedicated full-screen `3 → 2 → 1 → GO` countdown with preference-aware haptics.
+- Active play is fixed and non-scrolling. A compact HUD holds physical lives, timer, quiet score, progress, current rule, transient combo, and an icon-only accessible pause control.
+- The native play field dominates the remaining viewport. Keyed shapes float or pulse, retain static movement-direction markers for Reduced Motion, and respond instantly on the native thread.
+- Correct taps replace the wave, emit a small particle burst, float the score delta, and briefly reveal combo. Wrong taps shift the board, show danger feedback, and animate a lost life.
+- Round and game results lead with a score celebration, then reveal accuracy, reaction time, best combo, lives, and personal-best comparison without metric cards or tables.
+- Pause copy and actions are reduced to Resume, Restart, and Exit.
+
+The redesign uses only application-owned `NativeComponent` state, EDGE primitives, semantic tokens, typed icons, existing haptic infrastructure, and scalar-prop Blade components. The Elevate reference supplied by the user informed the interaction-quality bar only; no artwork, layout, typography, wording, brand element, or game mechanic was copied.
+
+`SignalShiftGameService`, `SignalShiftRuleEngine`, `SignalShiftScoringService`, `GameSessionService`, database schema, bundled difficulty data, workout behavior, statistics, progress, achievements, and existing evidence remain unchanged.
+
+The future offline sound contract now documents countdown, correct, wrong or missed, combo, and completion cues. No playback is claimed because the installed stack has no reviewed bundled-audio bridge and no approved original audio assets.
+
+Automated evidence:
+
+- Focused Signal Shift/workout/rule suite: 26 tests, 979 assertions.
+- Full suite: 146 tests, 2,271 assertions.
+- In-process accessibility audits pass for instructions, tutorial, countdown, active play, correct feedback, wrong/failure feedback, pause, Reduced Motion, results, and recovery.
+- All fourteen NativeComponents pass validation.
+- Native UI plugin validation passes for Android 26 and iOS 18.2.
+- Composer strict validation, Pint, and `git diff --check` pass.
+
+The user launched the rebuilt application with NativePHP iOS watch mode. The final Game-UX-1 source was hot-reloaded and compared with the simulator application directory before capture. Manual iPhone 17 Simulator coverage on iOS 26.5 includes:
+
+- A complete first light session with tutorial, three countdowns/rules, correct taps, misses, `x4` combo, 716 points, 83.3% accuracy, 1,410 ms reaction, 2 of 3 lives, persisted personal-best evidence, mixed workout completion, and the updated Home state.
+- Later-play entry with the tutorial optional, plus Advanced five- and six-target waves, wrong-target feedback, life loss, and transient combo feedback.
+- A second complete dark session and final light/dark result compositions.
+- Pause, exit, process re-entry, restart, failure, and the recovered result path that exposed and fixed the mobile runtime's missing-`intl` incompatibility.
+- Preferred text size increased four steps. The resulting compressed metric layout was changed to a two-plus-one hierarchy and verified with scroll access to the result action; the system text size was then restored.
+- App-level Reduced Motion enabled for a remounted session. The live device checkpoint recorded zero translation and zero motion duration for every stimulus while direction remained available through shape markers and accessibility labels.
+- Xcode Accessibility Inspector targeted the Ennoble simulator process and returned no listed audit warnings. The exposed result order is title, guidance, score, comparison, accuracy/reaction, combo, lives, and action. Apple documents that actual VoiceOver is unavailable in Simulator, so physical-device VoiceOver remains unclaimed.
+
+The nine-state capture matrix and its evidence notes are stored under `docs/screenshots/ios/signal-shift-v2/`. Reversible date, difficulty, theme, and accessibility fixtures were removed by restoring the saved simulator database after QA.
 
 ## Automated Verification
 
 | Command/check | Result |
 | --- | --- |
-| Focused Prompt 7 Pest suite | Passed: 7 tests, 373 assertions |
-| `PAO_DISABLE=1 php artisan test` | Passed: 119 tests, 1,562 assertions |
+| Focused Game-UX-1 Pest suite | Passed: 26 tests, 979 assertions |
+| `php artisan test --compact` | Passed: 146 tests, 2,271 assertions |
 | `composer validate --strict` | Passed: `composer.json` valid |
 | `vendor/bin/pint --dirty --format agent` | Passed for the current application dirty set |
-| Native route registration | Passed: thirteen native application routes |
-| `php artisan native:validate --no-interaction` | Passed: all thirteen NativeComponents, no warnings |
+| Native route registration | Passed: fourteen native application routes |
+| `php artisan native:validate --no-interaction` | Passed: all fourteen NativeComponents, no warnings |
 | `php artisan native:plugin:validate --no-interaction` | Passed: Native UI, Android 26 and iOS 18.2 |
 | `git diff --check` | Passed |
 | Static analysis | Not run; no tool/configuration exists |
-| Android/iOS launch or build | Not run, as required by Prompt 7 |
+| iOS Simulator launch/play-through | Passed on iPhone 17 / iOS 26.5 after the user launched watch mode; multiple complete sessions and the nine-state capture matrix were exercised |
 
 ### Pint Scope Note
 
-The Prompt 7 dirty set contains only application-owned changes. Pint did not modify `packages/nativephp/native-ui`.
+The Prompt 8 implementation changes only application-owned code, tests, migration content, and documentation. Pint did not modify `packages/nativephp/native-ui`.
 
 ## Test Coverage
 
@@ -374,7 +447,7 @@ Prompt 4 tests cover:
 
 - First-launch redirect and returning-profile bypass.
 - Direct onboarding access after completion.
-- All eight steps, progress semantics, back behavior, loading state, and required selections.
+- All six steps, progress semantics, back behavior, loading state, and required selections.
 - Goal, difficulty, optional display name, theme, sound, haptics, and Reduced Motion persistence.
 - Whitespace normalization and the 40-character display-name boundary.
 - Atomic completion timestamp and replace navigation to Home.
@@ -386,7 +459,7 @@ Prompt 5 tests cover:
 - Morning, afternoon, evening, and overnight greeting boundaries.
 - Display-name normalization and friendly fallback.
 - First workout, available, in-progress, completed, returning-user, and empty-history states.
-- Workout skills, duration, difficulty, completion percentage, and action state.
+- Workout duration, difficulty, completion percentage, and action state.
 - Current/longest streaks, weekly activity, persisted skill values, personal bests, and latest achievement.
 - Independent dashboard and section loading states.
 - Recoverable missing-definition behavior without blocking unrelated previews.
@@ -431,39 +504,43 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Infrastructure readiness | Frozen | Compatibility strategy and plugin registration preserved |
 | Prompt 2 database foundation | Complete | 13 tables, constraints, seed migration, upgrade test |
 | Prompt 2 domain services | Complete | Games, workout, progress, statistics, achievements, profile, settings |
-| Native design system/shell | Needs additional device QA | QA-1 launched on iOS 26.5; safe-area, Light theme, overlays, large text, and landscape remain |
-| Onboarding/local profile UI | Needs additional device QA | Eight steps exercised; accessibility labels fixed; safe-area and explicit Light theme remain |
-| Home/Today dashboard | Partially device verified | Content-state overlap fixed and rerun; Coming Soon presentation still needs final rerun |
-| Games library UI | Partially device verified | Search/filter/no-results rerun; hidden sheet content fixed; category-row clipping and sheet presentation remain |
-| Workout session framework | Needs additional device QA | Introduction/countdown/game/pause exercised; complete repeated journey and final overlay rerun remain |
-| Signal Shift gameplay | Not started | Scoring/session foundation only |
+| Native design system/shell | iOS design foundation verified | Prompt Design-2 reviewed System, explicit Light/Dark, portrait, landscape, standard XXXL text, bounded scrolling, and semantic chrome |
+| Onboarding/local profile UI | iOS visually verified | Six concise steps exercised from a clean install with safe margins and standard XXXL text |
+| Home/Today dashboard | iOS visually verified | Header, hero, vertical rhythm, scrolling geometry, light/dark palettes, and completed state reviewed |
+| Games library UI | iOS visually verified | Search, two-row filters, featured content, future cards, scrolling geometry, and sheet reviewed |
+| Workout session framework | iOS visually verified | Introduction, countdown, both placeholders, pause, transition, completion, and return journey reviewed |
+| Signal Shift gameplay | iOS Simulator verified | Premium fixed play field, countdown, transient feedback, scalable results, persistence, and repeated play verified; physical-device, Android, and sound playback remain |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
 | Profile/settings UI | Not started | Persistence services are ready |
-| Accessibility UI/device evidence | In progress | Simulator accessibility tree inspected; VoiceOver, large text, and landscape remain |
-| Complete QA | In progress | QA-1 iOS pass started and found blockers; end-to-end completion criteria are not met |
+| Accessibility UI/device evidence | In progress | In-process audits, Accessibility Inspector, large Dynamic Type, Reduced Motion, labeled targets, and iOS reading order pass; physical VoiceOver and Android TalkBack remain |
+| Complete QA | In progress | Prompt Design-2 and Game-UX-1 iOS Simulator visual QA are complete; physical-device and Android evidence remain release work |
 | Release readiness | Blocked | Complete product implementation and device evidence do not exist |
 
 ## Known Infrastructure Risks
 
-These pre-existing risks remain outside Prompts 2–7:
+These pre-existing risks remain outside Prompts 2–8:
 
 1. NativePHP Mobile and Native UI are development branches rather than mutually compatible stable v4 packages.
 2. Native UI remains a temporary project path mirror.
-3. Neither platform has been built from this compatibility baseline.
+3. Android and physical-device builds remain unverified on this compatibility baseline.
 4. Generated native projects still require later identity/build verification.
 5. No static-analysis tool is configured.
 6. Laravel's scaffold authentication/cache/queue tables remain, although Ennoble domain code does not use them.
 
-## Remaining Work After Prompt 7
+## Remaining Work After Game-UX-1
 
-There is no known PHP, persistence, routing, or native-template blocker for implementing Signal Shift inside the reusable game-container boundary. A future gameplay prompt can reuse the two-game domain foundation, typed icons, semantic tokens, haptic service, transactional session checkpoints, scoring service, and complete workout phase navigation.
+The rebuilt iOS Simulator pass now covers first tutorial, full-screen countdown, all rule changes, correct score/particle feedback, wrong taps, misses, combo, life loss/exhaustion, restart, pause/exit/re-entry, results, mixed workout completion, light/dark appearance, large Dynamic Type, Reduced Motion, repeated play, and Accessibility Inspector order/audit.
 
-Before treating Prompt 7 as platform-verified, run the native app on each selected platform and inspect all workout phases at compact and large sizes, dynamic text, safe areas, vertical scrolling, light/dark appearance, countdown/timer updates, progress rendering, Reduced Motion, haptics, pause and confirmation overlays, VoiceOver/TalkBack reading order, exit/resume, restart, and completion.
+Physical-device VoiceOver remains required because Apple does not provide VoiceOver in Simulator. Equivalent Android/TalkBack play-through, compact-device coverage, physical-device haptic/performance checks, and offline airplane-mode verification also remain release work.
 
-Signal Shift gameplay and content generation, Clear Thought gameplay/content, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 7.
+Actual correct/error/round/completion/failure sounds require a reviewed offline native playback bridge and original bundled assets. No package or platform implementation was guessed in Prompt 8.
 
-## QA-2 — Production UI Foundation and iOS Validation
+Clear Thought gameplay/content, detailed Progress, Achievements UI, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 8.
+
+## Historical QA-2 — Production UI Foundation and iOS Validation
+
+This section records the pre-Design-2 baseline. The Prompt Design-2 section below supersedes its visual findings and current screen counts.
 
 **Status: Requires more work because explicit in-app appearance forcing remains unsupported upstream.**
 
@@ -499,4 +576,30 @@ Performance evidence:
 
 The frozen `packages/nativephp/native-ui` mirror and generated native source projects were not edited.
 
-Final QA-2 automation passed: `composer validate --strict`; 122 Pest tests with 1,648 assertions; Pint on the complete dirty PHP set; all NativeComponent validation; Native UI plugin validation for Android 26 and iOS 18.2; and `git diff --check`.
+Final Prompt Design-2 automation passed: `composer validate --strict`; 127 Pest tests with 1,676 assertions; Pint on the complete dirty PHP set; all NativeComponent validation; Native UI plugin validation for Android 26 and iOS 18.2; the `NativePHP-simulator` Xcode build; and `git diff --check`.
+
+## Prompt Design-2 — Premium Design Foundation
+
+**Status: iOS visual foundation established; physical-device and Android accessibility evidence remain release work.**
+
+Prompt Design-2 rebuilt the presentation layer around a warm-neutral and restrained-teal identity:
+
+- Nineteen semantic application roles now define light and charcoal dark palettes.
+- One typography, spacing, radius, card, button, icon, and motion language is documented in `docs/DESIGN_SYSTEM.md`.
+- Onboarding is six concise screens with one dominant visual, short copy, centered 320-point composition, and restrained actions.
+- Home uses the greeting as its header, a single pale-teal practice hero, and one consistent vertical rhythm.
+- Games and every workout phase use the same content width, corner radii, card insets, typography hierarchy, and action sizing.
+- Active screens no longer pass native child trees through anonymous Blade slots. This removes duplicated render nodes, phantom card layers, and gesture interception.
+- `EnnobleLayout` uses NativePHP's bounded EDGE chrome path. Primary destinations receive bottom navigation only; detail screens receive title navigation only.
+
+### iOS Simulator evidence
+
+- Device: iPhone 17 Pro simulator, iOS 26.5, portrait and landscape.
+- Fresh install: six-step onboarding completed into Home.
+- Appearance: System Light, System Dark, explicit Light while iOS remained dark, and explicit Dark while iOS remained light were reviewed. The shared icon boundary now keeps content-icon contrast aligned with an explicit preference.
+- Text scaling: standard `extra-extra-extra-large` was reviewed on Home and onboarding. The practice hero was simplified to remove metadata overlap. Accessibility-category sizes beyond the standard range still require dedicated release QA.
+- Journey: Home, Games, workout introduction, countdown, both honest placeholder containers, pause sheet, transition, completion, and relaunch persistence were exercised.
+- Scroll runtime: the final Home `UIScrollView` reported a finite 780-point viewport, 1,358-point content, `isScrollEnabled = YES`, and an enabled pan recognizer. Desktop-injected drag events remained unreliable and are not presented as physical-touch evidence.
+- Ten updated screenshots are stored under `docs/screenshots/ios/`.
+
+No domain, persistence, gameplay, cloud, authentication, notification, advertising, subscription, frozen Native UI mirror, or generated native source behavior was changed.

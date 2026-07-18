@@ -32,7 +32,7 @@ afterEach(function () {
 
 test('the games library presents one featured game two playable games and six honest future previews', function () {
     Native::visit('/games')
-        ->assertNavTitle('Games')
+        ->assertElement('bottom_nav')
         ->assertSee('Train with purpose.')
         ->assertSee('Featured')
         ->assertSee('Signal Shift')
@@ -170,7 +170,7 @@ test('play actions open the workout introduction without starting a session', fu
         ->assertScreen(WorkoutIntroduction::class)
         ->assertSee('A focused sequence for today')
         ->assertSee('Begin Workout')
-        ->assertTabBarHidden()
+        ->assertMissingElement('bottom_nav')
         ->assertAccessible();
 
     expect(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(0)

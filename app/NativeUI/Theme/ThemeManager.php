@@ -6,6 +6,7 @@ use App\Domain\Profile\ProfileService;
 use App\Enums\ThemePreference;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
+use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Facades\System;
 use Nativephp\NativeUi\Theme;
 
@@ -36,6 +37,7 @@ final class ThemeManager
     public function apply(ThemePreference $preference): ThemePreference
     {
         Theme::load($this->tokensFor($preference));
+        TailwindParser::clearCache();
 
         return $preference;
     }

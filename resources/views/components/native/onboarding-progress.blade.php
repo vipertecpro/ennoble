@@ -4,34 +4,20 @@
     'motionDuration' => 0,
 ])
 
-@php
-    $progress = max(0, min(1, $currentStep / $totalSteps));
-@endphp
-
-<native:column class="w-full gap-3">
-    <native:row class="w-full items-center justify-between">
-        <native:text class="text-sm font-semibold text-theme-on-background">
+<native:row class="items-center justify-between">
+    <native:text class="text-xs font-semibold text-theme-secondary-text">
             Step {{ $currentStep }} of {{ $totalSteps }}
-        </native:text>
-        <native:text class="text-sm text-theme-on-surface-variant">
-            {{ (int) round($progress * 100) }}%
-        </native:text>
-    </native:row>
+    </native:text>
 
-    <native:progress-bar
-        :value="$progress"
-        a11y-label="Onboarding progress, step {{ $currentStep }} of {{ $totalSteps }}"
-    />
-
-    <native:row class="w-full items-center gap-2" a11y-label="{{ $currentStep - 1 }} onboarding steps completed">
+    <native:row class="items-center gap-2" a11y-label="Onboarding progress, step {{ $currentStep }} of {{ $totalSteps }}">
         @for ($step = 1; $step <= $totalSteps; $step++)
             <native:column
-                class="h-1 flex-1 rounded-full {{ $step <= $currentStep ? 'bg-theme-primary' : 'bg-theme-surface-variant' }}"
-                :scale="$step <= $currentStep ? 1 : 0.72"
+                class="{{ $step === $currentStep ? 'w-5' : 'w-2' }} h-2 rounded-full {{ $step <= $currentStep ? 'bg-theme-accent' : 'bg-theme-divider' }}"
+                :scale="$step <= $currentStep ? 1 : 0.78"
                 :opacity="$step <= $currentStep ? 1 : 0.62"
                 :animate-duration="$motionDuration"
                 animate-easing="ease-out"
             />
         @endfor
     </native:row>
-</native:column>
+</native:row>

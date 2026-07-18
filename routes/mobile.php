@@ -7,6 +7,7 @@ use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Progress;
 use App\NativeComponents\Screens\Settings;
+use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
 use App\NativeComponents\Screens\WorkoutComplete;
 use App\NativeComponents\Screens\WorkoutGameContainer;
@@ -30,6 +31,8 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
         ->name('native.workout.preparation');
     Route::native('/workout/game/{session}', WorkoutGameContainer::class)
         ->name('native.workout.game');
+    Route::native('/workout/game/signal-shift/{session}', SignalShiftGame::class)
+        ->name('native.workout.signal-shift');
     Route::native('/workout/transition/{item}', WorkoutTransition::class)
         ->name('native.workout.transition');
     Route::native('/workout/complete/{workout}', WorkoutComplete::class)

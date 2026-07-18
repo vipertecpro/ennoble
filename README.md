@@ -16,8 +16,12 @@ See [docs/UPSTREAM_TRACKING.md](docs/UPSTREAM_TRACKING.md) for the pinned branch
 
 ## iOS UI Foundation
 
-The current offline onboarding, Home, Games, and placeholder workout foundation has been exercised on an iPhone 17 Pro simulator running iOS 26.5. The full QA record and remaining NativePHP limitations are documented in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+The offline onboarding, Home, Games, and pre-Signal Shift placeholder workout foundation was exercised on an iPhone 17 Pro simulator running iOS 26.5. Signal Shift now has a production native implementation, but its Prompt 8 device play-through is still outstanding. The full QA record and remaining NativePHP limitations are documented in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
-| Home | Games | Workout pause |
+| Onboarding | Home | Games |
 | --- | --- | --- |
-| ![Ennoble Home](docs/screenshots/ios/home.png) | ![Ennoble Games](docs/screenshots/ios/games.png) | ![Ennoble workout pause sheet](docs/screenshots/ios/pause-sheet.png) |
+| ![Ennoble onboarding](docs/screenshots/ios/onboarding.png) | ![Ennoble Home](docs/screenshots/ios/home.png) | ![Ennoble Games](docs/screenshots/ios/games.png) |
+
+| Dark theme | Workout pause | Workout complete |
+| --- | --- | --- |
+| ![Ennoble dark theme](docs/screenshots/ios/dark-theme.png) | ![Ennoble workout pause sheet](docs/screenshots/ios/pause-sheet.png) | ![Ennoble workout complete](docs/screenshots/ios/workout-complete.png) |

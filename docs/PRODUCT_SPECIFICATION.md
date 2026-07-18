@@ -43,7 +43,7 @@ Home is the central native overview after onboarding. It adapts to first-use, av
 - The latest unlocked local achievement or an encouraging empty state.
 - Informational previews for Memory Path, Pattern Pulse, Word Forge, and Quick Read.
 
-Opening a Coming Soon preview shows local informational content only. Starting or continuing the Today card opens the complete native workout-session framework. The framework creates resumable local placeholder sessions for Signal Shift and Clear Thought, while clearly identifying that their gameplay is not implemented and never fabricating answers, scores, accuracy, personal bests, skill progress, statistics, or achievements. Dashboard sections recover independently so one unavailable local preview does not hide unrelated content.
+Opening a Coming Soon preview shows local informational content only. Starting or continuing the Today card opens the complete native workout-session framework. Signal Shift runs as an evidence-backed native game; Clear Thought remains an explicitly marked framework placeholder that never fabricates answers, scores, accuracy, personal bests, skill progress, statistics, or achievements. Dashboard sections recover independently so one unavailable local preview does not hide unrelated content.
 
 Authored dashboard motion is restrained to section appearance, progress changes, and press feedback. Reduced Motion removes those transforms and durations. Haptics remain optional and preference-gated.
 
@@ -60,7 +60,7 @@ Today is the default training destination after onboarding. It contains:
 - A Continue action when an unfinished workout or game session has a valid checkpoint.
 - The current daily streak and a concise explanation of what counts as completion.
 - A completion celebration that respects reduced-motion settings.
-- A daily summary containing the evidence that is actually available. Until game implementations provide round evidence, the framework reports training time and completed steps while marking score, accuracy, skill changes, personal bests, and achievements as not recorded.
+- A daily summary containing the evidence that is actually available. Signal Shift contributes its persisted score, accuracy, response time, combo, progress, statistics, and eligible achievements. Placeholder items contribute elapsed framework time only.
 
 One workout is generated per local calendar day. Generation uses bundled games and challenges, the local profile, recent history, and difficulty preference. Reopening Today retrieves the existing workout instead of generating a different sequence.
 
@@ -76,7 +76,7 @@ The Games library is a focused, curated native catalog rather than an endless te
 
 Search and filters apply to the featured, available, and Coming Soon sections without fabricating matches. No-result, no-history, and no-statistics states encourage exploration while preserving the distinction between unavailable evidence and zero.
 
-Playable actions open the workout introduction. Beginning the workout creates or resumes an explicitly marked framework-placeholder session; it does not implement gameplay or produce gameplay evidence. Coming Soon cards open an informational native sheet with category, estimated duration, and an explicit unavailable state; they never navigate or persist activity.
+Playable actions open the workout introduction. Beginning the workout creates or resumes a real Signal Shift session for that item and an explicitly marked placeholder only for Clear Thought. Coming Soon cards open an informational native sheet with category, estimated duration, and an explicit unavailable state; they never navigate or persist activity.
 
 ### Progress
 
@@ -115,7 +115,7 @@ Preferences apply locally and immediately where the installed NativePHP APIs per
 1. When Today opens, the application loads or creates the workout for the current local date.
 2. The workout contains exactly two ordered items in v1: Signal Shift and Clear Thought.
 3. Starting an item creates or resumes a game session.
-4. Preparation, elapsed time, and paused state write transactional checkpoints. Future game implementations will add answer and round checkpoints to the same lifecycle.
+4. Preparation, elapsed time, paused state, Signal Shift rules, waves, timer, lives, combo, score, and round evidence write transactional checkpoints.
 5. A real game completion finalizes evidence-backed results. A framework-placeholder completion advances the item without creating round evidence or gameplay metrics.
 6. Completing both items finalizes the workout and shows the summary. Statistics, skill progress, streak aggregates, and achievements update only when gameplay evidence exists.
 7. Reopening an incomplete workout resumes from the latest committed state.
@@ -128,11 +128,11 @@ The workout runs as five reusable native phases:
 
 1. Introduction with ordered games, included skills, estimated duration, difficulty, motivation, and Begin or Resume action.
 2. Preparation with game-specific guidance, a three-second countdown, an immediate Start action, and Reduced Motion support.
-3. Game container with elapsed time, persisted pause/resume state, explicit restart and exit confirmation, and an honest placeholder completion action.
-4. Between-game transition with completed and upcoming game context, progress, manual Continue, and a short automatic transition that is disabled when Reduced Motion is enabled.
-5. Completion with total framework time, completed games, included skills, and explicit not-recorded states for unavailable gameplay metrics.
+3. Game runner. Signal Shift presents instructions, an optional first-play tutorial, three rule-shifting rounds, pause/resume, restart, failure recovery, and evidence-backed results. Clear Thought uses the honest placeholder container until its dedicated prompt.
+4. Between-game transition with truthful completed-game evidence, upcoming game context, progress, manual Continue, and a short automatic transition that is disabled when Reduced Motion is enabled.
+5. Completion with total time, completed games, included skills, and only the gameplay metrics that were actually recorded.
 
-All phases hide tab chrome, use native replace navigation, apply preference-gated haptics, expose recoverable error states, and persist locally. Exiting preserves the latest checkpoint; restarting deletes only framework-placeholder sessions and resets the current workout. The flow remains fully offline.
+All phases hide tab chrome, use native replace navigation, apply preference-gated haptics, expose recoverable error states, and persist locally. Exiting preserves the latest checkpoint. Restarting Signal Shift clears only that unfinished attempt; restarting a placeholder clears only its own non-evidentiary state. The flow remains fully offline.
 
 ## Signal Shift
 
@@ -142,19 +142,42 @@ Signal Shift trains focus, processing speed, precision, and visual adaptability.
 
 ### Achievable v1 Gameplay
 
-- A native play field displays a small set of geometric targets and distractors.
-- Each round presents a clear rule, such as tapping the shape matching a color, form, or position condition.
-- The user taps eligible targets before the round timer expires.
-- Later rounds change one rule at a time and increase distractor count or reduce response allowance within tested limits.
+- A native EDGE play field displays deterministic geometric targets and distractors without a WebView or custom game engine.
+- The bundled rule engine combines target color, target shape, excluded shape, movement, size, and rotation conditions. Its configuration also owns speed, spawn density, wave count, and response allowance for future tuning without per-rule screen branches.
+- A first completed-session check makes the tutorial required for first play and optional thereafter. Tutorial taps never create score or round evidence.
+- The user taps the one eligible target before each wave expires. Wrong taps and missed targets cost a life; losing all three lives enters an explicit failure/restart state.
+- Signal Shift contains exactly three player-facing rounds. Beginner, Intermediate, and Advanced configurations increase rule complexity, density, speed, or time pressure within validated bounds; Adaptive currently resolves to the Intermediate starting level.
 - The session records correct taps, incorrect taps, missed targets, response time, combo, score, and remaining mistake allowance.
 - Haptic and visual feedback identify correct and incorrect actions without relying on color alone.
-- A result screen explains accuracy, speed, best combo, score, and skill impact.
+- Round and final result screens explain accuracy, response time, best combo, score, lives, personal-best comparison, and workout contribution.
+- Pause, confirmed exit, process resume, restart, completion, and failure all persist or clear the correct local checkpoint.
 
 The first release does not promise complex physics, continuous high-frame-rate action, multiplayer behavior, or a custom game engine. Any use of canvas, gestures, or native-thread animation must first be verified against the installed v4 source.
 
 ### Scoring Direction
 
 Score combines correctness, response speed, and consecutive correct actions. Incorrect taps reset the combo and consume mistake allowance. Accuracy remains the primary quality signal so rapid random tapping cannot outperform careful play.
+
+### Feedback Capability Boundary
+
+Signal Shift uses the existing preference-aware haptic service for selection, error, milestone, round, completion, and failure intents. The installed NativePHP core and registered Native UI plugin do not expose bundled audio playback, and `resources/audio` currently contains no licensed cues. The sound preference remains persisted, but no fake sound playback is claimed. Adding actual offline cues requires a reviewed local native audio capability and bundled original assets without changing gameplay evidence.
+
+### Gameplay Presentation Experience
+
+Signal Shift presents its existing rules and evidence pipeline through an immersive native runner:
+
+- The runner hides application chrome and uses one original geometric visual language.
+- Instructions are a game invitation rather than a tutorial card collection.
+- Rules receive a dedicated reveal moment and then recede into a compact HUD.
+- Every round begins with a full-screen `3 → 2 → 1 → GO` sequence with Reduced Motion and preference-aware haptic behavior.
+- Active gameplay is a fixed play field rather than a scrolling content screen. Shapes occupy the majority of the screen and retain generous accessible touch targets without visible button containers.
+- Successful taps replace the wave immediately, animate a small particle/score response, and reveal combo only while the reward is active.
+- Wrong taps and misses use a brief lateral shift, danger state, and physical life-loss transition.
+- Results celebrate the score first, then reveal accuracy and reaction side by side, best combo as its own reward, remaining lives, and improvement or personal-best context. The result journey scrolls at large Dynamic Type sizes so labels remain readable and the action remains reachable.
+
+No gameplay rule, score calculation, difficulty configuration, session evidence, persistence behavior, statistics aggregation, progress update, or achievement evaluation changes as part of this presentation layer.
+
+The future bundled sound vocabulary is countdown, correct, wrong or missed, combo milestone, and completion. These cues remain design-only until an approved offline playback capability and original local assets exist.
 
 ## Clear Thought
 
