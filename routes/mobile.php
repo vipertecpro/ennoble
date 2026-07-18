@@ -14,10 +14,14 @@ use App\NativeComponents\Screens\WorkoutIntroduction;
 use App\NativeComponents\Screens\WorkoutPreparation;
 use App\NativeComponents\Screens\WorkoutTransition;
 use App\NativeLayouts\EnnobleLayout;
+use App\NativeLayouts\OnboardingLayout;
 use Illuminate\Support\Facades\Route;
 
 Route::native('/splash', Splash::class)->name('native.splash');
-Route::native('/onboarding', Onboarding::class)->name('native.onboarding');
+
+Route::nativeGroup(OnboardingLayout::class, function (): void {
+    Route::native('/onboarding', Onboarding::class)->name('native.onboarding');
+});
 
 Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/', Home::class)->name('native.home');

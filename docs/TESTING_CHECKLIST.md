@@ -102,6 +102,54 @@ Use the Laravel Boost absolute-URL resolver before sharing or checking a Herd UR
 
 Do not run `native:install`, `native:run`, `native:watch`, or `native:open` automatically. Ask which platform the user wants to build or test, then provide only the relevant manual command.
 
+## Prompt QA-1 iOS Simulator Results
+
+Simulator: iPhone 17 Pro, iOS 26.5, Debug build, `com.vipertecpro.ennoble`.
+
+### Manually exercised
+
+- [x] Clean install, bundled-app extraction, migrations, cold launch, and initial onboarding route.
+- [x] All eight onboarding steps, previous/next, progress, required goal/difficulty, optional display name, completion, and returning launch.
+- [x] Keyboard input, Return dismissal, 40-character boundary, and visible primary action while editing.
+- [x] System, Light, and Dark selections exercised; Light failed contrast/rendering verification and remains open.
+- [x] Sound, haptics, and Reduced Motion controls exercised; physical haptics are not claimed.
+- [x] Home greeting, workout card, progress, streak, achievement, and Coming Soon preview layout inspected.
+- [x] Games featured content, search, returning search, Focus filter, no-results state, and category chips exercised.
+- [x] Workout introduction, countdown, placeholder game, timer, pause request, process relaunch, and persisted resume state exercised.
+- [ ] Coming Soon bottom sheet presentation rerun after the direct-host fix.
+- [ ] Pause sheet content rerun after the direct-host fix.
+- [ ] Resume, Restart, confirmed Exit, transition, completion, and Return Home end to end.
+- [ ] Second complete workout cycle.
+- [ ] Progress, Profile, Settings, and About screens in the real Simulator.
+- [ ] VoiceOver, large Dynamic Type, landscape, and reliable native scrolling/carousel gestures.
+
+### Confirmed QA-1 regressions
+
+- [x] Home/Games/workout loading-error-content overlap reproduced, fixed, covered by negative assertions, and rerun successfully.
+- [x] Games hidden sheet content in no-results state reproduced, fixed, covered by negative assertions, and rerun successfully.
+- [x] Repeated onboarding radio accessibility labels reproduced, fixed, and rerun successfully.
+- [ ] Onboarding safe-area clipping resolved.
+- [ ] Explicit Light theme contrast and semantic surface repaint resolved.
+- [ ] Presented bottom-sheet/modal child content confirmed after the latest fix.
+- [ ] Trailing Games category chip clipping resolved or confirmed scrollable with a reliable gesture.
+
+### QA-1 verification commands
+
+| Command | Result |
+| --- | --- |
+| `xcrun simctl list devices available` | Exit 0; iPhone 17 Pro on iOS 26.5 selected |
+| `xcodebuild -workspace nativephp/ios/NativePHP.xcworkspace -scheme NativePHP-simulator -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,id=29051E9C-E7F9-40A7-8D50-37427E7BB0B6' -derivedDataPath nativephp/ios/build build` | Exit 0; Debug Simulator app built |
+| `xcrun simctl uninstall … com.vipertecpro.ennoble` then `xcrun simctl install … NativePHP-simulator.app` | Exit 0; fresh install completed |
+| `xcrun simctl launch --console-pty --terminate-running-process … com.vipertecpro.ennoble` | Exit 0 launch; console attached and runtime initialized |
+| `composer validate --strict` | Exit 0; Composer files valid |
+| `PAO_DISABLE=1 php artisan test --compact` | Passed: 120 tests, 1,591 assertions |
+| `vendor/bin/pint --dirty --format agent` | Exit 0 |
+| `php artisan native:validate --no-interaction` | Exit 0; all NativeComponents passed |
+| `php artisan native:plugin:validate --no-interaction` | Exit 0; Native UI passed for iOS 18.2 / Android 26 |
+| `git diff --check` | Exit 0; no whitespace errors |
+
+Automated accessibility checks do not replace manual VoiceOver validation, and this incomplete run must not be treated as full platform verification.
+
 ## Database and Seed Checklist
 
 - [ ] Fresh SQLite migration succeeds.
@@ -307,3 +355,62 @@ Prompt 3 automated coverage confirms:
 - Haptic, toast, alert, and confirmation bridge calls are faked and asserted.
 
 This evidence is in-process only. Safe areas, SwiftUI/Compose rendering, status bars, light/dark appearance, large text, VoiceOver, TalkBack, offline launch, haptics, and visual balance remain unverified on platforms.
+
+## QA-2 iOS Simulator Results
+
+### Device
+
+- [x] iPhone 17 Pro simulator used consistently.
+- [x] iOS 26.5.
+- [x] Final application bundle built with Xcode 26.6 and installed with `simctl`.
+
+### Manual journeys
+
+- [x] Fresh install → eight-step onboarding → Home.
+- [x] Keyboard shown on display-name input; content and actions remained above the software keyboard.
+- [x] Required onboarding selections, back navigation, local persistence, and Reduced Motion control exercised.
+- [x] System Light and System Dark repainted all visible semantic surfaces.
+- [ ] Explicit Light/Dark preference can force the native platform appearance. Blocked by the installed NativePHP v4 appearance API.
+- [x] Accessibility-extra-extra-extra-large layout rerun after the compression fix; content no longer overlaps and action labels are not truncated.
+- [ ] Native scroll and carousel gestures verified through reliable automation. AX actions worked, but injected drags did not move these native surfaces.
+- [x] Home initial state, completed state, greeting, workout card, empty progress/history/achievement states, and relaunch persistence exercised.
+- [x] Games search, reset, no-results state, Language and Memory filtering, two-row chip layout, hero content, game cards, and Coming Soon sheet exercised.
+- [x] Progress, Profile, Settings, and About placeholder routes exercised without adding restricted features.
+- [x] Coming Soon and pause sheets expose their titles and buttons individually.
+- [x] Exit modal exposes Close, Keep Training, and Exit to Home individually.
+- [x] Portrait, landscape, upside-down rotation handling, and return to upright portrait exercised.
+- [x] Two complete placeholder workout cycles executed across the QA pass.
+- [x] Final workout completion survived process terminate/relaunch.
+
+### Screenshots
+
+- [x] `docs/screenshots/ios/onboarding.png`
+- [x] `docs/screenshots/ios/home.png`
+- [x] `docs/screenshots/ios/games.png`
+- [x] `docs/screenshots/ios/workout-introduction.png`
+- [x] `docs/screenshots/ios/workout-countdown.png`
+- [x] `docs/screenshots/ios/workout-placeholder.png`
+- [x] `docs/screenshots/ios/pause-sheet.png`
+- [x] `docs/screenshots/ios/workout-complete.png`
+- [x] `docs/screenshots/ios/light-theme.png`
+- [x] `docs/screenshots/ios/dark-theme.png`
+
+### Runtime evidence
+
+- [x] No Laravel/PHP error log was produced during the final journey.
+- [x] No crash or memory warning was observed.
+- [x] Poll-driven render timing was generally 2.2–4.6 ms.
+- [ ] SwiftUI publish-during-update warnings eliminated. Recorded as an upstream renderer limitation.
+- [ ] Full VoiceOver rotor order verified. Simulator AX labels and focusable children were inspected; a complete VoiceOver session was not performed.
+- [ ] TalkBack verified. Android was outside this iOS-only QA prompt.
+
+### Final QA-2 regression
+
+Run before closing QA-2:
+
+- [x] `composer validate --strict` — valid.
+- [x] `PAO_DISABLE=1 php artisan test --compact` — 122 tests, 1,648 assertions.
+- [x] `vendor/bin/pint --dirty --format agent` — passed.
+- [x] `php artisan native:validate --no-interaction` — all components passed.
+- [x] `php artisan native:plugin:validate --no-interaction` — Native UI passed for Android 26 and iOS 18.2.
+- [x] `git diff --check` — passed.

@@ -196,3 +196,16 @@ Every implemented screen or reusable component must document and verify:
 - Reduced motion.
 - Large text.
 - Offline operation.
+
+## QA-2 iOS Foundation Decisions
+
+The production UI foundation was exercised on an iPhone 17 Pro simulator running iOS 26.5.
+
+- Onboarding uses `OnboardingLayout`, a native navigation-stack host with its bar hidden. This lets iOS own Dynamic Island and status-bar geometry without exposing application chrome.
+- Chrome-less safe-area utilities remain on the inner content column, not the outer stack. Layout-hosted screens do not add a second safe-area inset.
+- Scrollable onboarding steps must not use `flex-1`; doing so compresses large Dynamic Type content. Onboarding actions stack at full width so labels remain complete at accessibility sizes.
+- Game category chips use two intentional rows of three. Intrinsic chip sizing is preserved without relying on renderer-specific flex wrapping.
+- A modal or bottom sheet containing interactive children must not set one group-level `a11y-label`. On iOS that label replaces the children in the accessibility tree. Titles and buttons provide their own semantics.
+- System appearance changes repaint the complete semantic light and dark palettes correctly. NativePHP v4 does not currently expose an application-level preferred-color-scheme setter, so Ennoble's explicit Light and Dark preferences cannot yet force SwiftUI/Compose appearance safely. The frozen Native UI mirror was not modified to conceal this upstream gap.
+
+The screenshot evidence for this pass is stored in `docs/screenshots/ios/`.

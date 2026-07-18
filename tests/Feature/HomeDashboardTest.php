@@ -54,6 +54,9 @@ test('a first-time dashboard renders an intentional pending workout and honest e
         ->assertSee('Pattern Pulse')
         ->assertSee('Word Forge')
         ->assertSee('Quick Read')
+        ->assertDontSee('Loading your Ennoble dashboard')
+        ->assertDontSee('Something went wrong')
+        ->assertDontSee('This preview is informational only')
         ->assertAccessible();
 
     $workout = DailyWorkout::query()->whereBelongsTo($this->profile)->firstOrFail();
@@ -183,6 +186,8 @@ test('coming soon experiences open information without creating navigation', fun
         ->assertSet('bottomSheetVisible', true)
         ->assertSee('recalling ordered visual journeys')
         ->assertSee('informational only')
+        ->assertElement('bottom_sheet', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
+        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Got it')
         ->assertNoNavigation()
         ->assertAccessible()
         ->tap('Got it')

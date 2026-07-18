@@ -49,6 +49,9 @@ test('the games library presents one featured game two playable games and six ho
         ->assertSee('Number Sense')
         ->assertSee('Reaction Pulse')
         ->assertSee('Coming Soon')
+        ->assertDontSee('This game is unavailable today')
+        ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'game-filter-row-1')
+        ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'game-filter-row-2')
         ->assertSet('featuredVisible', true)
         ->assertSet('selectedCategory', 'all')
         ->assertAccessible();
@@ -183,6 +186,8 @@ test('coming soon cards open accessible information without navigation or persis
         ->assertSet('comingSoonCategory', 'Speed')
         ->assertSet('bottomSheetVisible', true)
         ->assertSee('unavailable today')
+        ->assertElement('bottom_sheet', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
+        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Got it')
         ->assertNoNavigation()
         ->assertAccessible()
         ->tap('Got it')

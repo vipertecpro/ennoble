@@ -25,6 +25,54 @@ Audit date: 2026-07-18
 | Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, and workout-session framework; no external media assets |
 | Static analysis | Not configured |
 
+## Prompt QA-1 — iOS Simulator Validation
+
+**Status: Additional QA required.**
+
+### Simulator Evidence
+
+| Item | Evidence |
+| --- | --- |
+| Simulator | iPhone 17 Pro, iOS 26.5, UDID `29051E9C-E7F9-40A7-8D50-37427E7BB0B6` |
+| Build | Debug `NativePHP-simulator` scheme built successfully with `xcodebuild` against `iphonesimulator26.5` |
+| Install | `com.vipertecpro.ennoble` installed with `xcrun simctl`; a clean uninstall/install verified the fresh-install path |
+| Launch | Ennoble launched in Simulator with console output attached; the bundled app extracted and all migrations completed |
+| Persistence | An in-progress workout remained available after rebuilding, reinstalling over the app, terminating, and relaunching |
+
+The real Simulator pass exercised initial routing, all eight onboarding steps, back/next and required selections, display-name keyboard behavior, System/Light/Dark selection, sound/haptics/Reduced Motion controls, onboarding completion, Home, Games search and filters, the no-results state, workout introduction, countdown, placeholder game, pause presentation, and relaunch/resume state.
+
+The pass did not complete every QA-1 criterion. Restart, confirmed exit, transition, completion, Return Home, Coming Soon sheet content after its final fix, Profile, Settings, About, Progress, landscape, large Dynamic Type, VoiceOver, and a second complete workout cycle still require manual Simulator verification. The final interaction rerun was interrupted when macOS locked, so no result is claimed for it.
+
+### Confirmed Bugs and Fixes
+
+1. **Loading, error, and content states appeared together on Home, Games, and workout screens.**
+   - Cause: named Blade state slots were serialized into the native tree even when the shared container selected another branch.
+   - Fix: screen state selection now happens in each screen's default slot; the shared container renders only that selected tree.
+   - Evidence: the defect was reproduced in the iOS Simulator and with a new negative in-process assertion. Home, Games, workout introduction, preparation, and game container were rerun without overlapping state layers.
+2. **Hidden Coming Soon sheet content appeared inside the Games no-results state.**
+   - Cause: rich overlay content escaped nested named slots instead of remaining under its native presentation host.
+   - Fix: overlay trees render only while visible and use direct native-host partials instead of nested named slots.
+   - Evidence: the hidden content was absent in the subsequent Simulator no-results rerun and is protected by Home/Games negative assertions.
+3. **Onboarding radio options announced the same group accessibility label instead of their visible option labels.**
+   - Cause: a group-level `a11y-label` replaced the child option label in the native accessibility tree.
+   - Fix: removed the overriding labels and added assertions for the visible goal, difficulty, and theme option labels.
+   - Evidence: the rerun exposed individual labels such as `Improve Focus`, `Adaptive`, `Light`, and `Dark`.
+
+### Remaining Simulator Findings
+
+| Category | Finding |
+| --- | --- |
+| Project/runtime integration | Onboarding content begins under the status bar on the iPhone 17 Pro despite the documented `safe-area` class. No device-specific padding workaround was committed. |
+| Native UI limitation | Selecting explicit Light while the Simulator uses Dark makes radio labels unreadable and does not repaint all semantic surfaces; the theme token bridge updates, but the active native appearance remains inconsistent. |
+| Native UI limitation | The pause sheet presented blank before the final direct-host partial change. The latest change passes in-process tests but still needs a real Simulator rerun before it can be called resolved. |
+| Layout | The Games category row clips the trailing Speed chip at the right edge. Vertical/horizontal gesture results remain inconclusive because the automation gesture did not move either ScrollView or Carousel. |
+| Accessibility | VoiceOver, large Dynamic Type, and landscape were not run. Automated `assertAccessible()` remains in-process evidence only. |
+| Simulator/environment | macOS locked during the final interaction rerun and automatic unlock failed. Simulator haptic calls were logged, but physical haptic quality cannot be verified there. |
+| Upstream shell warning | iOS logs report that the shell implements remote-notification fetch without declaring the background mode. Ennoble does not enable push notifications; no generated shell or frozen mirror change was made. |
+| Simulator runtime warning | iOS 26.5 logs a duplicate WebCore/WebKit accessibility-bundle class warning. This is outside Ennoble code. |
+
+No Signal Shift, Clear Thought, Progress, Profile editing, authentication, cloud, notification, advertising, or subscription functionality was added.
+
 ## Infrastructure Status
 
 **Frozen and unchanged by Prompts 2–7.**
@@ -383,17 +431,17 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Infrastructure readiness | Frozen | Compatibility strategy and plugin registration preserved |
 | Prompt 2 database foundation | Complete | 13 tables, constraints, seed migration, upgrade test |
 | Prompt 2 domain services | Complete | Games, workout, progress, statistics, achievements, profile, settings |
-| Native design system/shell | Needs device verification | Prompt 3 automated checks complete |
-| Onboarding/local profile UI | Needs device verification | Prompt 4 automated checks complete |
-| Home/Today dashboard | Needs device verification | Prompt 5 automated checks complete |
-| Games library UI | Needs device verification | Prompt 6 automated checks complete |
-| Workout session framework | Needs device verification | Prompt 7 automated checks complete; gameplay remains explicit placeholders |
+| Native design system/shell | Needs additional device QA | QA-1 launched on iOS 26.5; safe-area, Light theme, overlays, large text, and landscape remain |
+| Onboarding/local profile UI | Needs additional device QA | Eight steps exercised; accessibility labels fixed; safe-area and explicit Light theme remain |
+| Home/Today dashboard | Partially device verified | Content-state overlap fixed and rerun; Coming Soon presentation still needs final rerun |
+| Games library UI | Partially device verified | Search/filter/no-results rerun; hidden sheet content fixed; category-row clipping and sheet presentation remain |
+| Workout session framework | Needs additional device QA | Introduction/countdown/game/pause exercised; complete repeated journey and final overlay rerun remain |
 | Signal Shift gameplay | Not started | Scoring/session foundation only |
 | Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
 | Progress UI | Not started | Aggregate services are ready |
 | Profile/settings UI | Not started | Persistence services are ready |
-| Accessibility UI/device evidence | In progress | In-process audits pass; manual platform evidence remains |
-| Complete QA | Not started | Requires integrated product and selected platforms |
+| Accessibility UI/device evidence | In progress | Simulator accessibility tree inspected; VoiceOver, large text, and landscape remain |
+| Complete QA | In progress | QA-1 iOS pass started and found blockers; end-to-end completion criteria are not met |
 | Release readiness | Blocked | Complete product implementation and device evidence do not exist |
 
 ## Known Infrastructure Risks
@@ -414,3 +462,41 @@ There is no known PHP, persistence, routing, or native-template blocker for impl
 Before treating Prompt 7 as platform-verified, run the native app on each selected platform and inspect all workout phases at compact and large sizes, dynamic text, safe areas, vertical scrolling, light/dark appearance, countdown/timer updates, progress rendering, Reduced Motion, haptics, pause and confirmation overlays, VoiceOver/TalkBack reading order, exit/resume, restart, and completion.
 
 Signal Shift gameplay and content generation, Clear Thought gameplay/content, detailed Progress, Achievements, Profile editing, notifications, authentication, remote APIs, cloud sync, advertising, and subscriptions remain outside Prompt 7.
+
+## QA-2 — Production UI Foundation and iOS Validation
+
+**Status: Requires more work because explicit in-app appearance forcing remains unsupported upstream.**
+
+The QA-2 pass built, installed, launched, and iterated on the real iOS Simulator using one iPhone 17 Pro on iOS 26.5. Two complete placeholder workout cycles were executed: the first baseline cycle before the QA-2 fixes and a second 55-second cycle on the final binary. The final cycle covered introduction, countdown, both honest placeholder containers, pause, resume, exit confirmation cancellation, transition, completion, Return Home, terminate/relaunch, and persisted 100% completion.
+
+Application-owned fixes:
+
+- Onboarding now uses a chrome-free native navigation-stack layout, resolving Dynamic Island and status-bar clipping.
+- Scrollable onboarding content no longer flex-compresses at large Dynamic Type, and actions are full-width stacked controls.
+- Games category chips render as two predictable rows, eliminating the clipped Speed chip.
+- Home, Games, pause, and exit overlays no longer apply a group accessibility label that replaces child button labels on iOS.
+- Regression assertions cover the route layout, large-text-safe action structure, filter rows, and overlay child semantics.
+- Ten QA screenshots were captured in `docs/screenshots/ios/`.
+
+Manual simulator coverage:
+
+- Fresh launch and all eight onboarding steps, including required-state controls, back navigation, keyboard, software-keyboard safe area, local display name, System/Light/Dark selection attempts, Reduced Motion, and accessibility-extra-extra-extra-large Dynamic Type.
+- Home initial and completed states, Games search/filter/no-results/Coming Soon sheet, Progress placeholder, Profile placeholder, Settings placeholder, About placeholder, portrait and landscape.
+- Workout introduction, countdown, both placeholder games, timer, pause sheet, resume, restart and confirmed-exit behavior from the baseline cycle, exit-cancel behavior on the final cycle, automatic transition, completion, Return Home, and relaunch persistence.
+- Simulator accessibility inspection confirmed distinct labels and hints for radio choices, sheet buttons, and dialog actions. A full VoiceOver rotor session was not performed.
+
+Remaining NativePHP limitations:
+
+1. System appearance changes repaint light and dark correctly. Selecting explicit Light while iOS is dark, or explicit Dark while iOS is light, updates Native UI control tokens without changing SwiftUI's `colorScheme`; EDGE semantic backgrounds remain system-bound and contrast becomes inconsistent. Installed v4 source exposes appearance reads/events but no safe application-level preferred-appearance setter.
+2. SwiftUI reports `Publishing changes from within view updates is not allowed` during poll-driven renders and occasional `NavigationRequestObserver tried to update multiple times per frame`. No PHP exception or failed navigation accompanied the warnings.
+3. Simulator automation could inspect the complete accessibility tree, but injected scroll/carousel drags did not move native scroll surfaces reliably. Large-text layout was visually inspected without overlap, and off-screen controls remained exposed to accessibility, but gesture fidelity is not claimed.
+
+Performance evidence:
+
+- Final workout polling renders were typically 2.2–4.6 ms.
+- Home, Progress, Profile, Settings, About, and Workout Complete renders observed in `edge-nav.log` were approximately 4–28 ms.
+- No Laravel/PHP error log was produced during the final journey, and no crash or memory warning was observed.
+
+The frozen `packages/nativephp/native-ui` mirror and generated native source projects were not edited.
+
+Final QA-2 automation passed: `composer validate --strict`; 122 Pest tests with 1,648 assertions; Pint on the complete dirty PHP set; all NativeComponent validation; Native UI plugin validation for Android 26 and iOS 18.2; and `git diff --check`.

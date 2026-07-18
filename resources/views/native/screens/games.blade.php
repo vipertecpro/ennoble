@@ -2,18 +2,15 @@
 @use('App\Icons\Ios')
 
 <x-native.screen-container :state="$libraryState" :scroll="true">
-    <x-slot:loading>
+    @if ($libraryState === 'loading')
         <x-native.loading-overlay label="Loading the offline games library" />
-    </x-slot:loading>
-
-    <x-slot:error>
+    @elseif ($libraryState === 'error')
         <x-native.error-state :description="$libraryError">
             <x-slot:retry>
                 <native:button label="Retry games library" variant="secondary" @press="retryLibrary" />
             </x-slot:retry>
         </x-native.error-state>
-    </x-slot:error>
-
+    @else
     <native:column class="w-full gap-2">
         <native:text class="text-xs font-semibold text-theme-primary">CURATED TRAINING</native:text>
         <native:text class="text-3xl font-bold leading-tight text-theme-on-background">Train with purpose.</native:text>
@@ -24,15 +21,19 @@
 
     <x-native.games-search-input :search-query="$searchQuery" />
 
-    <native:row class="w-full flex-wrap gap-2" a11y-label="Game category filters">
-        @foreach ($categories as $category)
-            <x-native.game-filter-chip
-                :category="$category['key']"
-                :label="$category['label']"
-                :selected="$selectedCategory === $category['key']"
-            />
+    <native:column class="w-full gap-2" a11y-label="Game category filters">
+        @foreach (array_chunk($categories, 3) as $categoryRow)
+            <native:row ref="game-filter-row-{{ $loop->iteration }}" class="w-full gap-2">
+                @foreach ($categoryRow as $category)
+                    <x-native.game-filter-chip
+                        :category="$category['key']"
+                        :label="$category['label']"
+                        :selected="$selectedCategory === $category['key']"
+                    />
+                @endforeach
+            </native:row>
         @endforeach
-    </native:row>
+    </native:column>
 
     @if ($statisticsLoading)
         <x-native.dashboard-loading-card label="Loading game statistics" />
@@ -90,31 +91,9 @@
             @endforeach
         @endif
     @endif
+    @endif
 
-    <x-slot:overlays>
-        <x-native.dialog-host
-            :dialog-visible="$dialogVisible"
-            :bottom-sheet-visible="$bottomSheetVisible"
-            sheet-a11y-label="Coming soon game details"
-        >
-            <x-slot:sheet>
-                <native:column class="w-full gap-4 p-5">
-                    <native:row class="w-full flex-wrap items-center gap-2">
-                        <x-native.game-badge label="COMING SOON" :emphasis="true" :motion-duration="$motionDuration" />
-                        <native:text class="text-sm font-semibold text-theme-on-surface-variant">
-                            {{ $comingSoonCategory }} · {{ $comingSoonDuration }}
-                        </native:text>
-                    </native:row>
-                    <native:text class="text-2xl font-bold text-theme-on-surface">{{ $comingSoonTitle }}</native:text>
-                    <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
-                        {{ $comingSoonDescription }}
-                    </native:text>
-                    <native:text class="text-sm leading-relaxed text-theme-on-surface-variant">
-                        This game is unavailable today. This sheet is informational only and does not create a session or open gameplay.
-                    </native:text>
-                    <native:button label="Got it" variant="secondary" @press="dismissBottomSheet" />
-                </native:column>
-            </x-slot:sheet>
-        </x-native.dialog-host>
-    </x-slot:overlays>
+    @if ($bottomSheetVisible)
+        @include('native.partials.games-coming-soon-sheet')
+    @endif
 </x-native.screen-container>

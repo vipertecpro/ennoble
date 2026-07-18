@@ -16,6 +16,7 @@ use App\NativeComponents\Screens\WorkoutIntroduction;
 use App\NativeComponents\Screens\WorkoutPreparation;
 use App\NativeComponents\Screens\WorkoutTransition;
 use App\NativeLayouts\EnnobleLayout;
+use App\NativeLayouts\OnboardingLayout;
 use Native\Mobile\Edge\NativeRouter;
 use Native\Mobile\Testing\Native;
 
@@ -27,7 +28,7 @@ beforeEach(function () {
 test('all application shell routes are registered with the expected layout', function () {
     expect(NativeRouter::registeredRoutes())->toMatchArray([
         '/splash' => ['class' => Splash::class, 'layout' => null],
-        '/onboarding' => ['class' => Onboarding::class, 'layout' => null],
+        '/onboarding' => ['class' => Onboarding::class, 'layout' => OnboardingLayout::class],
         '/' => ['class' => Home::class, 'layout' => EnnobleLayout::class],
         '/workout' => ['class' => WorkoutIntroduction::class, 'layout' => EnnobleLayout::class],
         '/workout/preparation/{session}' => ['class' => WorkoutPreparation::class, 'layout' => EnnobleLayout::class],
@@ -66,6 +67,14 @@ test('splash replaces itself with home', function () {
     Native::visit('/splash')
         ->tap('Enter Ennoble')
         ->assertReplacedWith('/');
+});
+
+test('onboarding uses native layout geometry without exposing application chrome', function () {
+    Native::visit('/onboarding')
+        ->assertElement('native_root_stack')
+        ->assertMissingElement('native_root_tabs')
+        ->assertNavBarHidden()
+        ->assertAccessible();
 });
 
 test('the native tab bar exposes all destinations and tracks the active route', function (

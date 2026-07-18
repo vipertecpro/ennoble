@@ -14,6 +14,8 @@ use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Illuminate\Support\Str;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
+use Native\Mobile\Edge\Layouts\Builders\TabBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
 use Throwable;
@@ -59,6 +61,16 @@ final class Onboarding extends NativeComponent
     public function render(): Element
     {
         return $this->view('screens.onboarding');
+    }
+
+    public function navigationOptions(): ?NavBarOptions
+    {
+        return NavBarOptions::make()->hidden();
+    }
+
+    public function tabBarOptions(): ?TabBarOptions
+    {
+        return TabBarOptions::make()->hidden();
     }
 
     /**

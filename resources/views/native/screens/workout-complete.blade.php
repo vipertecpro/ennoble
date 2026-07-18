@@ -2,14 +2,13 @@
 @use('App\Icons\Ios')
 
 <x-native.screen-container :state="$screenState" :scroll="true">
-    <x-slot:error>
+    @if ($screenState === 'error')
         <x-native.error-state title="Summary unavailable" :description="$errorMessage">
             <x-slot:retry>
                 <native:button label="Return home" size="lg" variant="primary" @press="continueHome" />
             </x-slot:retry>
         </x-native.error-state>
-    </x-slot:error>
-
+    @else
     <x-native.workout-header
         eyebrow="Daily Momentum"
         title="A focused finish"
@@ -38,4 +37,5 @@
             <native:button label="Continue to Home" size="lg" variant="primary" @press="continueHome" />
         </x-slot:primary>
     </x-native.workout-footer>
+    @endif
 </x-native.screen-container>

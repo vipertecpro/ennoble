@@ -3,7 +3,7 @@
 @use('App\NativeComponents\Screens\Onboarding')
 @use('App\NativeUI\Tokens\MotionToken')
 
-<x-native.screen-container :safe-area="true" :scroll="$currentStep !== 1">
+<x-native.screen-container :scroll="$currentStep !== 1">
     <x-native.onboarding-progress
         :current-step="$currentStep"
         :total-steps="Onboarding::TOTAL_STEPS"
@@ -11,7 +11,7 @@
     />
 
     <native:column
-        class="w-full flex-1 gap-5"
+        class="w-full gap-5 {{ $currentStep === 1 ? 'flex-1' : '' }}"
         :translate-x="$reducedMotion ? 0 : ($currentStep % 2 === 0 ? 6 : 0)"
         :animate-duration="$this->motionDuration()"
         animate-easing="ease-out"
@@ -105,7 +105,6 @@
                 <native:radio-group
                     native:model="trainingGoal"
                     label="Training goal"
-                    a11y-label="Choose one training goal"
                 >
                     <native:radio value="focus" label="Improve Focus" />
                     <native:radio value="thinking_speed" label="Improve Thinking Speed" />
@@ -135,7 +134,6 @@
                 <native:radio-group
                     native:model="difficulty"
                     label="Difficulty"
-                    a11y-label="Choose one starting difficulty"
                 >
                     <native:radio value="beginner" label="Beginner" />
                     <native:radio value="intermediate" label="Intermediate" />
@@ -178,7 +176,6 @@
                 <native:radio-group
                     native:model="themePreference"
                     label="Theme"
-                    a11y-label="Choose an appearance theme"
                 >
                     <native:radio value="system" label="Use Device Setting" />
                     <native:radio value="light" label="Light" />
@@ -248,10 +245,10 @@
         </native:column>
     @endif
 
-    <native:row class="w-full items-center gap-3">
+    <native:column ref="onboarding-actions" class="w-full gap-3">
         @if ($currentStep > 1)
             <native:button
-                class="flex-1"
+                class="w-full"
                 label="Back"
                 variant="secondary"
                 :disabled="$isSaving"
@@ -261,7 +258,7 @@
 
         @if ($currentStep < Onboarding::TOTAL_STEPS)
             <native:button
-                class="flex-1"
+                class="w-full"
                 :label="$currentStep === 1 ? 'Begin' : 'Continue'"
                 size="lg"
                 :disabled="! $this->canContinue()"
@@ -269,7 +266,7 @@
             />
         @else
             <native:button
-                class="flex-1"
+                class="w-full"
                 label="Start Training"
                 size="lg"
                 :loading="$isSaving"
@@ -278,5 +275,5 @@
                 @press="completeOnboarding"
             />
         @endif
-    </native:row>
+    </native:column>
 </x-native.screen-container>

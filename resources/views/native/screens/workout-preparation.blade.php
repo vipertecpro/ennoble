@@ -2,14 +2,13 @@
 @use('App\Icons\Ios')
 
 <x-native.screen-container :state="$screenState" :scroll="true">
-    <x-slot:error>
+    @if ($screenState === 'error')
         <x-native.error-state title="Preparation unavailable" :description="$errorMessage">
             <x-slot:retry>
                 <native:button label="Return to workout" size="lg" variant="primary" @press="returnToWorkout" />
             </x-slot:retry>
         </x-native.error-state>
-    </x-slot:error>
-
+    @else
     <x-native.workout-header
         :eyebrow="$gameOrder"
         :title="$gameTitle"
@@ -43,4 +42,5 @@
             <native:button label="Back to Workout" size="lg" variant="secondary" @press="returnToWorkout" />
         </x-slot:secondary>
     </x-native.workout-footer>
+    @endif
 </x-native.screen-container>

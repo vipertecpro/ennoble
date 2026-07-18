@@ -13,3 +13,11 @@ The required NativePHP Mobile development branch and the later Native UI package
 This is a transparent compatibility decision, not an application fork. Ennoble product code must remain outside the mirror. The mirror will be removed when NativePHP publishes compatible official core and Native UI packages.
 
 See [docs/UPSTREAM_TRACKING.md](docs/UPSTREAM_TRACKING.md) for the pinned branches, commits, exact differences, and permanent upgrade checklist.
+
+## iOS UI Foundation
+
+The current offline onboarding, Home, Games, and placeholder workout foundation has been exercised on an iPhone 17 Pro simulator running iOS 26.5. The full QA record and remaining NativePHP limitations are documented in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+
+| Home | Games | Workout pause |
+| --- | --- | --- |
+| ![Ennoble Home](docs/screenshots/ios/home.png) | ![Ennoble Games](docs/screenshots/ios/games.png) | ![Ennoble workout pause sheet](docs/screenshots/ios/pause-sheet.png) |

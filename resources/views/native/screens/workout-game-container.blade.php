@@ -2,14 +2,13 @@
 @use('App\Icons\Ios')
 
 <x-native.screen-container :state="$screenState" :scroll="true">
-    <x-slot:error>
+    @if ($screenState === 'error')
         <x-native.error-state title="Game checkpoint unavailable" :description="$errorMessage">
             <x-slot:retry>
                 <native:button label="Return home" size="lg" variant="primary" @press="confirmExit" />
             </x-slot:retry>
         </x-native.error-state>
-    </x-slot:error>
-
+    @else
     <x-native.workout-header
         :eyebrow="$gameOrder"
         :title="$gameTitle"
@@ -50,28 +49,13 @@
             @press="completePlaceholder"
         />
     </x-native.game-container>
+    @endif
 
-    <x-slot:overlays>
-        <x-native.dialog-host
-            :dialog-visible="$dialogVisible"
-            :bottom-sheet-visible="$bottomSheetVisible"
-            sheet-detents="medium,large"
-            dialog-a11y-label="Exit workout confirmation"
-            sheet-a11y-label="Workout pause options"
-        >
-            <x-slot:dialog>
-                <native:column class="w-full gap-5 bg-theme-surface p-5">
-                    <native:text class="text-2xl font-bold text-theme-on-surface">Leave workout?</native:text>
-                    <native:text class="text-base leading-relaxed text-theme-on-surface-variant">
-                        Your current placeholder checkpoint will remain on this device so you can resume later.
-                    </native:text>
-                    <native:button label="Keep Training" size="lg" variant="primary" @press="cancelExit" />
-                    <native:button label="Exit to Home" size="lg" variant="destructive" @press="confirmExit" />
-                </native:column>
-            </x-slot:dialog>
-            <x-slot:sheet>
-                <x-native.pause-sheet />
-            </x-slot:sheet>
-        </x-native.dialog-host>
-    </x-slot:overlays>
+    @if ($dialogVisible)
+        @include('native.partials.workout-exit-dialog')
+    @endif
+
+    @if ($bottomSheetVisible)
+        @include('native.partials.workout-pause-sheet')
+    @endif
 </x-native.screen-container>
