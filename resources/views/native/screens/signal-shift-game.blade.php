@@ -53,13 +53,13 @@
             <native:column class="h-14 w-full items-center justify-center">
                 @if ($feedbackTone !== 'neutral')
                     <native:text
-                        class="{{ $feedbackTone === 'danger' ? 'text-theme-danger' : 'text-theme-success' }} text-center text-sm font-semibold"
+                        class="{{ $feedbackTone === 'danger' ? 'text-theme-danger' : 'text-theme-success' }} text-center text-[15] font-semibold"
                         a11y-label="{{ $feedbackMessage }}"
                     >
                         {{ $feedbackMessage }}
                     </native:text>
                 @else
-                    <native:text class="text-xs font-semibold text-theme-muted-text">
+                    <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
                         {{ $waveSecondsRemaining }} SEC WINDOW
                     </native:text>
                 @endif
@@ -71,30 +71,30 @@
                 <native:column class="w-80 mb-12 mt-6 gap-7">
                     @if ($phase === 'instructions')
                         <native:column class="items-center gap-5">
-                            <native:text class="text-xs font-semibold text-theme-accent">SIGNAL SHIFT · {{ strtoupper($difficulty) }}</native:text>
+                            <native:text class="text-[12] font-semibold tracking-widest text-theme-accent">SIGNAL SHIFT · {{ strtoupper($difficulty) }}</native:text>
 
                             <x-native.signal-shift-hero :motion-duration="$motionDuration" />
 
-                            <native:text class="text-center text-4xl font-bold leading-tight text-theme-primary-text">
+                            <native:text class="text-center text-[34] font-bold leading-tight tracking-tight text-theme-primary-text">
                                 Follow the rule. Ignore the noise.
                             </native:text>
-                            <native:text class="text-center text-base leading-relaxed text-theme-secondary-text">
+                            <native:text class="text-center text-[17] leading-relaxed text-theme-secondary-text">
                                 Three rapid rule shifts. Three lives. Find the one shape that truly belongs.
                             </native:text>
                         </native:column>
 
                         <native:row class="items-center justify-center gap-6">
                             <native:column class="items-center gap-1">
-                                <native:text class="text-2xl font-bold text-theme-primary-text">3</native:text>
-                                <native:text class="text-xs font-semibold text-theme-muted-text">ROUNDS</native:text>
+                                <native:text class="text-[22] font-semibold tracking-tight text-theme-primary-text">3</native:text>
+                                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">ROUNDS</native:text>
                             </native:column>
                             <native:column class="items-center gap-1">
-                                <native:text class="text-2xl font-bold text-theme-primary-text">{{ $maxLives }}</native:text>
-                                <native:text class="text-xs font-semibold text-theme-muted-text">LIVES</native:text>
+                                <native:text class="text-[22] font-semibold tracking-tight text-theme-primary-text">{{ $maxLives }}</native:text>
+                                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">LIVES</native:text>
                             </native:column>
                             <native:column class="items-center gap-1">
-                                <native:text class="text-2xl font-bold text-theme-primary-text">1</native:text>
-                                <native:text class="text-xs font-semibold text-theme-muted-text">SIGNAL</native:text>
+                                <native:text class="text-[22] font-semibold tracking-tight text-theme-primary-text">1</native:text>
+                                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">SIGNAL</native:text>
                             </native:column>
                         </native:row>
 
@@ -113,9 +113,9 @@
                         </native:column>
                     @elseif ($phase === 'tutorial')
                         <native:column class="items-center gap-3">
-                            <native:text class="text-xs font-semibold text-theme-accent">PRACTICE · NO SCORE</native:text>
-                            <native:text class="text-center text-3xl font-bold leading-tight text-theme-primary-text">Find the signal</native:text>
-                            <native:text class="text-center text-xl font-semibold leading-tight text-theme-primary-text">{{ $ruleText }}</native:text>
+                            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">PRACTICE · NO SCORE</native:text>
+                            <native:text class="text-center text-[28] font-bold leading-tight tracking-tight text-theme-primary-text">Find the signal</native:text>
+                            <native:text class="text-center text-[17] font-semibold leading-tight text-theme-primary-text">{{ $ruleText }}</native:text>
                         </native:column>
 
                         <x-native.signal-shift-playfield
@@ -129,7 +129,7 @@
                         />
 
                         <native:text
-                            class="{{ $feedbackTone === 'danger' ? 'text-theme-danger' : ($feedbackTone === 'success' ? 'text-theme-success' : 'text-theme-secondary-text') }} text-center text-base font-semibold leading-relaxed"
+                            class="{{ $feedbackTone === 'danger' ? 'text-theme-danger' : ($feedbackTone === 'success' ? 'text-theme-success' : 'text-theme-secondary-text') }} text-center text-[17] font-semibold leading-relaxed"
                             a11y-label="{{ $tutorialFeedback }}"
                         >
                             {{ $tutorialFeedback }}
@@ -145,10 +145,10 @@
                     @elseif ($phase === 'round_intro')
                         <native:column class="min-h-[640] items-center justify-center gap-8">
                             <native:column class="items-center gap-2">
-                                <native:text class="text-xs font-semibold text-theme-accent">
+                                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
                                     ROUND {{ $gameRound }} OF {{ $totalRounds }}
                                 </native:text>
-                                <native:text class="text-center text-3xl font-bold leading-tight text-theme-primary-text">
+                                <native:text class="text-center text-[28] font-bold leading-tight tracking-tight text-theme-primary-text">
                                     {{ $gameRound === 1 ? 'Lock onto the signal' : 'Rule shift' }}
                                 </native:text>
                             </native:column>
@@ -159,7 +159,7 @@
                                 :motion-duration="$motionDuration"
                             />
 
-                            <native:text class="text-center text-base leading-relaxed text-theme-secondary-text">{{ $feedbackMessage }}</native:text>
+                            <native:text class="text-center text-[17] leading-relaxed text-theme-secondary-text">{{ $feedbackMessage }}</native:text>
 
                             <native:column class="items-center gap-3">
                                 <native:button class="w-56" label="Ready" size="lg" variant="primary" @press="startRound" />
@@ -168,13 +168,13 @@
                         </native:column>
                     @elseif ($phase === 'round_result' || $phase === 'failed')
                         <native:column class="items-center gap-3">
-                            <native:text class="text-xs font-semibold text-theme-accent">
+                            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
                                 {{ $phase === 'failed' ? 'SIGNAL LOST' : 'ROUND '.$gameRound.' COMPLETE' }}
                             </native:text>
-                            <native:text class="text-center text-3xl font-bold leading-tight text-theme-primary-text">
+                            <native:text class="text-center text-[28] font-bold leading-tight tracking-tight text-theme-primary-text">
                                 {{ $phase === 'failed' ? 'Reset. Read. React.' : 'Attention held.' }}
                             </native:text>
-                            <native:text class="text-center text-base leading-relaxed text-theme-secondary-text">{{ $motivationalMessage }}</native:text>
+                            <native:text class="text-center text-[17] leading-relaxed text-theme-secondary-text">{{ $motivationalMessage }}</native:text>
                         </native:column>
 
                         <x-native.signal-shift-result
@@ -203,11 +203,11 @@
                         </native:column>
                     @elseif ($phase === 'game_result')
                         <native:column class="items-center gap-3">
-                            <native:text class="text-xs font-semibold text-theme-accent">
+                            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
                                 {{ $newPersonalBest ? 'PERSONAL BEST' : 'SIGNAL SHIFT COMPLETE' }}
                             </native:text>
-                            <native:text class="text-center text-4xl font-bold leading-tight text-theme-primary-text">Signal mastered.</native:text>
-                            <native:text class="text-center text-base leading-relaxed text-theme-secondary-text">{{ $motivationalMessage }}</native:text>
+                            <native:text class="text-center text-[34] font-bold leading-tight tracking-tight text-theme-primary-text">Signal mastered.</native:text>
+                            <native:text class="text-center text-[17] leading-relaxed text-theme-secondary-text">{{ $motivationalMessage }}</native:text>
                         </native:column>
 
                         <x-native.signal-shift-result
@@ -223,7 +223,7 @@
                         />
 
                         <native:column class="items-center gap-3">
-                            <native:text class="text-xs font-semibold text-theme-muted-text">SAVED PRIVATELY ON THIS DEVICE</native:text>
+                            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">SAVED PRIVATELY ON THIS DEVICE</native:text>
                             <native:button
                                 class="w-56"
                                 label="Continue Workout"

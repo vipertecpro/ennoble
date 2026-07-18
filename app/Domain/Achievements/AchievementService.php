@@ -85,6 +85,23 @@ final class AchievementService
     }
 
     /**
+     * Return every active achievement with this profile's unlock evidence attached.
+     *
+     * @return Collection<int, Achievement>
+     */
+    public function overview(Profile $profile): Collection
+    {
+        return Achievement::query()
+            ->active()
+            ->with([
+                'game',
+                'unlocks' => fn ($query) => $query->whereBelongsTo($profile),
+            ])
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    /**
      * Return the latest unlocked achievement for a lightweight preview.
      */
     public function latestUnlock(Profile $profile): ?AchievementUnlock

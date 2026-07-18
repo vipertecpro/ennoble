@@ -16,8 +16,8 @@
                 a11y-label="Signal Shift paused"
             />
             <native:column class="flex-1 gap-1">
-                <native:text class="text-2xl font-bold text-theme-primary-text">Paused</native:text>
-                <native:text class="text-sm leading-relaxed text-theme-secondary-text">
+                <native:text class="text-[22] font-semibold tracking-tight text-theme-primary-text">Paused</native:text>
+                <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
                     Your timer and current signal are frozen.
                 </native:text>
             </native:column>

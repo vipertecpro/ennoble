@@ -50,10 +50,6 @@ test('a first-time dashboard renders an intentional pending workout and honest e
         ->assertSee('0 of 7 days')
         ->assertSee('No workout history yet')
         ->assertSee('No achievements yet')
-        ->assertSee('Memory Path')
-        ->assertSee('Pattern Pulse')
-        ->assertSee('Word Forge')
-        ->assertSee('Quick Read')
         ->assertDontSee('Loading your Ennoble dashboard')
         ->assertDontSee('Something went wrong')
         ->assertDontSee('This preview is informational only')
@@ -168,29 +164,12 @@ test('the primary workout action navigates with subtle preference-aware feedback
         ->assertNavigatedTo('/workout')
         ->follow()
         ->assertScreen(WorkoutIntroduction::class)
-        ->assertSee('A focused sequence for today')
+        ->assertSee('Ready your mind.')
         ->assertSee('Begin Workout')
         ->assertMissingElement('bottom_nav')
         ->assertAccessible();
 
     expect($bridge->callsTo('Device.Vibrate'))->toHaveCount(1);
-});
-
-test('coming soon experiences open information without creating navigation', function () {
-    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
-
-    Native::visit('/')
-        ->tap('Memory Path')
-        ->assertSet('comingSoonTitle', 'Memory Path')
-        ->assertSet('bottomSheetVisible', true)
-        ->assertSee('recalling ordered visual journeys')
-        ->assertSee('informational only')
-        ->assertElement('bottom_sheet', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Got it')
-        ->assertNoNavigation()
-        ->assertAccessible()
-        ->tap('Got it')
-        ->assertSet('bottomSheetVisible', false);
 });
 
 test('dashboard and section loading states do not replace unrelated content', function () {
@@ -236,7 +215,6 @@ test('section error states remain recoverable and accessible without blocking th
         ->assertSee('Progress preview unavailable.')
         ->assertSee('Achievement preview unavailable.')
         ->assertSee('TODAY’S PRACTICE')
-        ->assertSee('On the Horizon')
         ->assertAccessible();
 });
 

@@ -69,11 +69,11 @@
                 />
             @endforeach
             <native:column class="items-center gap-1">
-                <native:text class="text-4xl font-bold text-theme-success">{{ $floatingScore }}</native:text>
+                <native:text class="text-[34] font-bold tracking-tight text-theme-success">{{ $floatingScore }}</native:text>
                 @if ($combo > 1)
                     <native:row class="items-center gap-1">
                         <x-native.icon :ios="Ios::FlameFill" :android="AndroidOutlined::LocalFireDepartment" :size="20" />
-                        <native:text class="text-xl font-bold text-theme-warning">x{{ $combo }}</native:text>
+                        <native:text class="text-[22] font-semibold tracking-tight text-theme-warning">x{{ $combo }}</native:text>
                     </native:row>
                 @endif
             </native:column>

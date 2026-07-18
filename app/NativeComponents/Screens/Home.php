@@ -8,6 +8,7 @@ use App\Domain\Profile\ProfileService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
+use App\Domain\Workout\WorkoutExperienceService;
 use App\Domain\Workout\WorkoutService;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkout;
@@ -35,28 +36,6 @@ use Throwable;
 final class Home extends NativeComponent
 {
     use InteractsWithDialogs;
-
-    /**
-     * @var array<string, array{title: string, description: string}>
-     */
-    private const COMING_SOON = [
-        'memory-path' => [
-            'title' => 'Memory Path',
-            'description' => 'A future experience for recalling ordered visual journeys with calm, deliberate pacing.',
-        ],
-        'pattern-pulse' => [
-            'title' => 'Pattern Pulse',
-            'description' => 'A future experience for recognizing changing sequences and relationships.',
-        ],
-        'word-forge' => [
-            'title' => 'Word Forge',
-            'description' => 'A future experience for building precise language from compact prompts.',
-        ],
-        'quick-read' => [
-            'title' => 'Quick Read',
-            'description' => 'A future experience for reading efficiently while protecting comprehension.',
-        ],
-    ];
 
     public string $dashboardState = 'content';
 
@@ -126,9 +105,13 @@ final class Home extends NativeComponent
 
     public ?string $achievementDescription = null;
 
-    public string $comingSoonTitle = '';
+    public bool $celebrateWorkoutReturn = false;
 
-    public string $comingSoonDescription = '';
+    public string $workoutReturnMessage = '';
+
+    public string $workoutReturnStreak = '';
+
+    public ?string $workoutReturnAchievement = null;
 
     public bool $reducedMotion = false;
 
@@ -156,7 +139,12 @@ final class Home extends NativeComponent
             return;
         }
 
+        $this->celebrateWorkoutReturn = (bool) $this->data('workout_completed', false);
         $this->loadDashboard();
+
+        if ($this->celebrateWorkoutReturn) {
+            $this->loadWorkoutReturn();
+        }
     }
 
     public function render(): Element
@@ -184,7 +172,7 @@ final class Home extends NativeComponent
     }
 
     /**
-     * Navigate to the honest future workout-flow placeholder.
+     * Navigate to today's workout flow.
      */
     public function openWorkout(): void
     {
@@ -199,24 +187,6 @@ final class Home extends NativeComponent
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
         }
-    }
-
-    /**
-     * Present non-interactive information for a future experience.
-     */
-    public function showComingSoon(string $experience): void
-    {
-        $details = self::COMING_SOON[$experience] ?? null;
-
-        if ($details === null) {
-            return;
-        }
-
-        $this->comingSoonTitle = $details['title'];
-        $this->comingSoonDescription = $details['description'];
-        $this->bottomSheetVisible = true;
-
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
     }
 
     /**
@@ -459,5 +429,34 @@ final class Home extends NativeComponent
         $this->greetingMessage = $this->returningUser
             ? 'Welcome back. Your next focused step is ready.'
             : 'A small focused step is ready when you are.';
+    }
+
+    private function loadWorkoutReturn(): void
+    {
+        $profile = app(ProfileService::class)->current();
+        $workoutId = (int) $this->data('workout_id', 0);
+
+        if ($profile === null || $workoutId < 1) {
+            $this->celebrateWorkoutReturn = false;
+
+            return;
+        }
+
+        $workout = DailyWorkout::query()
+            ->whereKey($workoutId)
+            ->whereBelongsTo($profile)
+            ->completed()
+            ->first();
+
+        if ($workout === null) {
+            $this->celebrateWorkoutReturn = false;
+
+            return;
+        }
+
+        $summary = app(WorkoutExperienceService::class)->completionSummary($workout);
+        $this->workoutReturnMessage = $summary['coaching'];
+        $this->workoutReturnStreak = $summary['streak_message'];
+        $this->workoutReturnAchievement = $summary['achievement_title'];
     }
 }

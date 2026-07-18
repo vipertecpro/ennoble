@@ -18,6 +18,6 @@
     <native:circle :width="204" :height="204" class="border border-theme-accent bg-theme-primary-surface" />
     <native:column class="w-44 items-center gap-3">
         <x-native.icon :ios="Ios::Scope" :android="AndroidOutlined::CenterFocusStrong" :size="34" />
-        <native:text class="text-center text-2xl font-bold leading-tight text-theme-primary-text">{{ $rule }}</native:text>
+        <native:text class="text-center text-[22] font-semibold leading-tight tracking-tight text-theme-primary-text">{{ $rule }}</native:text>
     </native:column>
 </native:stack>

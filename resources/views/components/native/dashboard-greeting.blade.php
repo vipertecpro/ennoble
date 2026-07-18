@@ -16,11 +16,11 @@
     a11y-label="{{ $greeting }}, {{ $displayName }}"
 >
     <native:column class="flex-1 gap-1">
-        <native:text class="text-sm font-semibold text-theme-accent">{{ $greeting }}</native:text>
-        <native:text class="text-2xl font-bold leading-tight text-theme-primary-text">
+        <native:text class="text-[15] font-semibold text-theme-muted-text">{{ $greeting }}</native:text>
+        <native:text class="text-[22] font-semibold tracking-tight leading-tight text-theme-primary-text">
             {{ $displayName }}
         </native:text>
-        <native:text class="text-sm leading-relaxed text-theme-secondary-text">
+        <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
             {{ $message }}
         </native:text>
     </native:column>

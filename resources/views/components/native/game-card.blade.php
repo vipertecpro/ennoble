@@ -7,7 +7,7 @@
 ])
 
 <native:column
-    class="w-80 items-center rounded-3xl border border-theme-border bg-theme-surface-elevated py-5"
+    class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5"
     :animate-duration="$motionDuration"
     a11y-label="{{ $game['title'] }} game"
 >
@@ -17,17 +17,17 @@
         <native:column class="flex-1 gap-2">
             <native:row class="flex-wrap items-center gap-2">
                 <x-native.game-badge :label="$game['category']" :motion-duration="$motionDuration" />
-                <native:text class="text-xs font-semibold text-theme-accent">{{ $game['duration'] }}</native:text>
+                <native:text class="text-[13] font-semibold text-theme-muted-text">{{ $game['duration'] }}</native:text>
             </native:row>
-            <native:text class="text-2xl font-bold leading-tight text-theme-primary-text">{{ $game['title'] }}</native:text>
+            <native:text class="text-[22] font-semibold tracking-tight leading-tight text-theme-primary-text">{{ $game['title'] }}</native:text>
         </native:column>
     </native:row>
 
-    <native:text class="text-base leading-relaxed text-theme-secondary-text">{{ $game['description'] }}</native:text>
+    <native:text class="text-[17] leading-relaxed text-theme-secondary-text">{{ $game['description'] }}</native:text>
 
     <native:column class="gap-1">
-        <native:text class="text-xs font-semibold text-theme-accent">TRAINS</native:text>
-        <native:text class="text-sm leading-relaxed text-theme-secondary-text">{{ implode(' · ', $game['skills']) }}</native:text>
+        <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">TRAINS</native:text>
+        <native:text class="text-[15] leading-relaxed text-theme-secondary-text">{{ implode(' · ', $game['skills']) }}</native:text>
     </native:column>
 
     <native:row class="gap-3">
@@ -71,8 +71,8 @@
 
     <native:column class="gap-2">
         <native:row class="items-center justify-between">
-            <native:text class="text-xs font-semibold text-theme-muted-text">COMPLETION RATE</native:text>
-            <native:text class="text-xs font-semibold text-theme-accent">
+            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">COMPLETION RATE</native:text>
+            <native:text class="text-[13] font-semibold text-theme-accent">
                 {{ $game['completion_rate'] === null ? 'No data yet' : $game['completion_rate'].'%' }}
             </native:text>
         </native:row>
@@ -83,7 +83,7 @@
     </native:column>
 
     @if (! $game['has_history'])
-        <native:text class="text-sm leading-relaxed text-theme-secondary-text">
+        <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
             No history yet. Your first completed session will add a personal best and completion evidence here.
         </native:text>
     @endif

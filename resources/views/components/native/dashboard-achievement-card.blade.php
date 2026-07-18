@@ -7,10 +7,10 @@
     'motionDuration' => 0,
 ])
 
-<native:column class="w-80 items-center rounded-3xl border border-theme-border bg-theme-surface-elevated py-5" :animate-duration="$motionDuration">
+<native:column class="w-80 items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
 <native:column class="w-72 gap-4">
     <native:row class="items-center gap-4">
-        <native:column class="items-center justify-center rounded-2xl bg-theme-secondary-surface p-3">
+        <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
             <x-native.icon
                 :ios="$title ? Ios::Trophy : Ios::Sparkles"
                 :android="$title ? AndroidOutlined::EmojiEvents : AndroidOutlined::AutoAwesome"
@@ -20,12 +20,12 @@
         </native:column>
         <native:column class="flex-1 gap-1">
             @if ($title)
-                <native:text class="text-xs font-semibold text-theme-accent">LATEST UNLOCK</native:text>
-                <native:text class="text-lg font-semibold text-theme-primary-text">{{ $title }}</native:text>
-                <native:text class="text-sm leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
+                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">LATEST UNLOCK</native:text>
+                <native:text class="text-[17] font-semibold text-theme-primary-text">{{ $title }}</native:text>
+                <native:text class="text-[15] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
             @else
-                <native:text class="text-lg font-semibold text-theme-primary-text">No achievements yet</native:text>
-                <native:text class="text-sm leading-relaxed text-theme-secondary-text">
+                <native:text class="text-[17] font-semibold text-theme-primary-text">No achievements yet</native:text>
+                <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
                     Train consistently and your first milestone will appear here.
                 </native:text>
             @endif

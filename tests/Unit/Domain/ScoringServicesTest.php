@@ -61,6 +61,23 @@ test('clear thought applies attempt and hint penalties deterministically', funct
         ->and($assistedResult->hintCount)->toBe(1);
 });
 
+test('a correct clear thought answer never scores negative', function () {
+    $laboredRound = collect([
+        new GameRound([
+            'outcome' => RoundOutcome::Correct,
+            'response_ms' => 5000,
+            'hint_used' => true,
+            'response' => ['attempts' => 11],
+        ]),
+    ]);
+
+    $result = (new ClearThoughtScoringService)->score($laboredRound);
+
+    expect($result->score)->toBe(0)
+        ->and($result->correctCount)->toBe(1)
+        ->and($result->accuracy)->toBe(100.0);
+});
+
 test('clear thought validates all bundled answer modes without network evaluation', function (
     ClearThoughtMode $mode,
     array $acceptedAnswers,

@@ -63,7 +63,7 @@
                     :height="$dimension"
                     class="{{ $colorClass }} shadow-lg"
                     :rotate="$rotation"
-                    :border-radius="$shape === 'diamond' ? 8 : 14"
+                    :border-radius="$shape === 'diamond' ? 8 : 16"
                 />
             @endif
         </native:stack>

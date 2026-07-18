@@ -6,10 +6,13 @@ use App\Domain\Games\GameSessionService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
+use App\Domain\Workout\WorkoutExperienceService;
 use App\Domain\Workout\WorkoutService;
 use App\Enums\GameType;
+use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkout;
+use App\Models\DailyWorkoutItem;
 use App\Models\GameSession;
 use App\NativeUI\Feedback\HapticFeedback;
 use App\NativeUI\Feedback\HapticService;
@@ -52,6 +55,11 @@ final class WorkoutIntroduction extends NativeComponent
      */
     public array $skills = [];
 
+    /**
+     * @var list<array{label: string, position: int, state: string}>
+     */
+    public array $journeySteps = [];
+
     public bool $reducedMotion = false;
 
     public int $motionDuration = 0;
@@ -79,10 +87,7 @@ final class WorkoutIntroduction extends NativeComponent
 
     public function navigationOptions(): ?NavBarOptions
     {
-        return NavBarOptions::make()
-            ->title('Today’s Workout')
-            ->subtitle('Focused daily sequence')
-            ->back(false);
+        return NavBarOptions::make()->hidden();
     }
 
     public function tabBarOptions(): ?TabBarOptions
@@ -117,6 +122,23 @@ final class WorkoutIntroduction extends NativeComponent
             $completedWorkout = app(WorkoutService::class)->complete($workout);
             $this->replace(
                 $this->route('native.workout.complete', ['workout' => $completedWorkout->getKey()]),
+            )->transition($this->screenTransition());
+
+            return;
+        }
+
+        $previousItem = $workout->items
+            ->where('position', '<', $workoutItem->position)
+            ->where('status', WorkoutStatus::Completed)
+            ->sortByDesc('position')
+            ->first();
+        $hasStartedCurrentItem = $workoutItem->sessions->contains(
+            fn (GameSession $session): bool => $session->status === SessionStatus::InProgress,
+        );
+
+        if ($previousItem instanceof DailyWorkoutItem && ! $hasStartedCurrentItem) {
+            $this->replace(
+                $this->route('native.workout.transition', ['item' => $previousItem->getKey()]),
             )->transition($this->screenTransition());
 
             return;
@@ -180,6 +202,13 @@ final class WorkoutIntroduction extends NativeComponent
                 ->map(fn (string $skill): string => Str::headline($skill))
                 ->values()
                 ->all();
+            $currentItem = $workout->items->first(
+                fn ($item): bool => $item->status !== WorkoutStatus::Completed,
+            );
+            $this->journeySteps = app(WorkoutExperienceService::class)->journey(
+                $workout,
+                $currentItem?->getKey(),
+            );
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
@@ -206,13 +235,14 @@ final class WorkoutIntroduction extends NativeComponent
 
     private function screenTransition(): Transition
     {
-        return $this->reducedMotion ? Transition::None : Transition::Fade;
+        return $this->reducedMotion ? Transition::None : Transition::FadeFromBottom;
     }
 
     private function gameDestination(GameSession $session): string
     {
-        return $session->game->type === GameType::SignalShift
-            ? 'native.workout.signal-shift'
-            : 'native.workout.game';
+        return match ($session->game->type) {
+            GameType::SignalShift => 'native.workout.signal-shift',
+            GameType::ClearThought => 'native.workout.clear-thought',
+        };
     }
 }

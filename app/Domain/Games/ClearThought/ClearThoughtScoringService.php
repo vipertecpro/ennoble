@@ -36,10 +36,10 @@ final class ClearThoughtScoringService implements GameScoringService
             $attemptPenalty = ($attempts - 1) * 25;
 
             return match ($round->outcome) {
-                RoundOutcome::Correct => 200
+                RoundOutcome::Correct => max(0, 200
                     + $this->speedBonus($round->response_ms)
                     - ($round->hint_used ? 50 : 0)
-                    - $attemptPenalty,
+                    - $attemptPenalty),
                 RoundOutcome::Incorrect => -25,
                 RoundOutcome::Missed => 0,
             };

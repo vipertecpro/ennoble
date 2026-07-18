@@ -63,7 +63,7 @@ test('welcome communicates Ennoble and exposes accessible animated progress', fu
         ->assertMissingElement('native_root_tabs')
         ->assertNavBarHidden()
         ->assertElement('row', fn (array $node): bool => ($node['props']['a11y_label'] ?? null) === 'Onboarding progress, step 1 of 6')
-        ->assertElement('column', fn (array $node): bool => ($node['props']['animate-loop'] ?? false) === true)
+        ->assertElement('column', fn (array $node): bool => array_key_exists('animate-duration', $node['props'] ?? []))
         ->assertAccessible();
 });
 
@@ -85,7 +85,7 @@ test('appearance choices remain contrast safe until the next screen is mounted',
         ->assertAccessible();
 
     expect(Theme::all()['light']['background'])->toBe('#F5F5F2')
-        ->and(Theme::all()['dark']['background'])->toBe('#0D0F11');
+        ->and(Theme::all()['dark']['background'])->toBe('#0F0F11');
 });
 
 test('the complete onboarding journey persists local choices and enters home', function () {
@@ -222,7 +222,7 @@ test('back navigation stays inside the journey and ready exposes a loading actio
         ->set('trainingGoal', TrainingGoal::Balanced->value)
         ->set('difficulty', Difficulty::Intermediate->value)
         ->set('isSaving', true)
-        ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'onboarding-actions')
+        ->assertElement('column', fn (array $node): bool => ($node['ref'] ?? null) === 'onboarding-actions')
         ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Start training'
             && ($node['props']['loading'] ?? false) === true);
 });

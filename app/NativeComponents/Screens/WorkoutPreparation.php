@@ -5,6 +5,7 @@ namespace App\NativeComponents\Screens;
 use App\Domain\Games\GameSessionService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
+use App\Domain\Workout\WorkoutExperienceService;
 use App\Domain\Workout\WorkoutService;
 use App\Enums\GameType;
 use App\Enums\SessionStatus;
@@ -37,6 +38,8 @@ final class WorkoutPreparation extends NativeComponent
 
     public string $instructions = '';
 
+    public string $coaching = 'Accuracy first. Speed follows.';
+
     public int $gamesRemaining = 0;
 
     public float $progress = 0.0;
@@ -46,6 +49,11 @@ final class WorkoutPreparation extends NativeComponent
     public int $countdown = 3;
 
     public string $countdownAnnouncement = 'Get ready. 3.';
+
+    /**
+     * @var list<array{label: string, position: int, state: string}>
+     */
+    public array $journeySteps = [];
 
     public bool $reducedMotion = false;
 
@@ -65,10 +73,7 @@ final class WorkoutPreparation extends NativeComponent
 
     public function navigationOptions(): ?NavBarOptions
     {
-        return NavBarOptions::make()
-            ->title('Prepare')
-            ->subtitle($this->gameTitle !== '' ? $this->gameTitle : 'Workout')
-            ->back(false);
+        return NavBarOptions::make()->hidden();
     }
 
     public function tabBarOptions(): ?TabBarOptions
@@ -158,9 +163,14 @@ final class WorkoutPreparation extends NativeComponent
             $this->gameTitle = $session->game->name;
             $this->gameOrder = 'Game '.$session->workoutItem->position.' of '.$items->count();
             $this->instructions = $this->instructionsFor($session);
+            $this->coaching = $this->coachingFor($session);
             $this->gamesRemaining = max(0, $items->count() - $completedItems);
             $this->progress = $items->isEmpty() ? 0.0 : round($completedItems / $items->count(), 3);
             $this->timeEstimate = 'About '.app(WorkoutService::class)->estimatedGameDurationMinutes($session->level).' min';
+            $this->journeySteps = app(WorkoutExperienceService::class)->journey(
+                $workout,
+                $session->workoutItem->getKey(),
+            );
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
@@ -202,21 +212,27 @@ final class WorkoutPreparation extends NativeComponent
 
     private function screenTransition(): Transition
     {
-        return $this->reducedMotion ? Transition::None : Transition::Fade;
+        return $this->reducedMotion ? Transition::None : Transition::FadeFromBottom;
     }
 
     private function hasSupportedRunner(GameSession $session): bool
     {
-        return match ($session->game->type) {
-            GameType::SignalShift => ! $session->isFrameworkPlaceholder(),
-            GameType::ClearThought => $session->isFrameworkPlaceholder(),
-        };
+        return ! $session->isFrameworkPlaceholder();
     }
 
     private function gameDestination(GameSession $session): string
     {
-        return $session->game->type === GameType::SignalShift
-            ? 'native.workout.signal-shift'
-            : 'native.workout.game';
+        return match ($session->game->type) {
+            GameType::SignalShift => 'native.workout.signal-shift',
+            GameType::ClearThought => 'native.workout.clear-thought',
+        };
+    }
+
+    private function coachingFor(GameSession $session): string
+    {
+        return match ($session->game->type) {
+            GameType::SignalShift => 'Accuracy first. Speed follows.',
+            GameType::ClearThought => 'Read once for meaning. Then choose with confidence.',
+        };
     }
 }

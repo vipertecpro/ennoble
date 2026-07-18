@@ -284,15 +284,18 @@ Initial loading, complete-catalog, filtered, no-search-result, no-category-match
 
 ### Workout
 
-Five shared NativeComponents and one dedicated game component own the workout presentation lifecycle:
+Six shared NativeComponents and one dedicated game component own the continuous workout lifecycle:
 
-1. `WorkoutIntroduction` loads the deterministic daily sequence and presents duration, difficulty, skills, Begin, and Resume without starting a session during mount.
-2. `WorkoutPreparation` presents game-specific guidance and a poll-driven three-second countdown, then persists the prepared checkpoint.
+1. `WorkoutIntroduction` loads the deterministic daily sequence and presents duration, difficulty, skills, Begin, and Resume without starting a session during mount. When a prior item is complete and the next item has no active session, Resume restores the prior item’s transition before creating the next session.
+2. `WorkoutPreparation` presents game-specific coaching and a poll-driven three-second focus countdown, then persists the prepared checkpoint.
 3. `SignalShiftGame` owns the real instructions, optional tutorial, rule shifts, waves, timer, lives, combo, scoring feedback, pause/resume, restart, failure, completion, and results. `WorkoutGameContainer` remains the explicit non-evidentiary Clear Thought placeholder.
-4. `WorkoutTransition` presents either persisted Signal Shift performance or the truthful placeholder state plus the next game. It advances after three poll ticks or a Continue action; Reduced Motion disables automatic advancement.
-5. `WorkoutComplete` presents training time and completed steps plus only the score and accuracy supported by real evidence.
+4. `WorkoutTransition` celebrates every completed item. It maps persisted evidence into one coaching message and compact performance moment, previews the next skill focus, and advances after four poll ticks or a manual action. Reduced Motion disables automatic advancement. The final item completes the workout idempotently and routes through the same celebration boundary.
+5. `WorkoutComplete` first renders a sparse workout celebration. An explicit action changes the same component into Today’s Progress with evidence-backed skill deltas, best moment, streak, and any newly linked achievement.
+6. `Home` accepts completion navigation data, verifies ownership and completion, and renders a temporary return celebration before its normal Today state.
 
-Reusable EDGE components own the header, progress, countdown, game container, transition card, completion card, pause sheet, and footer. The screens use typed icons, semantic theme tokens, native modal/bottom-sheet hosts, preference-aware haptics, hidden tab chrome, accessibility labels, and recoverable errors.
+`WorkoutExperienceService` is the presentation-domain boundary for journey state, coaching, best-moment, skill-delta, streak, and achievement summaries. It reads persisted models and never writes gameplay evidence. Placeholder summaries explicitly report `no score recorded`.
+
+Reusable EDGE components own the header, ordered workout rhythm, countdown, game container, transition card, completion card, return celebration, pause sheet, and footer. The ordered rhythm derives completed/current/upcoming state from the item collection, so presentation and completion no longer depend on a fixed two-item count. The screens use typed icons, semantic theme tokens, native modal/bottom-sheet hosts, preference-aware haptics, hidden tab chrome, accessibility labels, and recoverable errors.
 
 Signal Shift intentionally diverges from the shared card-based workout composition only inside its dedicated runner. `SignalShiftGame` hides both navigation bars and renders:
 
@@ -315,7 +318,7 @@ Presentation-only checkpoint fields retain the active countdown and transient fe
 - Returns the same workout when generation is repeated.
 - Estimates two configured rounds per minute, bounded to the product's 5–10 minute duration promise.
 - Hydrates complete resume state.
-- Refuses premature completion.
+- Refuses empty or partially completed sequences without requiring a fixed item count.
 - Finalizes the workout summary idempotently and updates statistics, streaks, and achievements only when gameplay evidence exists.
 - Leaves game-specific restart semantics to the session service so a Signal Shift restart cannot erase completed workout evidence.
 - Exposes newest-first history.

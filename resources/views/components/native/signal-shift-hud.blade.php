@@ -41,17 +41,17 @@
 
         <native:column class="items-center gap-0">
             <native:text
-                class="text-2xl font-bold text-theme-primary-text"
+                class="text-[22] font-semibold tracking-tight text-theme-primary-text"
                 a11y-label="{{ $timer }} seconds remaining"
             >
                 {{ $timer }}
             </native:text>
-            <native:text class="text-xs font-semibold text-theme-muted-text">SECONDS</native:text>
+            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">SECONDS</native:text>
         </native:column>
 
         <native:column class="items-end gap-0">
-            <native:text class="text-sm font-semibold text-theme-primary-text">{{ number_format($score) }}</native:text>
-            <native:text class="text-xs font-semibold text-theme-muted-text">SCORE</native:text>
+            <native:text class="text-[15] font-semibold text-theme-primary-text">{{ number_format($score) }}</native:text>
+            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">SCORE</native:text>
         </native:column>
 
         @if ($showPause)
@@ -82,10 +82,10 @@
 
     <native:row class="w-full items-center justify-between gap-3">
         <native:column class="flex-1 gap-1">
-            <native:text class="text-xs font-semibold text-theme-accent">
+            <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
                 ROUND {{ $gameRound }} · WAVE {{ $wave }} OF {{ $waveCount }}
             </native:text>
-            <native:text class="text-base font-semibold leading-tight text-theme-primary-text">{{ $rule }}</native:text>
+            <native:text class="text-[17] font-semibold leading-tight text-theme-primary-text">{{ $rule }}</native:text>
         </native:column>
 
         @if ($combo > 1)
@@ -98,7 +98,7 @@
                 a11y-label="Combo {{ $combo }}"
             >
                 <x-native.icon :ios="Ios::FlameFill" :android="AndroidOutlined::LocalFireDepartment" :size="20" />
-                <native:text class="text-xl font-bold text-theme-warning">x{{ $combo }}</native:text>
+                <native:text class="text-[22] font-semibold tracking-tight text-theme-warning">x{{ $combo }}</native:text>
             </native:row>
         @endif
     </native:row>

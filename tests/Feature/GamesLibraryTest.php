@@ -30,7 +30,7 @@ afterEach(function () {
     CarbonImmutable::setTestNow();
 });
 
-test('the games library presents one featured game two playable games and six honest future previews', function () {
+test('the games library presents one featured game and two playable games', function () {
     Native::visit('/games')
         ->assertElement('bottom_nav')
         ->assertSee('Train with purpose.')
@@ -42,13 +42,7 @@ test('the games library presents one featured game two playable games and six ho
         ->assertSee('No best yet')
         ->assertSee('Not played yet')
         ->assertSee('No history yet')
-        ->assertSee('Memory Path')
-        ->assertSee('Pattern Pulse')
-        ->assertSee('Word Forge')
-        ->assertSee('Quick Read')
-        ->assertSee('Number Sense')
-        ->assertSee('Reaction Pulse')
-        ->assertSee('Coming Soon')
+        ->assertDontSee('Coming Soon')
         ->assertDontSee('This game is unavailable today')
         ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'game-filter-row-1')
         ->assertElement('row', fn (array $node): bool => ($node['ref'] ?? null) === 'game-filter-row-2')
@@ -110,7 +104,7 @@ test('evidence-backed previews show best score completion count last played diff
         ->and($signalShiftPreview['completion_count'])->toBe(2);
 });
 
-test('category chips filter playable featured and coming soon games with subtle feedback', function () {
+test('category chips filter playable and featured games with subtle feedback', function () {
     $bridge = Native::fakeBridge()
         ->respondTo('Device.Vibrate', ['success' => true]);
 
@@ -119,28 +113,23 @@ test('category chips filter playable featured and coming soon games with subtle 
         ->assertSet('selectedCategory', 'language')
         ->assertSet('featuredVisible', false)
         ->assertSee('Clear Thought')
-        ->assertSee('Word Forge')
-        ->assertSee('Quick Read')
         ->assertDontSee('Signal Shift')
-        ->assertDontSee('Pattern Pulse')
         ->assertAccessible();
 
     expect($bridge->callsTo('Device.Vibrate'))->toHaveCount(1);
 });
 
-test('offline search matches titles categories and descriptions and presents an intentional empty state', function () {
+test('offline search matches titles and descriptions and presents an intentional empty state', function () {
     $library = Native::visit('/games')
-        ->input('games-search', 'pulse')
-        ->assertSee('Pattern Pulse')
-        ->assertSee('Reaction Pulse')
-        ->assertDontSee('Signal Shift')
+        ->input('games-search', 'signal')
+        ->assertSee('Signal Shift')
         ->assertDontSee('Clear Thought')
         ->assertAccessible();
 
     $library
-        ->input('games-search', 'memory')
-        ->assertSee('Memory Path')
-        ->assertDontSee('Reaction Pulse')
+        ->input('games-search', 'thought')
+        ->assertSee('Clear Thought')
+        ->assertDontSee('Signal Shift')
         ->assertAccessible();
 
     $library
@@ -152,7 +141,6 @@ test('offline search matches titles categories and descriptions and presents an 
 
 test('a category with no current matches encourages exploration instead of leaving blank space', function () {
     Native::visit('/games')
-        ->set('comingSoonGames', [])
         ->call('setCategory', 'memory')
         ->assertSee('No games found')
         ->assertSee('Show all games')
@@ -168,32 +156,13 @@ test('play actions open the workout introduction without starting a session', fu
         ->assertNavigatedTo('/workout')
         ->follow()
         ->assertScreen(WorkoutIntroduction::class)
-        ->assertSee('A focused sequence for today')
+        ->assertSee('Ready your mind.')
         ->assertSee('Begin Workout')
         ->assertMissingElement('bottom_nav')
         ->assertAccessible();
 
     expect(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(0)
         ->and($bridge->callsTo('Device.Vibrate'))->toHaveCount(1);
-});
-
-test('coming soon cards open accessible information without navigation or persistence', function () {
-    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
-
-    Native::visit('/games')
-        ->tap('Reaction Pulse')
-        ->assertSet('comingSoonTitle', 'Reaction Pulse')
-        ->assertSet('comingSoonCategory', 'Speed')
-        ->assertSet('bottomSheetVisible', true)
-        ->assertSee('unavailable today')
-        ->assertElement('bottom_sheet', fn (array $node): bool => ! array_key_exists('a11y_label', $node['props'] ?? []))
-        ->assertElement('button', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Got it')
-        ->assertNoNavigation()
-        ->assertAccessible()
-        ->tap('Got it')
-        ->assertSet('bottomSheetVisible', false);
-
-    expect(GameSession::query()->whereBelongsTo($this->profile)->count())->toBe(0);
 });
 
 test('reduced motion removes authored game library transforms and navigation motion', function () {

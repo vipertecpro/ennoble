@@ -89,3 +89,29 @@ test('inactive achievement definitions are never awarded', function () {
         ->whereBelongsTo($inactive, 'achievement')
         ->exists())->toBeFalse();
 });
+
+test('the achievement overview lists every active definition with profile-scoped unlocks', function () {
+    $profile = Profile::factory()->create();
+    $other = Profile::factory()->create(['singleton_key' => 'other-device']);
+    $first = Achievement::query()->where('slug', 'first-step')->firstOrFail();
+
+    AchievementUnlock::factory()->for($profile)->for($first)->create();
+    AchievementUnlock::factory()
+        ->for($other)
+        ->for(Achievement::query()->where('slug', 'signal-master')->firstOrFail())
+        ->create();
+    Achievement::factory()->create([
+        'slug' => 'retired-overview',
+        'type' => AchievementType::FirstWorkout,
+        'criterion' => ['workouts' => 1],
+        'is_active' => false,
+        'sort_order' => 98,
+    ]);
+
+    $overview = app(AchievementService::class)->overview($profile);
+
+    expect($overview->pluck('slug'))->not->toContain('retired-overview')
+        ->and($overview->firstWhere('slug', 'first-step')->unlocks)->toHaveCount(1)
+        ->and($overview->firstWhere('slug', 'signal-master')->unlocks)->toBeEmpty()
+        ->and($overview->count())->toBe(6);
+});

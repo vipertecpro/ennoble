@@ -6,7 +6,7 @@
     'motionDuration' => 0,
 ])
 
-<native:column class="h-72 gap-4 rounded-3xl border border-theme-border bg-theme-surface-elevated p-5">
+<native:column class="h-72 gap-4 rounded-2xl bg-theme-surface shadow-sm p-5">
     <x-native.onboarding-illustration
         :ios="$ios"
         :android="$android"
@@ -14,8 +14,8 @@
         :motion-duration="$motionDuration"
         compact
     />
-    <native:text class="text-xl font-semibold text-theme-primary-text">{{ $title }}</native:text>
-    <native:text class="text-sm leading-relaxed text-theme-secondary-text">
+    <native:text class="text-[17] font-semibold text-theme-primary-text">{{ $title }}</native:text>
+    <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
         {{ $description }}
     </native:text>
 </native:column>

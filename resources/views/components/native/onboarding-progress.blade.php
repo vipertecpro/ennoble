@@ -5,7 +5,7 @@
 ])
 
 <native:row class="items-center justify-between">
-    <native:text class="text-xs font-semibold text-theme-secondary-text">
+    <native:text class="text-[13] font-semibold text-theme-secondary-text">
             Step {{ $currentStep }} of {{ $totalSteps }}
     </native:text>
 

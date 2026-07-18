@@ -3,6 +3,7 @@
 @props([
     'displayName' => '',
     'valid' => true,
+    'supporting' => 'No email, account, or cloud profile is created.',
 ])
 
 <native:outlined-text-input
@@ -12,8 +13,6 @@
     keyboard="text"
     :max-length="ProfileService::DISPLAY_NAME_MAX_LENGTH"
     :is-error="! $valid"
-    :supporting="$valid
-        ? 'No email, account, or cloud profile is created.'
-        : 'Use 40 characters or fewer.'"
+    :supporting="$valid ? $supporting : 'Use 40 characters or fewer.'"
     a11y-label="Optional display name"
 />

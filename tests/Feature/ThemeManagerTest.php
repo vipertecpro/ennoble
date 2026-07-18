@@ -39,8 +39,8 @@ test('explicit appearance preferences apply one semantic palette to both rendere
     expect($tokens['light']['primary'])->toBe($expectedPrimary)
         ->and($tokens['dark']['primary'])->toBe($expectedPrimary);
 })->with([
-    'light' => [ThemePreference::Light, '#1F6F63'],
-    'dark' => [ThemePreference::Dark, '#70CDBB'],
+    'light' => [ThemePreference::Light, '#1B1B1F'],
+    'dark' => [ThemePreference::Dark, '#C5DB55'],
 ]);
 
 test('changing appearance clears parsed semantic colors before the next native frame', function () {
@@ -52,7 +52,7 @@ test('changing appearance clears parsed semantic colors before the next native f
     app(ThemeManager::class)->apply(ThemePreference::Dark);
 
     expect(TailwindParser::parse('bg-theme-background'))
-        ->toMatchArray(['bg' => '#0D0F11']);
+        ->toMatchArray(['bg' => '#0F0F11']);
 });
 
 test('system preference preserves distinct light and dark semantic palettes', function () {
@@ -60,7 +60,7 @@ test('system preference preserves distinct light and dark semantic palettes', fu
     $tokens = Theme::all();
 
     expect($tokens['light']['background'])->toBe('#F5F5F2')
-        ->and($tokens['dark']['background'])->toBe('#0D0F11')
+        ->and($tokens['dark']['background'])->toBe('#0F0F11')
         ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background']);
 });
 
@@ -82,8 +82,8 @@ test('explicit appearance keeps typed icon colors independent from device appear
                 && data_get($node, 'props.dark_color') === $expectedColor,
         );
 })->with([
-    'light' => [ThemePreference::Light, '#18191B'],
-    'dark' => [ThemePreference::Dark, '#F3F4F4'],
+    'light' => [ThemePreference::Light, '#1B1B1F'],
+    'dark' => [ThemePreference::Dark, '#F5F5F4'],
 ]);
 
 test('saved Prompt 2 settings drive theme and reduced motion behavior', function () {
@@ -129,7 +129,7 @@ test('design tokens expose the complete reusable foundation', function () {
             'badge',
             'numeric',
         ])
-        ->and(DesignTokens::SPACING)->toHaveKeys(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'])
+        ->and(DesignTokens::SPACING)->toHaveKeys(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'])
         ->and(DesignTokens::LAYOUT_SPACING)->toHaveKeys(['screen-margin', 'section', 'card', 'content', 'compact', 'touch'])
         ->and(DesignTokens::CORNER_RADII)->toHaveKeys(['small', 'medium', 'large', 'full'])
         ->and(DesignTokens::ELEVATION)->toHaveKeys(['none', 'low', 'medium', 'high'])
@@ -163,7 +163,7 @@ test('design tokens expose the complete reusable foundation', function () {
             'standard',
         ])
         ->and(DesignTokens::ICON_SIZE)->toHaveKeys(['small', 'medium', 'large', 'hero'])
-        ->and(DesignTokens::SCREEN_PADDING)->toBe(20)
+        ->and(DesignTokens::SCREEN_PADDING)->toBe(16)
         ->and(DesignTokens::COMPONENT_SPACING)->toBe(16)
         ->and(DesignTokens::MINIMUM_TOUCH_TARGET)->toBeGreaterThanOrEqual(44);
 });

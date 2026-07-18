@@ -12,10 +12,10 @@
     a11y-label="{{ $eyebrow }}. {{ $title }}{{ $subtitle ? '. '.$subtitle : '' }}"
 >
     <native:column class="gap-2">
-        <native:text class="text-xs font-semibold uppercase text-theme-accent">{{ $eyebrow }}</native:text>
-        <native:text class="text-3xl font-bold leading-tight text-theme-primary-text">{{ $title }}</native:text>
+        <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-accent">{{ $eyebrow }}</native:text>
+        <native:text class="text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">{{ $title }}</native:text>
         @if ($subtitle)
-            <native:text class="text-base leading-relaxed text-theme-secondary-text">{{ $subtitle }}</native:text>
+            <native:text class="text-[17] leading-relaxed text-theme-secondary-text">{{ $subtitle }}</native:text>
         @endif
     </native:column>
 </native:column>

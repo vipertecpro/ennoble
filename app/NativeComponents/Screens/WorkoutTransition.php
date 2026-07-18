@@ -5,10 +5,12 @@ namespace App\NativeComponents\Screens;
 use App\Domain\Games\GameSessionService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
+use App\Domain\Workout\WorkoutExperienceService;
 use App\Domain\Workout\WorkoutService;
-use App\Enums\SessionStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\DailyWorkoutItem;
+use App\NativeUI\Feedback\HapticFeedback;
+use App\NativeUI\Feedback\HapticService;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
@@ -34,13 +36,19 @@ final class WorkoutTransition extends NativeComponent
 
     public string $performanceMessage = 'This step did not record gameplay evidence.';
 
+    public string $coaching = 'Great focus.';
+
+    public string $coachingDetail = '';
+
+    public string $nextPrompt = '';
+
     public int $gamesRemaining = 0;
 
     public float $progress = 0.0;
 
     public string $timeEstimate = '';
 
-    public int $autoTransitionSeconds = 3;
+    public int $autoTransitionSeconds = 4;
 
     public bool $autoTransitionEnabled = true;
 
@@ -49,6 +57,15 @@ final class WorkoutTransition extends NativeComponent
     public bool $reducedMotion = false;
 
     public int $motionDuration = 0;
+
+    public bool $isFinalGame = false;
+
+    public ?int $completedWorkoutId = null;
+
+    /**
+     * @var list<array{label: string, position: int, state: string}>
+     */
+    public array $journeySteps = [];
 
     public function mount(): void
     {
@@ -64,10 +81,7 @@ final class WorkoutTransition extends NativeComponent
 
     public function navigationOptions(): ?NavBarOptions
     {
-        return NavBarOptions::make()
-            ->title('Game Complete')
-            ->subtitle('Take a breath')
-            ->back(false);
+        return NavBarOptions::make()->hidden();
     }
 
     public function tabBarOptions(): ?TabBarOptions
@@ -99,12 +113,34 @@ final class WorkoutTransition extends NativeComponent
 
         $profile = app(ProfileService::class)->current();
         $completedItem = $this->completedItem();
+
+        if ($profile === null || $completedItem === null) {
+            $this->screenState = 'error';
+
+            return;
+        }
+
+        if ($this->isFinalGame) {
+            if ($this->completedWorkoutId === null) {
+                $this->screenState = 'error';
+
+                return;
+            }
+
+            $this->isTransitioning = true;
+            $this->replace(
+                $this->route('native.workout.complete', ['workout' => $this->completedWorkoutId]),
+            )->transition($this->screenTransition());
+
+            return;
+        }
+
         $nextItem = $completedItem?->workout->items->first(
             fn ($item): bool => $item->position > $completedItem->position
                 && $item->status !== WorkoutStatus::Completed,
         );
 
-        if ($profile === null || $completedItem === null || $nextItem === null) {
+        if ($nextItem === null) {
             $this->screenState = 'error';
 
             return;
@@ -147,32 +183,43 @@ final class WorkoutTransition extends NativeComponent
                     && $item->status !== WorkoutStatus::Completed,
             );
 
-            if ($nextItem === null) {
-                $completedWorkout = app(WorkoutService::class)->complete($workout);
-                $this->replace(
-                    $this->route('native.workout.complete', ['workout' => $completedWorkout->getKey()]),
-                )->transition(Transition::None);
-
-                return;
-            }
-
             $settings = app(SettingsService::class)->forProfile($profile);
+            $experience = app(WorkoutExperienceService::class);
+            $summary = $experience->transitionSummary($completedItem);
             $this->previousGame = $completedItem->game->name;
-            $this->nextGame = $nextItem->game->name;
-            $this->performanceMessage = $this->performanceFor($completedItem);
+            $this->isFinalGame = $nextItem === null;
+            $this->nextGame = $nextItem?->game->name ?? 'Workout celebration';
+            $this->coaching = $summary['coaching'];
+            $this->coachingDetail = $summary['detail'];
+            $this->performanceMessage = $summary['performance'];
+            $this->nextPrompt = $summary['next_prompt'];
             $this->gamesRemaining = $workout->items
                 ->where('status', '!=', WorkoutStatus::Completed)
                 ->count();
             $this->progress = $workout->items->isEmpty()
                 ? 0.0
                 : round($workout->items->where('status', WorkoutStatus::Completed)->count() / $workout->items->count(), 3);
-            $this->timeEstimate = 'About '.app(WorkoutService::class)->estimatedGameDurationMinutes($nextItem->level).' min remaining';
+            $this->timeEstimate = $nextItem === null
+                ? 'Daily sequence complete'
+                : 'About '.app(WorkoutService::class)->estimatedGameDurationMinutes($nextItem->level).' min remaining';
+            $this->journeySteps = $experience->journey($workout, $nextItem?->getKey());
+
+            if ($this->isFinalGame) {
+                $wasCompleted = $workout->status === WorkoutStatus::Completed;
+                $completedWorkout = app(WorkoutService::class)->complete($workout);
+                $this->completedWorkoutId = $completedWorkout->getKey();
+
+                if (! $wasCompleted) {
+                    app(HapticService::class)->trigger(HapticFeedback::Success);
+                }
+            }
+
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
                 : DesignTokens::motionDuration(MotionToken::Normal);
             $this->autoTransitionEnabled = ! $this->reducedMotion;
-            $this->autoTransitionSeconds = $this->autoTransitionEnabled ? 3 : 0;
+            $this->autoTransitionSeconds = $this->autoTransitionEnabled ? 4 : 0;
         } catch (Throwable $exception) {
             report($exception);
 
@@ -207,24 +254,6 @@ final class WorkoutTransition extends NativeComponent
 
     private function screenTransition(): Transition
     {
-        return $this->reducedMotion ? Transition::None : Transition::Fade;
-    }
-
-    private function performanceFor(DailyWorkoutItem $completedItem): string
-    {
-        $session = $completedItem->sessions
-            ->where('status', SessionStatus::Completed)
-            ->sortByDesc('completed_at')
-            ->first();
-
-        if ($session === null || $session->isFrameworkPlaceholder()) {
-            return 'No gameplay score was recorded for this framework placeholder.';
-        }
-
-        $accuracy = $session->accuracy === null
-            ? 'accuracy unavailable'
-            : rtrim(rtrim(number_format($session->accuracy, 1), '0'), '.').'% accuracy';
-
-        return number_format($session->score ?? 0).' points · '.$accuracy.' · best combo '.$session->best_combo.'.';
+        return $this->reducedMotion ? Transition::None : Transition::FadeFromBottom;
     }
 }

@@ -22,11 +22,11 @@
 @endphp
 
 <native:column
-    class="{{ $hero ? 'h-40' : 'w-16 h-16' }} items-center justify-center rounded-3xl bg-theme-primary-surface"
+    class="{{ $hero ? 'h-40' : 'w-16 h-16' }} items-center justify-center rounded-2xl bg-theme-primary-surface"
     :animate-duration="$motionDuration"
     animate-easing="ease-out"
 >
-    <native:column class="{{ $hero ? 'w-24 h-24' : 'w-12 h-12' }} items-center justify-center rounded-full border border-theme-border bg-theme-surface-elevated">
+    <native:column class="{{ $hero ? 'w-24 h-24' : 'w-12 h-12' }} items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
         <x-native.icon
             :ios="$ios"
             :android="$android"

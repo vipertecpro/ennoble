@@ -92,6 +92,23 @@ final class ProgressService
     }
 
     /**
+     * Return the latest evidence-backed snapshot for each trained skill, strongest first.
+     *
+     * @return Collection<int, ProgressSnapshot>
+     */
+    public function latestSnapshots(Profile $profile): Collection
+    {
+        return ProgressSnapshot::query()
+            ->whereBelongsTo($profile)
+            ->latest('recorded_at')
+            ->latest('id')
+            ->get()
+            ->unique(fn (ProgressSnapshot $snapshot): string => $snapshot->skill_key->value)
+            ->sortByDesc('score_after')
+            ->values();
+    }
+
+    /**
      * Retrieve recent history for a single trained skill.
      *
      * @return Collection<int, ProgressSnapshot>

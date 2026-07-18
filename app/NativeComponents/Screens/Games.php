@@ -46,60 +46,6 @@ final class Games extends NativeComponent
         'speed' => 'Speed',
     ];
 
-    /**
-     * @var array<string, array{
-     *     title: string,
-     *     category: string,
-     *     categories: list<string>,
-     *     duration: string,
-     *     description: string
-     * }>
-     */
-    private const COMING_SOON = [
-        'memory-path' => [
-            'title' => 'Memory Path',
-            'category' => 'Memory',
-            'categories' => ['memory'],
-            'duration' => 'About 4 min',
-            'description' => 'Recall ordered visual journeys with calm, deliberate pacing.',
-        ],
-        'pattern-pulse' => [
-            'title' => 'Pattern Pulse',
-            'category' => 'Logic',
-            'categories' => ['logic'],
-            'duration' => 'About 4 min',
-            'description' => 'Recognize changing sequences and relationships before they shift.',
-        ],
-        'word-forge' => [
-            'title' => 'Word Forge',
-            'category' => 'Language',
-            'categories' => ['language'],
-            'duration' => 'About 5 min',
-            'description' => 'Build precise language from compact, carefully shaped prompts.',
-        ],
-        'quick-read' => [
-            'title' => 'Quick Read',
-            'category' => 'Language',
-            'categories' => ['language', 'speed'],
-            'duration' => 'About 4 min',
-            'description' => 'Read efficiently while protecting comprehension and recall.',
-        ],
-        'number-sense' => [
-            'title' => 'Number Sense',
-            'category' => 'Logic',
-            'categories' => ['logic'],
-            'duration' => 'About 4 min',
-            'description' => 'Estimate, compare, and reason with everyday quantities.',
-        ],
-        'reaction-pulse' => [
-            'title' => 'Reaction Pulse',
-            'category' => 'Speed',
-            'categories' => ['speed', 'focus'],
-            'duration' => 'About 3 min',
-            'description' => 'Respond to precise signals while keeping impulsive taps in check.',
-        ],
-    ];
-
     public string $libraryState = 'content';
 
     public string $libraryError = 'Your games library could not be loaded. Please try again.';
@@ -128,16 +74,6 @@ final class Games extends NativeComponent
     public array $filteredPlayableGames = [];
 
     /**
-     * @var list<array<string, mixed>>
-     */
-    public array $comingSoonGames = [];
-
-    /**
-     * @var list<array<string, mixed>>
-     */
-    public array $filteredComingSoonGames = [];
-
-    /**
      * @var array<string, mixed>|null
      */
     public ?array $featuredGame = null;
@@ -147,14 +83,6 @@ final class Games extends NativeComponent
     public string $emptyTitle = 'No games found';
 
     public string $emptyDescription = 'Try another category to discover more training experiences.';
-
-    public string $comingSoonTitle = '';
-
-    public string $comingSoonCategory = '';
-
-    public string $comingSoonDuration = '';
-
-    public string $comingSoonDescription = '';
 
     public bool $reducedMotion = false;
 
@@ -182,13 +110,6 @@ final class Games extends NativeComponent
 
         $this->categories = collect(self::CATEGORIES)
             ->map(fn (string $label, string $key): array => compact('key', 'label'))
-            ->values()
-            ->all();
-        $this->comingSoonGames = collect(self::COMING_SOON)
-            ->map(fn (array $game, string $slug): array => [
-                'slug' => $slug,
-                ...$game,
-            ])
             ->values()
             ->all();
 
@@ -251,7 +172,7 @@ final class Games extends NativeComponent
     }
 
     /**
-     * Open the existing honest workout/game-flow placeholder.
+     * Open today's workout flow from a playable game entry.
      */
     public function openGame(string $slug): void
     {
@@ -266,26 +187,6 @@ final class Games extends NativeComponent
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
         }
-    }
-
-    /**
-     * Present local information for an unavailable future game.
-     */
-    public function showComingSoon(string $slug): void
-    {
-        $game = self::COMING_SOON[$slug] ?? null;
-
-        if ($game === null) {
-            return;
-        }
-
-        $this->comingSoonTitle = $game['title'];
-        $this->comingSoonCategory = $game['category'];
-        $this->comingSoonDuration = $game['duration'];
-        $this->comingSoonDescription = $game['description'];
-        $this->bottomSheetVisible = true;
-
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
     }
 
     /**
@@ -426,10 +327,6 @@ final class Games extends NativeComponent
             ->filter(fn (array $game): bool => $this->matchesFilters($game))
             ->values()
             ->all();
-        $this->filteredComingSoonGames = collect($this->comingSoonGames)
-            ->filter(fn (array $game): bool => $this->matchesFilters($game))
-            ->values()
-            ->all();
         $this->featuredVisible = $this->featuredGame !== null
             && $this->matchesFilters($this->featuredGame);
 
@@ -481,8 +378,7 @@ final class Games extends NativeComponent
 
     private function hasFilteredResults(): bool
     {
-        return $this->filteredPlayableGames !== []
-            || $this->filteredComingSoonGames !== [];
+        return $this->filteredPlayableGames !== [];
     }
 
     /**

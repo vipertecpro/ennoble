@@ -7,7 +7,7 @@
 ])
 
 <native:column class="h-full w-full items-center justify-center gap-8 bg-theme-background px-6">
-    <native:text class="text-xs font-semibold text-theme-accent">
+    <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">
         ROUND {{ $round }} OF {{ $totalRounds }}
     </native:text>
 
@@ -30,7 +30,7 @@
     </native:stack>
 
     <native:column class="w-72 items-center gap-2">
-        <native:text class="text-xs font-semibold text-theme-muted-text">CURRENT RULE</native:text>
-        <native:text class="text-center text-xl font-semibold leading-tight text-theme-primary-text">{{ $rule }}</native:text>
+        <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">CURRENT RULE</native:text>
+        <native:text class="text-center text-[17] font-semibold leading-tight text-theme-primary-text">{{ $rule }}</native:text>
     </native:column>
 </native:column>

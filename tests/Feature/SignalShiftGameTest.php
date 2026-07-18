@@ -15,9 +15,9 @@ use App\Models\Profile;
 use App\Models\ProgressSnapshot;
 use App\Models\Setting;
 use App\Models\Statistic;
+use App\NativeComponents\Screens\ClearThoughtGame;
 use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\WorkoutComplete;
-use App\NativeComponents\Screens\WorkoutGameContainer;
 use App\NativeComponents\Screens\WorkoutPreparation;
 use App\NativeComponents\Screens\WorkoutTransition;
 use Carbon\CarbonImmutable;
@@ -240,7 +240,7 @@ test('correct taps complete three rounds and update local evidence systems', fun
         ->assertScreen(WorkoutTransition::class)
         ->assertSee(number_format($session->score).' points')
         ->assertSee('100% accuracy')
-        ->assertSee('best combo 8')
+        ->assertSee('x8 focus chain')
         ->assertAccessible();
 });
 
@@ -416,7 +416,7 @@ test('completed Signal Shift sessions make later tutorials optional', function (
         ->assertAccessible();
 });
 
-test('the mixed workout completes with Signal Shift evidence and an honest Clear Thought placeholder', function () {
+test('the full workout completes with real Signal Shift and Clear Thought evidence', function () {
     $session = preparedSignalShiftSession($this->profile);
     $signalGame = finishSignalShiftPerfectly(
         Native::visit('/workout/game/signal-shift/'.$session->getKey()),
@@ -424,53 +424,72 @@ test('the mixed workout completes with Signal Shift evidence and an honest Clear
     $transition = $signalGame
         ->tap('Continue Workout')
         ->follow()
-        ->tap('Continue');
+        ->tap('Start next now');
     $clearSession = GameSession::query()
         ->whereBelongsTo($this->profile)
         ->whereKeyNot($session->getKey())
         ->firstOrFail();
 
-    expect($clearSession->isFrameworkPlaceholder())->toBeTrue();
+    expect($clearSession->isFrameworkPlaceholder())->toBeFalse();
 
     $preparation = $transition
         ->assertReplacedWith('/workout/preparation/'.$clearSession->getKey())
         ->follow()
         ->assertScreen(WorkoutPreparation::class)
         ->assertSee('Game 2 of 2')
-        ->tap('Start Now')
-        ->assertReplacedWith('/workout/game/'.$clearSession->getKey());
+        ->tap('Enter Clear Thought')
+        ->assertReplacedWith('/workout/game/clear-thought/'.$clearSession->getKey());
     $workout = DailyWorkout::query()->whereBelongsTo($this->profile)->firstOrFail();
-    $completion = $preparation
+    $clearGame = finishClearThoughtPerfectly(
+        $preparation->follow()->assertScreen(ClearThoughtGame::class),
+    );
+    $finalTransition = $clearGame
+        ->assertSee('Clarity held.')
+        ->tap('Continue Workout')
+        ->assertReplacedWith('/workout/transition/'.$clearSession->daily_workout_item_id)
         ->follow()
-        ->assertScreen(WorkoutGameContainer::class)
-        ->assertSee('FRAMEWORK PLACEHOLDER')
-        ->firePoll('tickTimer')
-        ->tap('Complete Placeholder')
+        ->assertScreen(WorkoutTransition::class)
+        ->assertSee('Excellent control.')
+        ->assertSee('100% accuracy')
+        ->assertDontSee('no score recorded')
+        ->assertSee('Workout celebration')
+        ->tap('See results now');
+
+    $completion = $finalTransition
         ->assertReplacedWith('/workout/complete/'.$workout->getKey())
         ->follow()
         ->assertScreen(WorkoutComplete::class)
-        ->assertSee('Signal Shift evidence updated your local skill progress')
-        ->assertSee('100%')
+        ->assertSee('Workout complete.')
+        ->assertSee('Excellent control today.')
+        ->assertSee('See today’s progress')
         ->assertAccessible();
 
     $workout->refresh();
+    $clearSession->refresh();
 
     expect($workout->status)->toBe(WorkoutStatus::Completed)
         ->and(data_get($workout->summary, 'has_gameplay_evidence'))->toBeTrue()
-        ->and(data_get($workout->summary, 'score'))->toBe($session->fresh()->score)
+        ->and(data_get($workout->summary, 'sessions_completed'))->toBe(2)
+        ->and(data_get($workout->summary, 'score'))
+        ->toBe($session->fresh()->score + $clearSession->score)
         ->and(data_get($workout->summary, 'accuracy'))->toEqual(100.0)
-        ->and($clearSession->fresh()->score)->toBeNull()
-        ->and($clearSession->fresh()->statistics_recorded_at)->toBeNull()
+        ->and($clearSession->score)->toBeGreaterThan(0)
+        ->and($clearSession->statistics_recorded_at)->not->toBeNull()
         ->and(Statistic::query()
             ->whereBelongsTo($this->profile)
             ->where('scope_key', 'game:clear_thought')
-            ->doesntExist())->toBeTrue()
+            ->exists())->toBeTrue()
         ->and(AchievementUnlock::query()
             ->whereBelongsTo($this->profile)
             ->whereHas('achievement', fn ($query) => $query->where('slug', 'first-step'))
             ->exists())->toBeTrue();
 
-    $completion->tap('Continue to Home')->assertReplacedWith('/');
+    $completion
+        ->tap('See today’s progress')
+        ->assertSee('Today’s progress')
+        ->assertSee('BEST MOMENT')
+        ->tap('Return home')
+        ->assertReplacedWith('/');
 });
 
 test('invalid Signal Shift checkpoints present an accessible recovery state', function () {

@@ -13,10 +13,10 @@
 <native:column
     class="h-full items-center justify-center"
     :gap="DesignTokens::COMPONENT_SPACING"
-    :padding="[DesignTokens::SPACING['4xl'], DesignTokens::SCREEN_PADDING]"
+    :padding="[DesignTokens::SPACING['2xl'], DesignTokens::SCREEN_PADDING]"
 >
     @if ($showIllustration)
-        <native:column class="w-20 h-20 items-center justify-center rounded-3xl border border-theme-border bg-theme-secondary-surface">
+        <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-secondary-surface">
             <x-native.icon
                 :ios="Ios::ExclamationmarkTriangle"
                 :android="AndroidOutlined::ErrorOutline"
@@ -25,8 +25,8 @@
             />
         </native:column>
     @endif
-    <native:text class="text-2xl font-semibold text-center text-theme-primary-text">{{ $title }}</native:text>
-    <native:text class="text-base leading-relaxed text-center text-theme-secondary-text">{{ $description }}</native:text>
+    <native:text class="text-[22] font-semibold tracking-tight text-center text-theme-primary-text">{{ $title }}</native:text>
+    <native:text class="text-[17] leading-relaxed text-center text-theme-secondary-text">{{ $description }}</native:text>
     @if ($retryLabel && $retryMethod)
         <native:button
             class="w-44"

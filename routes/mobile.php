@@ -1,6 +1,7 @@
 <?php
 
 use App\NativeComponents\Screens\About;
+use App\NativeComponents\Screens\ClearThoughtGame;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Onboarding;
@@ -10,7 +11,6 @@ use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
 use App\NativeComponents\Screens\WorkoutComplete;
-use App\NativeComponents\Screens\WorkoutGameContainer;
 use App\NativeComponents\Screens\WorkoutIntroduction;
 use App\NativeComponents\Screens\WorkoutPreparation;
 use App\NativeComponents\Screens\WorkoutTransition;
@@ -29,10 +29,10 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/workout', WorkoutIntroduction::class)->name('native.workout');
     Route::native('/workout/preparation/{session}', WorkoutPreparation::class)
         ->name('native.workout.preparation');
-    Route::native('/workout/game/{session}', WorkoutGameContainer::class)
-        ->name('native.workout.game');
     Route::native('/workout/game/signal-shift/{session}', SignalShiftGame::class)
         ->name('native.workout.signal-shift');
+    Route::native('/workout/game/clear-thought/{session}', ClearThoughtGame::class)
+        ->name('native.workout.clear-thought');
     Route::native('/workout/transition/{item}', WorkoutTransition::class)
         ->name('native.workout.transition');
     Route::native('/workout/complete/{workout}', WorkoutComplete::class)

@@ -117,22 +117,26 @@ Preferences apply locally and immediately where the installed NativePHP APIs per
 3. Starting an item creates or resumes a game session.
 4. Preparation, elapsed time, paused state, Signal Shift rules, waves, timer, lives, combo, score, and round evidence write transactional checkpoints.
 5. A real game completion finalizes evidence-backed results. A framework-placeholder completion advances the item without creating round evidence or gameplay metrics.
-6. Completing both items finalizes the workout and shows the summary. Statistics, skill progress, streak aggregates, and achievements update only when gameplay evidence exists.
-7. Reopening an incomplete workout resumes from the latest committed state.
+6. Completing every configured item finalizes the workout and opens a celebration before any analytical summary. Statistics, skill progress, streak aggregates, and achievements update only when gameplay evidence exists.
+7. Today’s Progress then shows only changes attributable to persisted evidence: positive skill deltas, a best moment, streak state, and a newly unlocked achievement when present.
+8. Returning Home immediately reflects completion and the new streak/achievement state.
+9. Reopening an incomplete workout resumes from the latest committed state. If one game finished but the next has not started, its between-game coaching moment is restored before preparation continues.
 
 Changing the device clock must not silently duplicate a workout for the same stored local date. Exact anti-tampering policy is deferred; v1 should remain deterministic and avoid punitive behavior.
 
 ## Workout Session Experience
 
-The workout runs as five reusable native phases:
+The workout runs as one continuous native journey:
 
 1. Introduction with ordered games, included skills, estimated duration, difficulty, motivation, and Begin or Resume action.
-2. Preparation with game-specific guidance, a three-second countdown, an immediate Start action, and Reduced Motion support.
+2. Preparation with one short coaching cue, a breath-focused three-second countdown, an immediate Start action, and Reduced Motion support.
 3. Game runner. Signal Shift presents instructions, an optional first-play tutorial, three rule-shifting rounds, pause/resume, restart, failure recovery, and evidence-backed results. Clear Thought uses the honest placeholder container until its dedicated prompt.
-4. Between-game transition with truthful completed-game evidence, upcoming game context, progress, manual Continue, and a short automatic transition that is disabled when Reduced Motion is enabled.
-5. Completion with total time, completed games, included skills, and only the gameplay metrics that were actually recorded.
+4. Between-game celebration with truthful completed-game coaching, a compact performance moment, upcoming skill context, manual continuation, and a four-second automatic transition that is disabled when Reduced Motion is enabled.
+5. Final-game celebration using the same evidence boundary before the daily completion state.
+6. Workout celebration with one coaching message and the best meaningful moment; detailed metrics do not lead the screen.
+7. Today’s Progress with positive skill changes, best moment, streak, and any achievement, followed by Return Home.
 
-All phases hide tab chrome, use native replace navigation, apply preference-gated haptics, expose recoverable error states, and persist locally. Exiting preserves the latest checkpoint. Restarting Signal Shift clears only that unfinished attempt; restarting a placeholder clears only its own non-evidentiary state. The flow remains fully offline.
+All phases hide tab chrome, use native replace navigation, apply preference-gated haptics, expose recoverable error states, and persist locally. A compact ordered rhythm indicator scales with future game counts without fixed-width progress bars. Exiting preserves the latest checkpoint. Restarting Signal Shift clears only that unfinished attempt; restarting a placeholder clears only its own non-evidentiary state. The flow remains fully offline.
 
 ## Signal Shift
 

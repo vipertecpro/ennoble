@@ -20,6 +20,13 @@ use LogicException;
 final class StatisticsService
 {
     /**
+     * Upper bound for one session's counted training time, matching the
+     * checkpoint bound in GameSessionService so abandoned-and-resumed
+     * sessions cannot inflate lifetime totals.
+     */
+    private const int MAX_SESSION_TRAINING_SECONDS = 21600;
+
+    /**
      * Calculate a percentage, preserving unavailable data as null.
      */
     public function calculateAccuracy(int $correctCount, int $attemptedCount): ?float
@@ -161,14 +168,18 @@ final class StatisticsService
         $rounds = $evidenceSessions->flatMap->rounds;
         $trainingSeconds = (int) $sessions->sum(function (GameSession $session): int {
             if ($session->isFrameworkPlaceholder()) {
-                return max(0, (int) data_get($session->state_snapshot, 'elapsed_seconds', 0));
+                return $this->boundedTrainingSeconds(
+                    (int) data_get($session->state_snapshot, 'elapsed_seconds', 0),
+                );
             }
 
             if ($session->completed_at === null) {
                 return 0;
             }
 
-            return max(0, (int) $session->started_at->diffInSeconds($session->completed_at));
+            return $this->boundedTrainingSeconds(
+                (int) $session->started_at->diffInSeconds($session->completed_at),
+            );
         });
 
         return [
@@ -414,6 +425,20 @@ final class StatisticsService
             $previous = $date;
         }
 
+        $yesterday = date_create_immutable(today()->subDay()->toDateString());
+
+        if ($previous !== null && $yesterday !== false && $previous < $yesterday) {
+            $current = 0;
+        }
+
         return [$current, $longest];
+    }
+
+    /**
+     * Clamp a session duration into the trustworthy training-time range.
+     */
+    private function boundedTrainingSeconds(int $seconds): int
+    {
+        return min(self::MAX_SESSION_TRAINING_SECONDS, max(0, $seconds));
     }
 }

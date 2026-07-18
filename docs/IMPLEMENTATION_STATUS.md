@@ -21,8 +21,8 @@ Audit date: 2026-07-18
 | NativePHP Mobile | `dev-element` at `c959c20f27c4430ad6d74e586c6b1bd0b5bbb59d` |
 | Native UI | Frozen project path mirror of `dev-feat/webview-element`, upstream base `ce3d8b760c89dd08e14baad8b05afd82494d3c46`, with documented iOS 18.2 fix |
 | Plugin registration | Native UI remains the sole allowlisted plugin |
-| Native components/routes | Fourteen NativeComponents/routes, including the dedicated Signal Shift runner |
-| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, workout-session framework, and production Signal Shift UI; no external media assets |
+| Native components/routes | Fifteen NativeComponents/routes, including dedicated Signal Shift and Clear Thought runners |
+| Product UI/assets | Reusable shell, native onboarding, state-aware Home dashboard, curated Games library, workout-session framework, production Signal Shift UI, and full Progress, Profile, Settings, and About experiences; no external media assets |
 | Static analysis | Not configured |
 
 ## Prompt QA-1 — iOS Simulator Validation
@@ -510,9 +510,9 @@ These are PHP/database and NativePHP in-process component tests. They do not cla
 | Games library UI | iOS visually verified | Search, two-row filters, featured content, future cards, scrolling geometry, and sheet reviewed |
 | Workout session framework | iOS visually verified | Introduction, countdown, both placeholders, pause, transition, completion, and return journey reviewed |
 | Signal Shift gameplay | iOS Simulator verified | Premium fixed play field, countdown, transient feedback, scalable results, persistence, and repeated play verified; physical-device, Android, and sound playback remain |
-| Clear Thought gameplay/content | Not started | Validator/scoring/schema foundation only |
-| Progress UI | Not started | Aggregate services are ready |
-| Profile/settings UI | Not started | Persistence services are ready |
+| Clear Thought gameplay/content | Complete; needs device verification | Three interaction modes, 24 bundled original challenges, full runner, and workout integration with in-process coverage |
+| Progress UI | Complete; needs device verification | Evidence-backed rhythm hero, skill profile, training summary, personal bests, and achievements list with in-process coverage |
+| Profile/settings UI | Complete; needs device verification | Identity hero, editable local details, instant-persisting Settings controls, and the About identity screen with in-process coverage |
 | Accessibility UI/device evidence | In progress | In-process audits, Accessibility Inspector, large Dynamic Type, Reduced Motion, labeled targets, and iOS reading order pass; physical VoiceOver and Android TalkBack remain |
 | Complete QA | In progress | Prompt Design-2 and Game-UX-1 iOS Simulator visual QA are complete; physical-device and Android evidence remain release work |
 | Release readiness | Blocked | Complete product implementation and device evidence do not exist |
@@ -603,3 +603,71 @@ Prompt Design-2 rebuilt the presentation layer around a warm-neutral and restrai
 - Ten updated screenshots are stored under `docs/screenshots/ios/`.
 
 No domain, persistence, gameplay, cloud, authentication, notification, advertising, subscription, frozen Native UI mirror, or generated native source behavior was changed.
+
+## Prompt 9 — Daily Workout Experience
+
+**Status: continuous native journey implemented and reviewed on the iPhone 17 simulator; Android and physical-device evidence remain release work.**
+
+Prompt 9 replaces the dashboard-like workout wrapper with one connected sequence:
+
+- `WorkoutProgress` is now an ordered, collection-driven rhythm rather than a top percentage bar.
+- Preparation uses a short focus cue and countdown before each game.
+- Every completed game passes through `WorkoutTransition`, including the final Clear Thought placeholder. Signal Shift receives evidence-backed coaching and compact metrics; the placeholder explicitly records no score.
+- Four-second automatic continuation keeps normal motion flowing. Reduced Motion removes authored duration and automatic advancement, leaving an intentional manual action.
+- `WorkoutComplete` separates celebration from Today’s Progress. Celebration leads with coaching and the best meaningful moment; Today’s Progress limits itself to persisted skill deltas, best moment, streak, and any linked achievement.
+- Returning Home displays a verified completion card before the normal dashboard and immediately reflects 100% completion and streak state.
+- Resume restores a completed game’s transition when the next session has not started, preserving the between-game moment across process interruption.
+- `WorkoutExperienceService` centralizes evidence-backed presentation summaries, and `WorkoutService::complete()` no longer requires exactly two items.
+
+Automated Prompt 9 coverage includes scalable journey states, real and placeholder coaching, evidence-only completion summaries, reduced-motion continuation, final-game celebration, Today’s Progress, Home return state, resume across the between-game boundary, and variable-size completion.
+
+### Prompt 9 iOS Simulator evidence
+
+- Device: iPhone 17 simulator, iOS 26.5.
+- Exercised: fresh workout entry, preparation, Signal Shift introduction/countdown/active play, failure and replay, persisted between-game recovery, automatic Clear Thought entry, truthful placeholder completion, final-game celebration, Workout Complete, Today’s Progress, Return Home, and immediate dashboard refresh.
+- Data discipline: a reversible simulator database copy exposed the journey; downstream coaching used previously persisted real Signal Shift evidence, and the original database was restored afterward.
+- Seven screenshots are stored under `docs/screenshots/ios/workout-v2/`.
+- The source was hot-reloaded into an already-running user-started iOS session. No new `native:run`, `native:watch`, `native:open`, or `native:install` command was executed by the agent, so this pass is not claimed as a fresh native build.
+
+Final automated evidence: `composer validate --strict`; 151 Pest tests with 2,442 assertions; Pint on the complete dirty PHP set; all NativeComponent validation; Native UI plugin validation for Android 26 and iOS 18.2; registered-plugin inspection; and `git diff --check`. No static-analysis script is configured in Composer.
+
+Remaining Prompt 10 boundary: Clear Thought gameplay/content is still not implemented. The main Progress screen, Achievements screen, authentication, notifications, cloud services, advertising, and subscriptions remain untouched. Physical VoiceOver, Android TalkBack, device haptics, and a fresh user-executed native build remain required release evidence.
+
+## Prompt 10 — Progress, Profile, Settings, and About Experiences
+
+**Status: implemented with in-process coverage; iOS Simulator visual review in progress via user-run watch mode; physical-device and Android evidence remain release work.**
+
+Prompt 10 replaces the last four placeholder screens with complete native experiences built entirely from the existing domain services, semantic tokens, typed icons, and shared component language:
+
+- **Progress** is the evidence home: an editorial heading, a pale-teal Training Rhythm hero (current streak, longest streak, last-seven-days markers), a skill profile with bounded scores and latest evidence-backed deltas, a training summary metric grid (workouts, sessions, time trained, accuracy, average response, best combo), per-game personal-best cards, and the full achievements list with unlocked dates, honest locked states, and an unlocked-count eyebrow. Sections load, fail, and retry independently.
+- **Profile** presents the local identity: monogram or person-symbol hero with the display name, training-since date, and focus · pace summary; a practice snapshot; one editable Your Details card (optional display name, training focus, pace) persisting through `ProfileService::createOrUpdate` with a single restrained action that appears only when something changed; and grouped navigation rows to Settings and About.
+- **Settings** exposes the persisted preferences: Appearance (System, Light, Dark) applying semantic palettes immediately, and Sound, Haptics, and Reduce Motion toggles persisting instantly through `SettingsService::save` while preserving untouched reminder and accessibility values. Failures surface the shared error toast and reload persisted values.
+- **About** states the product identity: geometric brand moment, tagline, three principle rows (offline by design, private by default, evidence over estimates), and the bundled version label.
+
+Read-only presentation methods were added to existing services without duplicating any service: `ProgressService::latestSnapshots()` (latest evidence-backed snapshot per skill, strongest first) and `AchievementService::overview()` (active definitions with profile-scoped unlock evidence). No migration, new persistence, remote dependency, notification, authentication, or frozen-mirror change was introduced. The daily reminder preference remains persisted but intentionally has no Settings control until a reviewed local notification capability exists.
+
+Prompt 10 coverage includes first-time empty evidence states, returning-user rhythm/skills/training/personal-best/achievement evidence, training-time and response-time formatting boundaries, onboarding guards, reduced-motion durations, profile editing with validation and forged-value rejection, instant settings persistence with token repaint assertions, preservation of untouched preference fields, About identity content, and conditional-state accessibility audits.
+
+Final automated evidence: 171 Pest tests with 2,753 assertions; Pint on the complete dirty set; all fourteen NativeComponent validations; `git status` clean of unintended changes. The screen inventory now contains no placeholder destinations; `PlaceholderScreen` remains only as Splash's base.
+
+
+## Prompt 11 — Clear Thought Gameplay
+
+**Status: implemented with in-process coverage; iOS Simulator visual review in progress via user-run watch mode; physical-device and Android evidence remain release work.**
+
+Clear Thought now runs as a real offline native game through `/workout/game/clear-thought/{session}`, replacing the framework placeholder in the daily workout:
+
+- Three original interaction modes: Remove the Noise (tap unnecessary words), Rebuild the Order (tap segments into a natural sentence), and Choose the Clearest (pick the best version).
+- 24 bundled original challenges — eight per Beginner/Intermediate/Advanced level — seeded idempotently through a dedicated migration, each with a prompt, payload, accepted answers, a clear-form answer, an explanation, and a hint.
+- Deterministic, rotation-based challenge selection gives later sessions different sentences without randomness.
+- Attempts follow the bundled level configuration (`max_attempts`); a non-final wrong attempt allows a calm retry, and a final wrong answer shows the clear form with its explanation.
+- Hints are optional, persist as `hint_used`, and reduce the round score through the existing Clear Thought scoring service.
+- Every answer records authoritative round evidence (outcome, response time, attempts, mode, selection) through `GameSessionService::recordRound`; completion flows through the existing scoring, progress, statistics, and achievement pipeline.
+- The runner mirrors Signal Shift's presentation standard: instructions with an original geometric hero, an untimed distraction-free challenge composition, a reflection moment after every sentence, a celebration-first result, checkpointed pause/exit/resume, Reduced Motion support, and full accessibility labels.
+- `WorkoutPreparation` now routes both games to their real runners; transitions and completion consume genuine Clear Thought coaching and metrics. The framework-placeholder machinery remains only for legacy in-progress sessions and tests.
+
+`ClearThoughtGameService` wraps the existing session lifecycle without duplicating services; `ClearThoughtScoringService`, `ClearThoughtAnswerValidator`, schema, and frozen infrastructure are unchanged.
+
+Prompt 11 coverage includes bundled-content completeness per level, evidence-free instructions, a perfect six-round session with progress/statistics/achievement effects, retryable and exhausted attempts with honest incorrect rounds, persisted hints, mid-round checkpoint resume with restored selections, foreign/unprepared/completed session guards, reduced-motion durations, deterministic rotation, and the full two-real-game workout journey.
+
+Final automated evidence: 180 Pest tests with 3,112 assertions; Pint on the complete dirty set; all fifteen NativeComponent validations; Native UI plugin validation for Android 26 and iOS 18.2; `composer validate --strict`.

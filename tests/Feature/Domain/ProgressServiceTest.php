@@ -58,3 +58,35 @@ test('session-backed skill evidence is idempotent', function () {
         ->count())->toBe(1)
         ->and($service->currentSkillValues($profile)[SkillKey::Precision->value])->toBe(505);
 });
+
+test('latest snapshots return one evidence-backed row per skill strongest first', function () {
+    $profile = Profile::factory()->create();
+    $service = app(ProgressService::class);
+
+    $service->updateSkillValues($profile, [
+        SkillKey::Focus->value => 12,
+        SkillKey::Speed->value => 300,
+    ]);
+    $service->updateSkillValues($profile, [
+        SkillKey::Focus->value => 88,
+    ]);
+
+    $snapshots = $service->latestSnapshots($profile);
+
+    expect($snapshots)->toHaveCount(2)
+        ->and($snapshots->first()->skill_key)->toBe(SkillKey::Speed)
+        ->and($snapshots->first()->score_after)->toBe(800)
+        ->and($snapshots->last()->skill_key)->toBe(SkillKey::Focus)
+        ->and($snapshots->last()->score_after)->toBe(600)
+        ->and($snapshots->last()->delta)->toBe(88);
+});
+
+test('latest snapshots ignore other profiles', function () {
+    $profile = Profile::factory()->create();
+    $other = Profile::factory()->create(['singleton_key' => 'other-device']);
+    $service = app(ProgressService::class);
+
+    $service->updateSkillValues($other, [SkillKey::Clarity->value => 40]);
+
+    expect($service->latestSnapshots($profile))->toBeEmpty();
+});

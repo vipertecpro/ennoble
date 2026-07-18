@@ -126,3 +126,23 @@ test('an incomplete workout cannot be marked complete', function () {
     expect(fn () => app(WorkoutService::class)->complete($workout))
         ->toThrow(LogicException::class);
 });
+
+test('workout completion does not depend on the current two-item sequence size', function () {
+    $profile = Profile::factory()->create();
+    $service = app(WorkoutService::class);
+    $workout = $service->generateToday(
+        $profile,
+        CarbonImmutable::parse('2026-07-18'),
+    );
+    $workout->items->last()->delete();
+    $workout->items()->update([
+        'status' => WorkoutStatus::Completed,
+        'started_at' => now()->subMinutes(5),
+        'completed_at' => now()->subMinute(),
+    ]);
+
+    $completedWorkout = $service->complete($workout->refresh());
+
+    expect($completedWorkout->status)->toBe(WorkoutStatus::Completed)
+        ->and($completedWorkout->items)->toHaveCount(1);
+});

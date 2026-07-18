@@ -151,10 +151,52 @@ Signal Shift deliberately leaves the standard Workout layout family once play be
 
 The target composition is approximately 5% status, 10% rule, 75% play field, and 10% transient feedback. Tutorial and result states use a single-column scroll boundary for Dynamic Type, keeping the result action reachable even after several preferred-text-size increases. Active play and countdown never scroll.
 
+### Clear Thought Gameplay
+
+Clear Thought is the deliberate counterweight to Signal Shift: untimed, quiet, and text-first.
+
+- Instructions use an original geometric "edited lines" composition, one short premise, and one dominant action.
+- Each round is one sentence problem in one of three modes: remove the noise (word chips), rebuild the order (segment chips into a build area), or choose the clearest (stacked option cards).
+- The round chrome is minimal: a round eyebrow, an icon-only exit control, and a thin per-round marker row (accent for clear, warm for missed, quiet for upcoming).
+- Wrong non-final attempts stay calm — one line of feedback, no board punishment. The final answer always ends in a reflection: the clear form in a pale-teal card, then one editorial explanation.
+- Hints are explicit choices with a stated cost; they never appear uninvited.
+- The result leads with the score moment, then accuracy and response, then clarity count and hint honesty, then the personal-best comparison.
+- Reduced Motion removes authored durations while every mode stays fully playable by taps alone.
+
 ### Fullscreen and Settings
 
 - Splash and state shells use a centered composition inside the same bounded scroll structure as content screens.
-- Settings, About, Profile, and Progress placeholders use the same quiet background, bounded width, concise empty-state language, and large-text-safe vertical scrolling.
+- Settings, About, Profile, and Progress use the same quiet background, bounded width, and large-text-safe vertical scrolling as the primary destinations.
+
+### Progress
+
+- One editorial heading states the screen's promise: evidence, never estimates.
+- A pale-teal Training Rhythm hero leads with the current streak, longest streak, and a last-seven-days marker row.
+- Skill profile lists every trained skill with its bounded score, progress bar, and latest evidence-backed delta.
+- Training summary reuses the shared metric-tile language for workouts, sessions, time, accuracy, response, and combo.
+- Personal bests present one quiet card per game with real completed-session evidence.
+- Achievements list every active definition with unlocked dates or an honest locked state and an unlocked-count eyebrow.
+- Sections load, fail, and retry independently; every empty state names the evidence that would fill it.
+
+### Profile
+
+- A pale-teal identity hero holds the monogram (or person symbol), local display name, training-since date, and focus · pace summary.
+- A compact practice snapshot reuses metric tiles for workouts, streak, and achievements.
+- Your Details is the single editable card: optional display name, training focus, and pace, saved through the existing profile service with one restrained action that appears only when something changed.
+- Settings and About are quiet grouped navigation rows with chevrons.
+
+### Settings
+
+- Grouped preference cards: Appearance (System, Light, Dark) and Feedback & Motion (sound, haptics, Reduce Motion).
+- Every change persists immediately through the settings service; appearance repaints semantic tokens in place.
+- Saving any preference preserves untouched reminder and accessibility values.
+- Closing copy states plainly that preferences never leave the device.
+
+### About
+
+- A centered brand moment: geometric mark, the Ennoble name, and the practice tagline.
+- Three principle rows — offline by design, private by default, evidence over estimates — in one grouped card.
+- The bundled version label and one quiet closing line. No marketing language, no external links.
 
 ### Native Tree Composition Rule
 
@@ -218,6 +260,22 @@ Signal Shift uses motion only to communicate gameplay:
 - Completion: the score focus expands once before settling into readable evidence.
 
 Reduced Motion keeps the same phases, timing meaning, rule copy, static movement-direction markers, feedback text, and evidence. It removes authored translation, looping, scale, and opacity durations.
+
+## Continuous Workout Journey
+
+The daily workout is one calm sequence rather than a stack of dashboard pages:
+
+`Home → Introduction → Preparation → Game → Between-game celebration → Next game → Final-game celebration → Workout celebration → Today’s Progress → Home`
+
+- **Workout identity:** every shared phase uses the compact `WORKOUT RHYTHM` step treatment. Completed steps use a check, the current step uses an outlined number, and future steps remain quiet. The treatment accepts any ordered item count and replaces top-edge percentage bars during the workout.
+- **Preparation:** one headline, one breath-focused countdown, one coaching sentence, and one primary action. Game-specific mechanics stay inside the game introduction.
+- **Between games:** celebrate the completed game first, show one evidence-backed coaching message, keep performance detail secondary, then preview the next skill focus.
+- **Completion hierarchy:** the first completion state is emotional and sparse. `See today’s progress` reveals skill changes, best moment, streak, and any achievement as a separate analytical step.
+- **Return home:** a temporary completion card appears before the normal Today card and immediately reflects the completed workout, current streak, and eligible achievement.
+- **Motion:** normal mode uses the existing 180 ms continuity and 340 ms success durations plus a four-second between-game pause. Reduced Motion resolves authored duration to zero and requires an intentional continue action.
+- **Haptics:** impact begins the workout, success marks preparation/final completion, selection acknowledges Today’s Progress and the placeholder boundary, and all feedback remains preference-gated.
+
+Coaching copy must be short, calm, and derived from persisted evidence. Framework-only steps may celebrate completion but must explicitly say that no score was recorded.
 
 ### Sound Cue Architecture
 

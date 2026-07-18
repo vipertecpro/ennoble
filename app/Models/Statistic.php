@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\StatisticFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,6 +61,27 @@ class Statistic extends Model
     public function scopeOverall(Builder $query): Builder
     {
         return $query->where('scope_key', 'overall');
+    }
+
+    /**
+     * A streak only stays current while its most recent evidence is today or yesterday.
+     *
+     * The stored value is only recalculated when a workout completes, so without
+     * this decay a lapsed streak would keep reporting its last recorded length.
+     */
+    protected function currentStreak(): Attribute
+    {
+        return Attribute::get(function (mixed $value): int {
+            $streak = (int) $value;
+
+            if ($streak === 0 || $this->last_workout_date === null) {
+                return $streak;
+            }
+
+            return $this->last_workout_date->gte(today()->subDay()->startOfDay())
+                ? $streak
+                : 0;
+        });
     }
 
     protected function casts(): array

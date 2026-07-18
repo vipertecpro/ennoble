@@ -21,6 +21,15 @@
         :motion-duration="$motionDuration"
     />
 
+    @if ($celebrateWorkoutReturn)
+        <x-native.workout-return-celebration
+            :message="$workoutReturnMessage"
+            :streak="$workoutReturnStreak"
+            :achievement="$workoutReturnAchievement"
+            :motion-duration="$motionDuration"
+        />
+    @endif
+
     @if ($isWorkoutLoading)
         <x-native.dashboard-loading-card label="Preparing today’s workout" />
     @elseif ($workoutError)
@@ -99,56 +108,6 @@
         />
     @endif
 
-    <x-native.dashboard-section-header
-        title="On the Horizon"
-        eyebrow="COMING SOON"
-    />
-
-    <native:column class="rounded-3xl border border-theme-border bg-theme-surface-elevated">
-        <x-native.dashboard-coming-soon-card
-            experience="memory-path"
-            title="Memory Path"
-            description="Recall ordered visual journeys."
-            :ios="Ios::Point3ConnectedTrianglepathDotted"
-            :android="AndroidOutlined::Route"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-        <native:divider />
-        <x-native.dashboard-coming-soon-card
-            experience="pattern-pulse"
-            title="Pattern Pulse"
-            description="Recognize shifting sequences."
-            :ios="Ios::WaveformPathEcg"
-            :android="AndroidOutlined::Pattern"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-        <native:divider />
-        <x-native.dashboard-coming-soon-card
-            experience="word-forge"
-            title="Word Forge"
-            description="Shape language with precision."
-            :ios="Ios::Textformat"
-            :android="AndroidOutlined::TextFields"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-        <native:divider />
-        <x-native.dashboard-coming-soon-card
-            experience="quick-read"
-            title="Quick Read"
-            description="Build efficient comprehension."
-            :ios="Ios::Book"
-            :android="AndroidOutlined::MenuBook"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-    </native:column>
-    @endif
-
-    @if ($bottomSheetVisible)
-        @include('native.partials.home-coming-soon-sheet')
     @endif
 </native:column>
 </native:row>

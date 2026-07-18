@@ -1,0 +1,192 @@
+<?php
+
+use App\Enums\Difficulty;
+use App\Enums\ThemePreference;
+use App\Enums\TrainingGoal;
+use App\Models\Profile as LocalProfile;
+use App\Models\Setting;
+use App\Models\Statistic;
+use App\NativeComponents\Screens\About;
+use App\NativeComponents\Screens\Profile;
+use App\NativeComponents\Screens\Settings;
+use Carbon\CarbonImmutable;
+use Native\Mobile\Testing\Native;
+use Nativephp\NativeUi\Theme;
+
+beforeEach(function () {
+    CarbonImmutable::setTestNow('2026-07-18 09:30:00');
+
+    $this->profile = LocalProfile::factory()->onboarded()->create([
+        'display_name' => 'Ada',
+        'training_goal' => TrainingGoal::Focus,
+        'difficulty_preference' => Difficulty::Intermediate,
+    ]);
+    Setting::factory()->for($this->profile)->create([
+        'theme_preference' => ThemePreference::System,
+        'sound_enabled' => true,
+        'haptics_enabled' => true,
+        'reduced_motion' => false,
+    ]);
+});
+
+afterEach(function () {
+    CarbonImmutable::setTestNow();
+});
+
+test('the profile screen renders the local identity practice snapshot and details', function () {
+    Statistic::factory()->for($this->profile)->create([
+        'scope_key' => 'overall',
+        'workouts_completed' => 4,
+        'current_streak' => 3,
+    ]);
+
+    Native::visit('/profile')
+        ->assertScreen(Profile::class)
+        ->assertSee('Ada')
+        ->assertSee('Training since')
+        ->assertSee('Improve Focus')
+        ->assertSee('Steady')
+        ->assertSee('Your practice')
+        ->assertSee('Workouts')
+        ->assertSee('Day streak')
+        ->assertSee('0 of 6')
+        ->assertSee('Your details')
+        ->assertSee('Settings')
+        ->assertSee('About Ennoble')
+        ->assertDontSee('Save changes')
+        ->assertAccessible();
+});
+
+test('an empty display name renders the friendly identity fallback', function () {
+    $this->profile->update(['display_name' => '   ']);
+
+    Native::visit('/profile')
+        ->assertSee('Friend')
+        ->assertSet('monogram', '')
+        ->assertAccessible();
+});
+
+test('edited profile details persist through the existing profile service', function () {
+    Native::visit('/profile')
+        ->set('displayName', 'Grace')
+        ->assertSee('Save changes')
+        ->set('trainingGoal', TrainingGoal::MentalSharpness->value)
+        ->set('difficulty', Difficulty::Advanced->value)
+        ->tap('Save changes')
+        ->assertSet('savedDisplayName', 'Grace')
+        ->assertSee('Grace')
+        ->assertSee('Stay Mentally Sharp')
+        ->assertSee('Challenging')
+        ->assertDontSee('Save changes')
+        ->assertAccessible();
+
+    $profile = $this->profile->refresh();
+
+    expect($profile->display_name)->toBe('Grace')
+        ->and($profile->training_goal)->toBe(TrainingGoal::MentalSharpness)
+        ->and($profile->difficulty_preference)->toBe(Difficulty::Advanced);
+});
+
+test('an overlong display name blocks saving with honest supporting copy', function () {
+    Native::visit('/profile')
+        ->set('displayName', str_repeat('a', 41))
+        ->assertSee('Use 40 characters or fewer.')
+        ->tap('Save changes');
+
+    expect($this->profile->refresh()->display_name)->toBe('Ada');
+});
+
+test('forged profile selections revert to the persisted values', function () {
+    Native::visit('/profile')
+        ->set('trainingGoal', 'not-a-goal')
+        ->assertSet('trainingGoal', TrainingGoal::Focus->value)
+        ->set('difficulty', 'impossible')
+        ->assertSet('difficulty', Difficulty::Intermediate->value);
+});
+
+test('an incomplete profile is returned to onboarding before the profile loads', function () {
+    $this->profile->update(['onboarding_completed_at' => null]);
+
+    Native::visit('/profile')
+        ->assertReplacedWith('/onboarding');
+});
+
+test('settings render every persisted preference control', function () {
+    Native::visit('/settings')
+        ->assertScreen(Settings::class)
+        ->assertSee('Appearance')
+        ->assertSee('Use device setting')
+        ->assertSee('Light')
+        ->assertSee('Dark')
+        ->assertSee('Sound')
+        ->assertSee('Haptics')
+        ->assertSee('Reduce motion')
+        ->assertSee('About Ennoble')
+        ->assertSee('Every preference is stored only on this device.')
+        ->assertSet('themePreference', ThemePreference::System->value)
+        ->assertSet('soundEnabled', true)
+        ->assertSet('hapticsEnabled', true)
+        ->assertSet('reducedMotion', false)
+        ->assertAccessible();
+});
+
+test('changing appearance persists and applies the explicit palette immediately', function () {
+    Native::visit('/settings')
+        ->set('themePreference', ThemePreference::Dark->value)
+        ->assertSet('themePreference', ThemePreference::Dark->value);
+
+    $tokens = Theme::all();
+
+    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::Dark)
+        ->and(data_get($tokens, 'light.background'))
+        ->toBe(data_get($tokens, 'dark.background'));
+});
+
+test('a forged appearance value falls back to the device setting', function () {
+    Native::visit('/settings')
+        ->set('themePreference', 'sepia')
+        ->assertSet('themePreference', ThemePreference::System->value);
+
+    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::System);
+});
+
+test('feedback and motion toggles persist atomically', function () {
+    Native::visit('/settings')
+        ->set('soundEnabled', false)
+        ->set('hapticsEnabled', false)
+        ->set('reducedMotion', true)
+        ->assertSet('motionDuration', 0);
+
+    $setting = $this->profile->refresh()->setting;
+
+    expect($setting->sound_enabled)->toBeFalse()
+        ->and($setting->haptics_enabled)->toBeFalse()
+        ->and($setting->reduced_motion)->toBeTrue();
+});
+
+test('saving a preference preserves untouched reminder and accessibility values', function () {
+    Setting::query()->whereBelongsTo($this->profile)->update([
+        'daily_reminder_enabled' => true,
+        'accessibility_preferences' => ['extended_time' => true],
+    ]);
+
+    Native::visit('/settings')
+        ->set('soundEnabled', false);
+
+    $setting = $this->profile->refresh()->setting;
+
+    expect($setting->daily_reminder_enabled)->toBeTrue()
+        ->and($setting->accessibility_preferences)->toBe(['extended_time' => true]);
+});
+
+test('about presents the offline private evidence-first identity', function () {
+    Native::visit('/about')
+        ->assertScreen(About::class)
+        ->assertSee('Ennoble')
+        ->assertSee('A private daily practice for a clearer mind.')
+        ->assertSee('Offline by design')
+        ->assertSee('Private by default')
+        ->assertSee('Evidence over estimates')
+        ->assertSee('Crafted for quiet, focused minds.')
+        ->assertAccessible();
+});

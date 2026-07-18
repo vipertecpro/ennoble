@@ -149,7 +149,7 @@ final class WorkoutService
     }
 
     /**
-     * Complete a two-item workout and update summaries, streaks, and achievements.
+     * Complete a fully finished workout and update summaries, streaks, and achievements.
      */
     public function complete(DailyWorkout $dailyWorkout): DailyWorkout
     {
@@ -159,11 +159,11 @@ final class WorkoutService
                 ->lockForUpdate()
                 ->findOrFail($dailyWorkout->getKey());
 
-            if ($workout->items->count() !== 2
+            if ($workout->items->isEmpty()
                 || ! $workout->items->every(
                     fn ($item): bool => $item->status === WorkoutStatus::Completed,
                 )) {
-                throw new LogicException('A daily workout requires both game items to be completed.');
+                throw new LogicException('Every daily workout item must be completed.');
             }
 
             if ($workout->status !== WorkoutStatus::Completed) {
@@ -186,46 +186,6 @@ final class WorkoutService
                     dailyWorkout: $workout,
                 );
             }
-
-            return $workout->refresh()->load(['items.game', 'items.level', 'items.sessions']);
-        });
-    }
-
-    /**
-     * Reset a framework-only workout while preserving bundled definitions and user evidence.
-     */
-    public function restartPlaceholder(DailyWorkout $dailyWorkout): DailyWorkout
-    {
-        return DB::transaction(function () use ($dailyWorkout): DailyWorkout {
-            $workout = DailyWorkout::query()
-                ->with(['items.sessions'])
-                ->lockForUpdate()
-                ->findOrFail($dailyWorkout->getKey());
-
-            $sessions = $workout->items->flatMap->sessions;
-
-            if ($sessions->contains(fn ($session): bool => ! $session->isFrameworkPlaceholder())) {
-                throw new LogicException('A workout containing gameplay evidence cannot use placeholder restart.');
-            }
-
-            foreach ($workout->items as $item) {
-                $item->sessions()->delete();
-                $item->update([
-                    'status' => WorkoutStatus::Pending,
-                    'started_at' => null,
-                    'completed_at' => null,
-                ]);
-            }
-
-            $workout->update([
-                'status' => WorkoutStatus::Pending,
-                'started_at' => null,
-                'completed_at' => null,
-                'statistics_recorded_at' => null,
-                'training_seconds' => 0,
-                'accuracy' => null,
-                'summary' => null,
-            ]);
 
             return $workout->refresh()->load(['items.game', 'items.level', 'items.sessions']);
         });
