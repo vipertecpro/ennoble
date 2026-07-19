@@ -16,7 +16,7 @@ use LogicException;
  * bundled {@see WordBank}, builds each round's shuffled options, and records
  * authoritative round evidence through the shared {@see GameSessionService}.
  * No content table is used — the chosen entry is stored on each GameRound's
- * `response`, mirroring Signal Shift's rule-engine approach.
+ * `response` as authoritative round evidence.
  */
 final class WordMatchGameService
 {
@@ -49,7 +49,6 @@ final class WordMatchGameService
             ->whereBelongsTo($session->profile)
             ->where('game_id', $session->game_id)
             ->completed()
-            ->withGameplayEvidence()
             ->count();
 
         $ordered = $this->seededOrder($entries, $seed);
@@ -167,7 +166,7 @@ final class WordMatchGameService
     {
         $session->loadMissing(['game', 'level', 'profile']);
 
-        if ($session->game->type !== GameType::WordMatch || $session->isFrameworkPlaceholder()) {
+        if ($session->game->type !== GameType::WordMatch) {
             throw new LogicException('Word Match gameplay requires a real Word Match session.');
         }
     }

@@ -151,7 +151,6 @@ final class DesignTokens
      */
     public const CARD_VARIANTS = [
         'hero' => 'rounded-2xl bg-theme-surface-elevated shadow-sm',
-        'workout' => 'rounded-2xl bg-theme-surface-elevated shadow-sm',
         'game' => 'rounded-2xl bg-theme-surface shadow-sm',
         'metric' => 'flex-1 rounded-2xl bg-theme-surface shadow-sm',
         'achievement' => 'rounded-2xl bg-theme-surface shadow-sm',
@@ -164,7 +163,6 @@ final class DesignTokens
      */
     public const CARD_CONTENT_VARIANTS = [
         'hero' => 'gap-5',
-        'workout' => 'gap-5',
         'game' => 'gap-4',
         'metric' => 'gap-2',
         'achievement' => 'gap-4',
@@ -173,13 +171,12 @@ final class DesignTokens
     ];
 
     /**
-     * Card insets as Tailwind spacing steps (×4pt): hero/workout 20, rest 16.
+     * Card insets as Tailwind spacing steps (×4pt): hero 20, rest 16.
      *
      * @var array<string, string>
      */
     public const CARD_INSET_VARIANTS = [
         'hero' => '5',
-        'workout' => '5',
         'game' => '4',
         'metric' => '4',
         'achievement' => '4',

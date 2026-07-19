@@ -171,7 +171,7 @@ final class Games extends NativeComponent
     }
 
     /**
-     * Open today's workout flow from a playable game entry.
+     * Open the instructions/detail screen for a playable game entry.
      */
     public function openGame(string $slug): void
     {

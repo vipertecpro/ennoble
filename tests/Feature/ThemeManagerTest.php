@@ -136,7 +136,6 @@ test('design tokens expose the complete reusable foundation', function () {
         ->and(DesignTokens::OPACITY)->toHaveKeys(['disabled', 'muted', 'overlay', 'pressed'])
         ->and(DesignTokens::CARD_VARIANTS)->toHaveKeys([
             'hero',
-            'workout',
             'game',
             'metric',
             'achievement',
@@ -145,7 +144,6 @@ test('design tokens expose the complete reusable foundation', function () {
         ])
         ->and(DesignTokens::CARD_CONTENT_VARIANTS)->toHaveKeys([
             'hero',
-            'workout',
             'game',
             'metric',
             'achievement',
@@ -154,7 +152,6 @@ test('design tokens expose the complete reusable foundation', function () {
         ])
         ->and(DesignTokens::CARD_INSET_VARIANTS)->toHaveKeys([
             'hero',
-            'workout',
             'game',
             'metric',
             'achievement',

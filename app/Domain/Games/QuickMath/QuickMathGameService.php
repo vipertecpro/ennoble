@@ -39,7 +39,6 @@ final class QuickMathGameService
             ->whereBelongsTo($session->profile)
             ->where('game_id', $session->game_id)
             ->completed()
-            ->withGameplayEvidence()
             ->count();
 
         return $this->generator->generate(
@@ -142,7 +141,7 @@ final class QuickMathGameService
     {
         $session->loadMissing(['game', 'level', 'profile']);
 
-        if ($session->game->type !== GameType::QuickMath || $session->isFrameworkPlaceholder()) {
+        if ($session->game->type !== GameType::QuickMath) {
             throw new LogicException('Quick Math gameplay requires a real Quick Math session.');
         }
     }
