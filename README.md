@@ -1,50 +1,157 @@
 # Ennoble
 
-Ennoble is an open-source, offline-first native brain-training application built with Laravel, NativePHP Mobile v4, SuperNative, EDGE components, and local SQLite.
+Ennoble is an open-source, offline-first brain-training app built with Laravel 13, NativePHP Mobile v4, SuperNative, EDGE components, and on-device SQLite. Its interface renders as native SwiftUI on iOS and Jetpack Compose on Android; core training, profiles, progress, settings, and game content work without a network connection.
 
-Application development guidance lives in [AGENTS.md](AGENTS.md). Contributors should begin with [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
+## Preview
 
-## Design, Graphics & Credits
+### Screenshots
 
-Ennoble's visual language ("Cortex") is calm zinc surfaces with a single lime
-accent, native SF Pro typography, and motion that earns its place — modelled on
-the feel of Elevate — Brain Training.
+#### Dark mode
 
-### Iconography & graphics
+| Home | Games | Quick Math |
+| --- | --- | --- |
+| <img src="docs/media/screenshots/ios/dark/home.png" width="260" alt="Ennoble Home screen in dark mode on iOS"> | <img src="docs/media/screenshots/ios/dark/games.png" width="260" alt="Ennoble Games screen in dark mode on iOS"> | <img src="docs/media/screenshots/ios/dark/quick-math.png" width="260" alt="Ennoble Quick Math screen in dark mode on iOS"> |
 
-Because the app is fully offline and the native UI renders no bundled
-raster/SVG images (iOS `AsyncImage` is URL-only; there is no image-bundling
-pipeline, `<svg>`, `<canvas>`, or Lottie element), all in-app graphics are drawn
-from platform vector symbol sets and native shapes, which render and animate
-natively:
+| Achievements | Profile | Settings |
+| --- | --- | --- |
+| <img src="docs/media/screenshots/ios/dark/achievements.png" width="260" alt="Ennoble Achievements screen in dark mode on iOS"> | <img src="docs/media/screenshots/ios/dark/profile.png" width="260" alt="Ennoble Profile screen in dark mode on iOS"> | <img src="docs/media/screenshots/ios/dark/settings.png" width="260" alt="Ennoble Settings screen in dark mode on iOS"> |
 
-- **Material Symbols** (Android icons) — Apache License 2.0 — https://fonts.google.com/icons
-- **SF Symbols** (iOS icons) — Apple, licensed for use in app interfaces on Apple platforms — https://developer.apple.com/sf-symbols/
+#### Light mode
 
-Game glyphs, illustrations, and the water-glass round timer are composed from
-these symbols plus native shapes and declarative animation (scale / translate /
-opacity), rather than external image files. All symbol sets above are free to
-use under the licenses linked.
+| Home | Games | Quick Math |
+| --- | --- | --- |
+| <img src="docs/media/screenshots/ios/light/home.png" width="260" alt="Ennoble Home screen in light mode on iOS"> | <img src="docs/media/screenshots/ios/light/games.png" width="260" alt="Ennoble Games screen in light mode on iOS"> | <img src="docs/media/screenshots/ios/light/quick-math.png" width="260" alt="Ennoble Quick Math screen in light mode on iOS"> |
 
-### Design inspiration (Elevate)
+| Achievements | Profile | Settings |
+| --- | --- | --- |
+| <img src="docs/media/screenshots/ios/light/achievements.png" width="260" alt="Ennoble Achievements screen in light mode on iOS"> | <img src="docs/media/screenshots/ios/light/profile.png" width="260" alt="Ennoble Profile screen in light mode on iOS"> | <img src="docs/media/screenshots/ios/light/settings.png" width="260" alt="Ennoble Settings screen in light mode on iOS"> |
 
-Ennoble follows the interaction and motion language of Elevate. These references
-informed the game flow, feedback micro-interactions, and screen layouts — used
-for study only; no assets are reproduced:
+### iOS video
 
-- Elevate motion/interaction catalogue — https://60fps.design/apps/elevate
-- Elevate overview — https://www.makeuseof.com/elevate-brain-training-overview/
-- Design critique (Pratt IXD) — https://ixd.prattsi.org/2023/02/design-critique-elevate-ios-app/
-- Building an app like Elevate — https://ideausher.com/blog/brain-training-app-like-elevate/
-- Elevate brand deck — https://www.slideshare.net/slideshow/elevate-brain-training/53540958
-- Interface reference board — https://in.pinterest.com/ideas/elevate-brain-training-app-interface/918386740461/
+<a href="docs/media/video/ennoble-ios-demo.mp4"><img src="docs/media/screenshots/ios/dark/home.png" width="260" alt="Watch the Ennoble iOS walkthrough"></a>
 
-## NativePHP Mobile v4 Status
+The walkthrough starts on Home, opens Games, plays Quick Math with both a correct and an incorrect answer, completes the session, visits Achievements and Profile, switches from Dark to Light appearance, and finishes back on Home.
 
-Ennoble currently targets NativePHP Mobile v4 Beta and intentionally uses official NativePHP packages.
+[Watch the complete iOS walkthrough (1:47, MP4, 10 MB)](docs/media/video/ennoble-ios-demo.mp4)
 
-The required NativePHP Mobile development branch and the later Native UI package line are temporarily incompatible through Composer. To keep the dependency baseline reproducible without editing installed dependencies or downgrading NativePHP Mobile, the repository contains a narrowly scoped mirror at `packages/nativephp/native-ui`.
+## Highlights
 
-This is a transparent compatibility decision, not an application fork. Ennoble product code must remain outside the mirror. The mirror will be removed when NativePHP publishes compatible official core and Native UI packages.
+- Fully native iOS and Android interface from one Laravel codebase.
+- Offline-first SQLite persistence with no account or remote API requirement.
+- Word Match and Quick Math training games with adaptive difficulty.
+- Local progress, achievements, streaks, profile, appearance, sound, haptics, and reduced-motion preferences.
+- Native accessibility labels, scalable system text, light/dark appearance, and reduced-motion support.
 
-See [docs/UPSTREAM_TRACKING.md](docs/UPSTREAM_TRACKING.md) for the pinned branches, commits, exact differences, and permanent upgrade checklist.
+## Local setup
+
+### Requirements
+
+- PHP 8.4 and Composer 2
+- The PHP SQLite extension
+- macOS with Xcode for iOS development
+- Android Studio and Android SDK 36 for Android development
+- A simulator, emulator, or development-enabled physical device
+
+NativePHP does not support WSL. Windows and Linux can build Android; building iOS requires macOS and Xcode.
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/vipertecpro/ennoble.git
+cd ennoble
+
+composer install
+cp .env.example .env
+php artisan key:generate
+
+touch database/database.sqlite
+php artisan migrate --no-interaction
+```
+
+On Windows PowerShell, use `Copy-Item .env.example .env` and `New-Item database/database.sqlite -ItemType File -Force` in place of `cp` and `touch`.
+
+Ennoble is fully native and currently has no `package.json`, so there is no npm/Vite installation step.
+
+### 2. Configure NativePHP
+
+Set a unique local application ID in `.env` before installing the native shell:
+
+```dotenv
+NATIVEPHP_APP_ID=com.yourname.ennoble
+NATIVEPHP_APP_VERSION=DEBUG
+NATIVEPHP_APP_VERSION_CODE=1
+```
+
+For a physical iOS device, also provide the Apple Developer Team ID:
+
+```dotenv
+NATIVEPHP_DEVELOPMENT_TEAM=YOUR_TEAM_ID
+```
+
+Install both platform shells:
+
+```bash
+php artisan native:install both
+php artisan native:plugin:list
+```
+
+All four bundled plugins—Lottie, Media Player, Vibe, and Native UI—should appear as registered.
+
+### 3. Run the app
+
+Choose the platform you have configured and run the matching command in your terminal:
+
+```bash
+# iOS
+php artisan native:run ios --watch
+
+# Android
+php artisan native:run android --watch
+```
+
+Native screens hot-reload without Vite. Migrations run automatically inside the app when it starts.
+
+### 4. Verify the checkout
+
+```bash
+composer validate --strict
+php artisan test --compact
+php artisan native:plugin:list
+```
+
+If you change PHP files, format them before opening a pull request:
+
+```bash
+vendor/bin/pint --dirty --format agent
+```
+
+## Project documentation
+
+- [Contributing](docs/CONTRIBUTING.md)
+- [Product specification](docs/PRODUCT_SPECIFICATION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Implementation status](docs/IMPLEMENTATION_STATUS.md)
+- [Testing checklist](docs/TESTING_CHECKLIST.md)
+- [Design system](docs/DESIGN_SYSTEM.md)
+- [Upstream tracking](docs/UPSTREAM_TRACKING.md)
+
+Application development guidance lives in [AGENTS.md](AGENTS.md).
+
+## Design, graphics, and credits
+
+Ennoble's original visual language uses calm dark surfaces, a focused lime accent, native typography, and motion that communicates state. In-app graphics are composed from native platform symbols and shapes so they remain crisp, accessible, and fully offline:
+
+- [Material Symbols](https://fonts.google.com/icons) for Android, licensed under Apache License 2.0
+- [SF Symbols](https://developer.apple.com/sf-symbols/) for Apple-platform interfaces
+
+The following products and design studies informed interaction research only; Ennoble does not reproduce their assets, branding, copy, or exact layouts:
+
+- [Elevate motion and interaction catalogue](https://60fps.design/apps/elevate)
+- [Elevate overview](https://www.makeuseof.com/elevate-brain-training-overview/)
+- [Elevate design critique](https://ixd.prattsi.org/2023/02/design-critique-elevate-ios-app/)
+
+## NativePHP Mobile v4 status
+
+Ennoble currently uses NativePHP Mobile v4 pre-release branches. The required NativePHP Mobile branch and Native UI package line are temporarily incompatible through Composer, so the repository includes a narrowly scoped mirror at `packages/nativephp/native-ui`.
+
+This is a transparent compatibility layer, not an application fork. Product code stays outside the mirror, and the mirror will be removed when mutually compatible official packages are available. See [docs/UPSTREAM_TRACKING.md](docs/UPSTREAM_TRACKING.md) for pinned commits, documented differences, and the upgrade checklist.
