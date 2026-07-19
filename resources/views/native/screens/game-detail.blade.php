@@ -13,15 +13,6 @@
     @else
         <native:scroll-view class="flex-1 w-full bg-theme-background" :shows-indicators="false">
             <native:column class="w-full px-4 pt-4 pb-6 gap-6">
-                <native:column class="w-full gap-2">
-                    <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
-                        {{ $title }}
-                    </native:text>
-                    <native:text class="w-full text-[16] leading-relaxed text-theme-secondary-text">
-                        {{ $tagline }}
-                    </native:text>
-                </native:column>
-
                 <native:row class="w-full gap-3">
                     <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-surface shadow-sm py-4">
                         <native:text class="text-[22] font-bold text-theme-primary-text">
