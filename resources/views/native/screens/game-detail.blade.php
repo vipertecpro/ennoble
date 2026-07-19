@@ -13,10 +13,6 @@
     @else
         <native:scroll-view class="flex-1 w-full bg-theme-background" :shows-indicators="false">
             <native:column class="w-full px-4 pt-4 pb-6 gap-6">
-                <native:column class="w-full items-center">
-                    <x-native.game-illustration :slug="$slug" :hero="true" :motion-duration="$motionDuration" />
-                </native:column>
-
                 <native:column class="w-full gap-2">
                     <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
                         {{ $title }}

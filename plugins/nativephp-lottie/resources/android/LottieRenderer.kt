@@ -25,8 +25,8 @@ object LottieRenderer {
         }
 
         val loop = p.getBool("loop")
-        val speed = p.getDouble("speed", 1.0).toFloat()
-        val progress = p.getDouble("progress", -1.0).toFloat()
+        val speed = p.getFloat("speed", 1.0f)
+        val progress = p.getFloat("progress", -1.0f)
 
         val composition by rememberLottieComposition(
             LottieCompositionSpec.Asset("animations/$source.json")

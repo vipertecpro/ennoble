@@ -33,55 +33,56 @@
             :reduced-motion="$reducedMotion"
         />
     @else
-        <native:column class="w-full px-4 pt-3 pb-2">
-            <x-native.word-match-hud
-                :lives="$lives"
-                :max-lives="$maxLives"
-                :score="$score"
-                :combo="$combo"
-                :motion-duration="$feedbackMotionDuration"
-            />
-        </native:column>
-
-        <native:row class="flex-1 w-full px-4 items-center justify-center gap-4">
-            <native:column class="flex-1 items-center justify-center gap-3">
-                <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-muted-text">
-                    Find the {{ strtoupper($relation) }}
-                </native:text>
-                <native:text
-                    native:key="word-match-prompt-{{ $roundIndex }}"
-                    class="w-full text-[38] font-bold tracking-tight leading-tight text-center text-theme-primary-text"
-                    :translate-y="$reducedMotion ? 0 : 6"
-                    :opacity="0.9"
-                    :animate-duration="$motionDuration"
-                    animate-easing="ease-out"
-                >
-                    {{ $prompt }}
-                </native:text>
-                <native:text class="text-[12] text-theme-muted-text">Round {{ $roundIndex + 1 }} of {{ $totalRounds }}</native:text>
-            </native:column>
-
-            <x-native.word-match-timer
+        <native:stack class="flex-1 w-full">
+            <x-native.game-water-background
                 :seconds-remaining="$secondsRemaining"
                 :seconds-per-round="$secondsPerRound"
                 :motion-duration="$motionDuration"
-                :reduced-motion="$reducedMotion"
             />
-        </native:row>
 
-        <native:column class="w-full px-4 pb-8 gap-3">
-            @foreach ($options as $option)
-                <x-native.word-match-option
-                    :option="$option"
-                    :answer="$answer"
-                    :selected="$selectedOption"
-                    :tone="$feedbackTone"
-                    :serial="$feedbackSerial"
-                    :reduced-motion="$reducedMotion"
-                    :motion-duration="$feedbackMotionDuration"
-                />
-            @endforeach
-        </native:column>
+            <native:column class="h-full w-full safe-area">
+                <native:column class="w-full px-4 pt-3 pb-2">
+                    <x-native.word-match-hud
+                        :lives="$lives"
+                        :max-lives="$maxLives"
+                        :score="$score"
+                        :combo="$combo"
+                        :motion-duration="$feedbackMotionDuration"
+                    />
+                </native:column>
+
+                <native:column class="flex-1 w-full px-4 items-center justify-center gap-3">
+                    <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-muted-text">
+                        Find the {{ strtoupper($relation) }}
+                    </native:text>
+                    <native:text
+                        native:key="word-match-prompt-{{ $roundIndex }}"
+                        class="w-full text-[38] font-bold tracking-tight leading-tight text-center text-theme-primary-text"
+                        :translate-y="$reducedMotion ? 0 : 6"
+                        :opacity="0.9"
+                        :animate-duration="$motionDuration"
+                        animate-easing="ease-out"
+                    >
+                        {{ $prompt }}
+                    </native:text>
+                    <native:text class="text-[12] text-theme-muted-text">Round {{ $roundIndex + 1 }} of {{ $totalRounds }}</native:text>
+                </native:column>
+
+                <native:column class="w-full px-4 pb-8 gap-3">
+                    @foreach ($options as $option)
+                        <x-native.word-match-option
+                            :option="$option"
+                            :answer="$answer"
+                            :selected="$selectedOption"
+                            :tone="$feedbackTone"
+                            :serial="$feedbackSerial"
+                            :reduced-motion="$reducedMotion"
+                            :motion-duration="$feedbackMotionDuration"
+                        />
+                    @endforeach
+                </native:column>
+            </native:column>
+        </native:stack>
     @endif
 </native:column>
 </native:gesture-area>

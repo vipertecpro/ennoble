@@ -12,8 +12,8 @@ struct LottieRenderer: View {
     var body: some View {
         let source = node.props.getString("source", default: "")
         let loop = node.props.getBool("loop")
-        let speed = node.props.getDouble("speed", default: 1.0)
-        let progress = node.props.getDouble("progress", default: -1.0)
+        let speed = CGFloat(node.props.getFloat("speed", default: 1.0))
+        let progress = CGFloat(node.props.getFloat("progress", default: -1.0))
 
         if source.isEmpty {
             Color.clear
