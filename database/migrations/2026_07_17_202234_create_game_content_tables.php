@@ -46,7 +46,7 @@ return new class extends Migration
             $table->foreignId('game_id')->constrained()->cascadeOnDelete();
             $table->foreignId('game_level_id')->constrained()->cascadeOnDelete();
             $table->string('slug');
-            $table->string('mode');
+            $table->string('mode')->nullable();
             $table->unsignedSmallInteger('content_version')->default(1);
             $table->text('prompt');
             $table->json('payload');

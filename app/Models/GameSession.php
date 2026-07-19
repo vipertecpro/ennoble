@@ -21,7 +21,6 @@ class GameSession extends Model
         'profile_id',
         'game_id',
         'game_level_id',
-        'daily_workout_item_id',
         'status',
         'mode',
         'snapshot_version',
@@ -65,11 +64,6 @@ class GameSession extends Model
     public function level(): BelongsTo
     {
         return $this->belongsTo(GameLevel::class, 'game_level_id');
-    }
-
-    public function workoutItem(): BelongsTo
-    {
-        return $this->belongsTo(DailyWorkoutItem::class, 'daily_workout_item_id');
     }
 
     public function rounds(): HasMany

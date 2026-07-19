@@ -6,9 +6,10 @@ use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
-use App\Domain\Workout\WorkoutService;
+use App\Enums\Difficulty;
 use App\Enums\GameType;
 use App\Models\Game;
+use App\Models\GameLevel;
 use App\Models\Profile;
 use App\NativeUI\Dialogs\InteractsWithDialogs;
 use App\NativeUI\Feedback\HapticFeedback;
@@ -282,10 +283,9 @@ final class Games extends NativeComponent
             $this->statisticsLoading = false;
         }
 
-        $workouts = app(WorkoutService::class);
         $this->playableGames = $games
-            ->map(function (Game $game) use ($profile, $previews, $workouts): array {
-                $level = $workouts->levelForProfile($game, $profile);
+            ->map(function (Game $game) use ($profile, $previews): array {
+                $level = $this->levelForProfile($game, $profile);
                 $preview = $previews->get($game->getKey(), []);
                 $sessionCount = (int) ($preview['session_count'] ?? 0);
                 $categories = $this->categoriesFor($game->type);
@@ -296,7 +296,7 @@ final class Games extends NativeComponent
                     'description' => $game->description,
                     'category' => self::CATEGORIES[$categories[0]],
                     'categories' => $categories,
-                    'duration' => 'About '.$workouts->estimatedGameDurationMinutes($level).' min',
+                    'duration' => 'About '.$this->estimatedGameDurationMinutes($level).' min',
                     'difficulty' => $profile->difficulty_preference->label(),
                     'level' => $level->name,
                     'skills' => collect($game->skill_keys)
@@ -384,11 +384,33 @@ final class Games extends NativeComponent
     private function categoriesFor(GameType $gameType): array
     {
         return match ($gameType) {
-            GameType::SignalShift => ['focus', 'speed'],
-            GameType::ClearThought => ['language', 'logic'],
             GameType::WordMatch => ['language', 'focus'],
             GameType::QuickMath => ['logic', 'speed'],
         };
+    }
+
+    /**
+     * Resolve the active level matching a profile's saved difficulty.
+     */
+    private function levelForProfile(Game $game, Profile $profile): GameLevel
+    {
+        $levelDifficulty = $profile->difficulty_preference === Difficulty::Adaptive
+            ? Difficulty::Intermediate
+            : $profile->difficulty_preference;
+
+        return GameLevel::query()
+            ->whereBelongsTo($game)
+            ->active()
+            ->where('difficulty', $levelDifficulty)
+            ->firstOrFail();
+    }
+
+    /**
+     * Estimate an individual game's duration from its configured round count.
+     */
+    private function estimatedGameDurationMinutes(GameLevel $gameLevel): int
+    {
+        return max(2, min(5, (int) ceil($gameLevel->round_count / 2)));
     }
 
     private function formatLastPlayed(?CarbonInterface $lastPlayedAt): string

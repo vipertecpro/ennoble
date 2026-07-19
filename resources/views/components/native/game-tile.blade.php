@@ -15,8 +15,8 @@
     <x-native.game-illustration :slug="$game['slug']" :motion-duration="$motionDuration" />
 
     <native:column class="w-full items-center gap-1">
-        <native:text class="w-full text-[16] font-semibold text-center text-theme-primary-text">{{ $game['title'] }}</native:text>
-        <native:text class="w-full text-[12] text-center text-theme-muted-text">
+        <native:text class="w-full text-[14] font-semibold text-center text-theme-primary-text">{{ $game['title'] }}</native:text>
+        <native:text class="w-full text-[11] text-center text-theme-muted-text">
             {{ ($game['best_score'] ?? null) === null ? 'Not played yet' : 'Best '.number_format($game['best_score']) }}
         </native:text>
     </native:column>

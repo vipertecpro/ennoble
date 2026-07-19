@@ -10,10 +10,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Seed the two v2 offline games (Word Match, Quick Math) with their per-
- * difficulty levels, and retire the v1 reference games (Signal Shift, Clear
- * Thought) from active surfaces by moving them to "coming soon". Idempotent:
- * safe on fresh installs and on upgrades of existing on-device databases.
+ * Seed the two offline games (Word Match, Quick Math) with their per-difficulty
+ * levels. Idempotent: safe on fresh installs and on upgrades of existing
+ * on-device databases.
  */
 class WordMatchQuickMathSeeder extends Seeder
 {
@@ -55,10 +54,6 @@ class WordMatchQuickMathSeeder extends Seeder
             ['slug'],
             ['type', 'name', 'description', 'status', 'sort_order', 'skill_keys', 'configuration', 'updated_at'],
         );
-
-        DB::table('games')
-            ->whereIn('slug', ['signal-shift', 'clear-thought'])
-            ->update(['status' => GameStatus::ComingSoon->value, 'updated_at' => $now]);
 
         $gameIds = DB::table('games')
             ->whereIn('slug', ['word-match', 'quick-math'])

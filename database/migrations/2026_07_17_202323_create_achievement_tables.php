@@ -18,12 +18,13 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->string('type');
+            $table->string('tier');
             $table->json('criterion');
             $table->unsignedSmallInteger('sort_order');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['type', 'is_active', 'sort_order']);
+            $table->index(['type', 'tier', 'is_active', 'sort_order']);
         });
 
         Schema::create('achievement_unlocks', function (Blueprint $table) {
@@ -31,7 +32,6 @@ return new class extends Migration
             $table->foreignId('profile_id')->constrained()->cascadeOnDelete();
             $table->foreignId('achievement_id')->constrained()->cascadeOnDelete();
             $table->foreignId('game_session_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('daily_workout_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamp('unlocked_at');
             $table->json('evidence')->nullable();
             $table->timestamps();

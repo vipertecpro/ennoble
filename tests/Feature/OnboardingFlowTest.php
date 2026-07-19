@@ -39,7 +39,7 @@ test('returning users remain in the existing application shell', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
         ->assertNoNavigation()
-        ->assertSee('Progress')
+        ->assertSee('Play')
         ->assertAccessible();
 });
 

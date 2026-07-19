@@ -1,13 +1,18 @@
 @props([
     'secondsPerRound' => 7,
+    'roundKey' => 0,
 ])
 
 {{--
     Real animated water, rendered offline inside a transparent WKWebView via
     inline HTML (no plugin, no native build, no network — hot-reloads). A
-    lime-tinted body drains over the round while two SVG wave layers sway on
-    offset periods for a live surface. Sits behind the gameplay as the back
-    layer of a native:stack.
+    lime-tinted body drains ONCE over the round (holding empty when time is up)
+    while two SVG wave layers sway for a live surface. Sits behind the gameplay
+    as the back layer of a native:stack.
+
+    The `native:key` is bound to the round so the webview remounts — and the
+    drain animation restarts from full — at the start of every question,
+    keeping the water level in sync with the per-round timer.
 --}}
 @php
     $seconds = max(1, (int) $secondsPerRound);
@@ -19,7 +24,7 @@
 html,body{height:100%;background:transparent;overflow:hidden}
 .water{position:absolute;left:0;right:0;bottom:0;height:100%;
   background:linear-gradient(to top,rgba(197,219,85,0.22),rgba(197,219,85,0.09));
-  animation:drain {$seconds}s linear infinite}
+  animation:drain {$seconds}s linear forwards}
 @keyframes drain{0%{height:100%}100%{height:0%}}
 .surface{position:absolute;top:-13px;left:0;width:100%;height:20px;overflow:hidden}
 .wave{position:absolute;top:0;left:0;width:200%;height:20px;display:flex}
@@ -46,6 +51,7 @@ HTML;
 @endphp
 
 <native:webview
+    native:key="water-{{ $roundKey }}"
     :html="$html"
     class="h-full w-full"
     a11y-label="Round timer water level"

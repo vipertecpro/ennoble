@@ -15,8 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            GameDefinitionSeeder::class,
-            GameLevelSeeder::class,
+            WordMatchQuickMathSeeder::class,
             AchievementDefinitionSeeder::class,
         ]);
     }

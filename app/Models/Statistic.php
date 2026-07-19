@@ -19,8 +19,6 @@ class Statistic extends Model
         'game_id',
         'scope_key',
         'sessions_completed',
-        'workouts_completed',
-        'training_seconds',
         'correct_count',
         'attempted_count',
         'total_response_ms',
@@ -31,14 +29,12 @@ class Statistic extends Model
         'longest_combo',
         'current_streak',
         'longest_streak',
-        'last_workout_date',
+        'last_played_date',
         'last_calculated_at',
     ];
 
     protected $attributes = [
         'sessions_completed' => 0,
-        'workouts_completed' => 0,
-        'training_seconds' => 0,
         'correct_count' => 0,
         'attempted_count' => 0,
         'total_response_ms' => 0,
@@ -66,7 +62,7 @@ class Statistic extends Model
     /**
      * A streak only stays current while its most recent evidence is today or yesterday.
      *
-     * The stored value is only recalculated when a workout completes, so without
+     * The stored value is recalculated whenever a game is completed, so without
      * this decay a lapsed streak would keep reporting its last recorded length.
      */
     protected function currentStreak(): Attribute
@@ -74,11 +70,11 @@ class Statistic extends Model
         return Attribute::get(function (mixed $value): int {
             $streak = (int) $value;
 
-            if ($streak === 0 || $this->last_workout_date === null) {
+            if ($streak === 0 || $this->last_played_date === null) {
                 return $streak;
             }
 
-            return $this->last_workout_date->gte(today()->subDay()->startOfDay())
+            return $this->last_played_date->gte(today()->subDay()->startOfDay())
                 ? $streak
                 : 0;
         });
@@ -88,7 +84,7 @@ class Statistic extends Model
     {
         return [
             'accuracy' => 'float',
-            'last_workout_date' => 'date',
+            'last_played_date' => 'date',
             'last_calculated_at' => 'datetime',
         ];
     }

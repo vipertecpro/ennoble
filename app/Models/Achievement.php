@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AchievementTier;
 use App\Enums\AchievementType;
 use Database\Factories\AchievementFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,7 @@ class Achievement extends Model
         'name',
         'description',
         'type',
+        'tier',
         'criterion',
         'sort_order',
         'is_active',
@@ -49,6 +51,7 @@ class Achievement extends Model
     {
         return [
             'type' => AchievementType::class,
+            'tier' => AchievementTier::class,
             'criterion' => 'array',
             'is_active' => 'boolean',
         ];

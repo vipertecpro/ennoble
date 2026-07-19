@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\ClearThoughtMode;
 use App\Models\Challenge;
 use App\Models\Game;
 use App\Models\GameLevel;
@@ -21,20 +20,20 @@ class ChallengeFactory extends Factory
     public function definition(): array
     {
         return [
-            'game_id' => Game::factory()->clearThought(),
+            'game_id' => Game::factory(),
             'game_level_id' => function (array $attributes): int {
                 return GameLevel::factory()->create([
                     'game_id' => $attributes['game_id'],
                 ])->getKey();
             },
-            'slug' => 'remove-filler-words',
-            'mode' => ClearThoughtMode::RemoveUnnecessaryWords,
+            'slug' => 'sample-challenge',
+            'mode' => null,
             'content_version' => 1,
-            'prompt' => 'Remove the words that do not change the meaning.',
-            'payload' => ['tokens' => ['The', 'result', 'was', 'actually', 'clear']],
-            'accepted_answers' => [[3]],
-            'explanation' => 'Actually adds no useful meaning in this sentence.',
-            'hint' => 'Look for a word that adds emphasis but no information.',
+            'prompt' => 'Choose the option that matches the prompt.',
+            'payload' => ['options' => ['alpha', 'beta', 'gamma', 'delta']],
+            'accepted_answers' => [[0]],
+            'explanation' => 'The first option is the intended match.',
+            'hint' => 'Read the prompt carefully.',
             'is_active' => true,
         ];
     }

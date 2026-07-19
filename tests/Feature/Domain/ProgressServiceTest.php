@@ -32,7 +32,7 @@ test('progress service stores bounded current values and historical snapshots', 
 
 test('session-backed skill evidence is idempotent', function () {
     $profile = Profile::factory()->create();
-    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
     $level = $game->levels()->firstOrFail();
     $session = GameSession::factory()->create([
         'profile_id' => $profile->getKey(),

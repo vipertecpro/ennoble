@@ -20,12 +20,12 @@
         </native:column>
         <native:column class="flex-1 gap-1">
             @if ($title)
-                <native:text class="text-[12] font-semibold tracking-widest text-theme-muted-text">LATEST UNLOCK</native:text>
-                <native:text class="text-[17] font-semibold text-theme-primary-text">{{ $title }}</native:text>
-                <native:text class="text-[15] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
+                <native:text class="text-[11] font-semibold tracking-widest text-theme-muted-text">LATEST UNLOCK</native:text>
+                <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $title }}</native:text>
+                <native:text class="text-[13] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
             @else
-                <native:text class="text-[17] font-semibold text-theme-primary-text">No achievements yet</native:text>
-                <native:text class="text-[15] leading-relaxed text-theme-secondary-text">
+                <native:text class="text-[15] font-semibold text-theme-primary-text">No achievements yet</native:text>
+                <native:text class="text-[13] leading-relaxed text-theme-secondary-text">
                     Train consistently and your first milestone will appear here.
                 </native:text>
             @endif

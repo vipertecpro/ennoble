@@ -13,8 +13,8 @@
                 a11y-label="Ennoble"
             />
         </native:column>
-        <native:text class="text-[34] font-bold tracking-tight text-center text-theme-primary-text">Ennoble</native:text>
-        <native:text class="text-[17] leading-relaxed text-center text-theme-secondary-text">
+        <native:text class="text-[26] font-bold tracking-tight text-center text-theme-primary-text">Ennoble</native:text>
+        <native:text class="text-[15] leading-relaxed text-center text-theme-secondary-text">
             A private daily practice for a clearer mind.
         </native:text>
         <native:button label="Enter Ennoble" size="lg" @press="enterApplication" />

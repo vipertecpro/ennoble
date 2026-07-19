@@ -2,19 +2,10 @@
 
 namespace App\NativeComponents\Screens;
 
-use App\Domain\Achievements\AchievementService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
-use App\Domain\Statistics\StatisticsService;
-use App\Enums\Difficulty;
-use App\Enums\TrainingGoal;
-use App\Models\Achievement;
 use App\Models\Profile as LocalProfile;
-use App\NativeUI\Feedback\HapticFeedback;
-use App\NativeUI\Feedback\HapticService;
-use App\NativeUI\Feedback\ToastService;
-use App\NativeUI\Feedback\ToastType;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
@@ -33,20 +24,6 @@ final class Profile extends NativeComponent
 
     public string $screenError = 'Your profile could not be loaded. Please try again.';
 
-    public string $displayName = '';
-
-    public string $trainingGoal = TrainingGoal::Balanced->value;
-
-    public string $difficulty = Difficulty::Intermediate->value;
-
-    public string $savedDisplayName = '';
-
-    public string $savedTrainingGoal = TrainingGoal::Balanced->value;
-
-    public string $savedDifficulty = Difficulty::Intermediate->value;
-
-    public bool $isSaving = false;
-
     public string $monogram = '';
 
     public string $identityName = 'Friend';
@@ -57,15 +34,13 @@ final class Profile extends NativeComponent
 
     public string $paceLabel = '';
 
-    public string $workoutsLabel = '0';
-
-    public string $streakLabel = '0';
-
-    public string $achievementsLabel = '0';
-
     public bool $reducedMotion = false;
 
     public int $motionDuration = 0;
+
+    public float $pressScale = 1.0;
+
+    public float $pressOpacity = 1.0;
 
     /**
      * Apply the saved theme, enforce onboarding, and assemble the local identity.
@@ -94,7 +69,7 @@ final class Profile extends NativeComponent
     }
 
     /**
-     * Refresh identity and evidence after returning from another native screen.
+     * Refresh identity after returning from another native screen.
      */
     public function onResume(): void
     {
@@ -114,84 +89,11 @@ final class Profile extends NativeComponent
     }
 
     /**
-     * Reject forged goal values and confirm valid native selections.
+     * Navigate to the My Details editor.
      */
-    public function updatedTrainingGoal(string $value): void
+    public function openMyDetails(): void
     {
-        if (TrainingGoal::tryFrom($value) === null) {
-            $this->trainingGoal = $this->savedTrainingGoal;
-
-            return;
-        }
-
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
-    }
-
-    /**
-     * Reject forged difficulty values and confirm valid native selections.
-     */
-    public function updatedDifficulty(string $value): void
-    {
-        if (Difficulty::tryFrom($value) === null) {
-            $this->difficulty = $this->savedDifficulty;
-
-            return;
-        }
-
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
-    }
-
-    /**
-     * Persist edited local details through the existing profile service.
-     */
-    public function saveDetails(): void
-    {
-        if (! $this->hasUnsavedChanges() || ! $this->isDisplayNameValid()) {
-            return;
-        }
-
-        $this->isSaving = true;
-
-        try {
-            app(ProfileService::class)->createOrUpdate(
-                displayName: $this->displayName,
-                trainingGoal: TrainingGoal::from($this->trainingGoal),
-                difficulty: Difficulty::from($this->difficulty),
-            );
-
-            app(HapticService::class)->trigger(HapticFeedback::Success);
-            app(ToastService::class)->show('Profile saved on this device.', ToastType::Success);
-
-            $this->loadProfile();
-        } catch (Throwable $exception) {
-            report($exception);
-
-            app(ToastService::class)->show(
-                'Your profile could not be saved. Please try again.',
-                ToastType::Error,
-            );
-        } finally {
-            $this->isSaving = false;
-        }
-    }
-
-    /**
-     * Determine whether edits differ from the persisted local profile.
-     */
-    public function hasUnsavedChanges(): bool
-    {
-        return Str::squish($this->displayName) !== $this->savedDisplayName
-            || $this->trainingGoal !== $this->savedTrainingGoal
-            || $this->difficulty !== $this->savedDifficulty;
-    }
-
-    /**
-     * Validate the optional local display name at the domain's shared limit.
-     */
-    public function isDisplayNameValid(): bool
-    {
-        return Str::length(Str::squish($this->displayName))
-            <= ProfileService::DISPLAY_NAME_MAX_LENGTH;
+        $this->navigateWithMotion('/my-details');
     }
 
     /**
@@ -199,11 +101,7 @@ final class Profile extends NativeComponent
      */
     public function openSettings(): void
     {
-        $navigation = $this->navigate('/settings');
-
-        if ($this->reducedMotion) {
-            $navigation->transition(Transition::None);
-        }
+        $this->navigateWithMotion('/settings');
     }
 
     /**
@@ -211,11 +109,7 @@ final class Profile extends NativeComponent
      */
     public function openAbout(): void
     {
-        $navigation = $this->navigate('/about');
-
-        if ($this->reducedMotion) {
-            $navigation->transition(Transition::None);
-        }
+        $this->navigateWithMotion('/about');
     }
 
     /**
@@ -224,6 +118,15 @@ final class Profile extends NativeComponent
     public function retryProfile(): void
     {
         $this->loadProfile();
+    }
+
+    private function navigateWithMotion(string $path): void
+    {
+        $navigation = $this->navigate($path);
+
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
+        }
     }
 
     private function loadProfile(): void
@@ -245,9 +148,10 @@ final class Profile extends NativeComponent
             $this->motionDuration = $this->reducedMotion
                 ? 0
                 : DesignTokens::motionDuration(MotionToken::Normal);
+            $this->pressScale = $this->reducedMotion ? 1.0 : 0.985;
+            $this->pressOpacity = $this->reducedMotion ? 1.0 : DesignTokens::OPACITY['pressed'];
 
             $this->mapIdentity($profile);
-            $this->mapEvidence($profile);
         } catch (Throwable $exception) {
             report($exception);
 
@@ -259,32 +163,12 @@ final class Profile extends NativeComponent
     {
         $normalizedName = Str::squish($profile->display_name ?? '');
 
-        $this->displayName = $normalizedName;
-        $this->savedDisplayName = $normalizedName;
-        $this->trainingGoal = $profile->training_goal->value;
-        $this->savedTrainingGoal = $profile->training_goal->value;
-        $this->difficulty = $profile->difficulty_preference->value;
-        $this->savedDifficulty = $profile->difficulty_preference->value;
-
         $this->identityName = $normalizedName === '' ? 'Friend' : $normalizedName;
         $this->monogram = $normalizedName === ''
             ? ''
             : Str::upper(Str::substr($normalizedName, 0, 1));
-        $this->memberSince = 'Training since '.$profile->created_at->format('F Y');
+        $this->memberSince = 'Playing since '.$profile->created_at->format('F Y');
         $this->goalLabel = $profile->training_goal->label();
         $this->paceLabel = $profile->difficulty_preference->label();
-    }
-
-    private function mapEvidence(LocalProfile $profile): void
-    {
-        $overview = app(StatisticsService::class)->overview($profile);
-        $achievements = app(AchievementService::class)->overview($profile);
-        $unlocked = $achievements
-            ->filter(fn (Achievement $achievement): bool => $achievement->unlocks->isNotEmpty())
-            ->count();
-
-        $this->workoutsLabel = (string) ($overview?->workouts_completed ?? 0);
-        $this->streakLabel = (string) ($overview?->current_streak ?? 0);
-        $this->achievementsLabel = $unlocked.' of '.$achievements->count();
     }
 }

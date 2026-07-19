@@ -23,7 +23,6 @@ class AchievementUnlockFactory extends Factory
             'profile_id' => Profile::factory(),
             'achievement_id' => Achievement::factory(),
             'game_session_id' => null,
-            'daily_workout_id' => null,
             'unlocked_at' => now(),
             'evidence' => ['source' => 'test'],
         ];

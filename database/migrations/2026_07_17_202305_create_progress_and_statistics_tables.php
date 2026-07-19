@@ -33,8 +33,6 @@ return new class extends Migration
             $table->foreignId('game_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('scope_key');
             $table->unsignedInteger('sessions_completed')->default(0);
-            $table->unsignedInteger('workouts_completed')->default(0);
-            $table->unsignedBigInteger('training_seconds')->default(0);
             $table->unsignedInteger('correct_count')->default(0);
             $table->unsignedInteger('attempted_count')->default(0);
             $table->unsignedBigInteger('total_response_ms')->default(0);
@@ -45,7 +43,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('longest_combo')->default(0);
             $table->unsignedSmallInteger('current_streak')->default(0);
             $table->unsignedSmallInteger('longest_streak')->default(0);
-            $table->date('last_workout_date')->nullable();
+            $table->date('last_played_date')->nullable();
             $table->timestamp('last_calculated_at')->nullable();
             $table->timestamps();
 

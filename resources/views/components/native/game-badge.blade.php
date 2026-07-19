@@ -9,7 +9,7 @@
     :animate-duration="$motionDuration"
     animate-easing="ease-out"
 >
-    <native:text class="text-[12] font-semibold {{ $emphasis ? 'text-theme-primary-text' : 'text-theme-muted-text' }}">
+    <native:text class="text-[11] font-semibold {{ $emphasis ? 'text-theme-primary-text' : 'text-theme-muted-text' }}">
         {{ $label }}
     </native:text>
 </native:column>

@@ -34,11 +34,6 @@ class Profile extends Model
         return $this->hasOne(Setting::class);
     }
 
-    public function dailyWorkouts(): HasMany
-    {
-        return $this->hasMany(DailyWorkout::class);
-    }
-
     public function gameSessions(): HasMany
     {
         return $this->hasMany(GameSession::class);

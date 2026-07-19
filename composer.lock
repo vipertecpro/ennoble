@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22429e097674c062ca77837d77cf5532",
+    "content-hash": "0f41c5a6aff019b2353e1c76acfdadad",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2509,6 +2509,115 @@
                 "issues": "https://github.com/NativePHP/mobile-air/issues"
             },
             "time": "2026-07-15T14:21:13+00:00"
+        },
+        {
+            "name": "nativephp/mobile-media-player",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/NativePHP/mobile-media-player.git",
+                "reference": "eeb071f7a8c65e749b776544ce0eb9c69f132c18"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/NativePHP/mobile-media-player/zipball/eeb071f7a8c65e749b776544ce0eb9c69f132c18",
+                "reference": "eeb071f7a8c65e749b776544ce0eb9c69f132c18",
+                "shasum": ""
+            },
+            "require": {
+                "nativephp/mobile": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.0"
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "NativePHP\\MediaPlayer\\MediaPlayerServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NativePHP\\MediaPlayer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bifrost Technology, LLC",
+                    "email": "support@nativephp.com"
+                }
+            ],
+            "description": "Media player plugin for NativePHP Mobile - shared audio/video playback, full-screen presentation, and a video-player element",
+            "support": {
+                "issues": "https://github.com/NativePHP/mobile-media-player/issues",
+                "source": "https://github.com/NativePHP/mobile-media-player/tree/v0.0.1"
+            },
+            "time": "2026-07-02T22:07:49+00:00"
+        },
+        {
+            "name": "nativephp/mobile-vibe",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/NativePHP/mobile-vibe.git",
+                "reference": "6ceec1738e186ad30e447433edb3377695417c90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/NativePHP/mobile-vibe/zipball/6ceec1738e186ad30e447433edb3377695417c90",
+                "reference": "6ceec1738e186ad30e447433edb3377695417c90",
+                "shasum": ""
+            },
+            "require": {
+                "nativephp/mobile": "*",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.0"
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "NativePHP\\Vibe\\VibeServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NativePHP\\Vibe\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bifrost Technology, LLC",
+                    "email": "support@nativephp.com"
+                }
+            ],
+            "description": "Websockets for NativePHP Mobile — live server events (Pusher protocol: Vask / Reverb / Pusher)",
+            "homepage": "https://github.com/nativephp/mobile-vibe",
+            "support": {
+                "issues": "https://github.com/nativephp/mobile-vibe/issues",
+                "source": "https://github.com/nativephp/mobile-vibe"
+            },
+            "time": "2026-07-03T01:32:43+00:00"
         },
         {
             "name": "nativephp/native-ui",

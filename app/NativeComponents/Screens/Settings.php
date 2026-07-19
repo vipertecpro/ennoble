@@ -3,6 +3,7 @@
 namespace App\NativeComponents\Screens;
 
 use App\Domain\Profile\ProfileService;
+use App\Domain\Profile\ProgressResetService;
 use App\Domain\Settings\SettingsService;
 use App\Enums\ThemePreference;
 use App\Models\Setting;
@@ -35,6 +36,8 @@ final class Settings extends NativeComponent
     public bool $reducedMotion = false;
 
     public bool $reminderPlanned = false;
+
+    public bool $resetArmed = false;
 
     public int $motionDuration = 0;
 
@@ -131,6 +134,51 @@ final class Settings extends NativeComponent
 
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
+        }
+    }
+
+    /**
+     * Arm the destructive reset, revealing the explicit confirmation.
+     */
+    public function armReset(): void
+    {
+        $this->resetArmed = true;
+        app(HapticService::class)->trigger(HapticFeedback::Warning);
+    }
+
+    /**
+     * Dismiss the reset confirmation without changing any data.
+     */
+    public function cancelReset(): void
+    {
+        $this->resetArmed = false;
+    }
+
+    /**
+     * Wipe all local play evidence (stats, badges, history) for a clean slate.
+     */
+    public function resetProgress(): void
+    {
+        $this->resetArmed = false;
+
+        try {
+            $profile = app(ProfileService::class)->current();
+
+            if ($profile === null) {
+                return;
+            }
+
+            app(ProgressResetService::class)->reset($profile);
+
+            app(HapticService::class)->trigger(HapticFeedback::Success);
+            app(ToastService::class)->show('Your stats and badges were reset.', ToastType::Success);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            app(ToastService::class)->show(
+                'Your progress could not be reset. Please try again.',
+                ToastType::Error,
+            );
         }
     }
 

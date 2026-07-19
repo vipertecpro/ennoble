@@ -10,7 +10,7 @@
             retry-method="retryLibrary"
         />
     @else
-        <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">Games</native:text>
+        <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">Games</native:text>
 
         @foreach (array_chunk($playableGames, 2) as $gameRow)
             <native:row class="w-full items-stretch gap-3">

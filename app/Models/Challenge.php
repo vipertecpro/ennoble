@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ClearThoughtMode;
 use Database\Factories\ChallengeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -57,7 +56,6 @@ class Challenge extends Model
     protected function casts(): array
     {
         return [
-            'mode' => ClearThoughtMode::class,
             'payload' => 'array',
             'accepted_answers' => 'array',
             'is_active' => 'boolean',

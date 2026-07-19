@@ -24,8 +24,8 @@
             <x-native.icon :ios="$ios" :android="$android" :size="24" />
         </native:column>
         <native:column class="flex-1 gap-1">
-            <native:text class="text-[17] font-semibold text-theme-primary-text">{{ $label }}</native:text>
-            <native:text class="text-[15] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
+            <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $label }}</native:text>
+            <native:text class="text-[13] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
         </native:column>
         <x-native.icon
             :ios="Ios::ChevronRight"

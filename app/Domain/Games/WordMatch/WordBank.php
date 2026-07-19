@@ -7,8 +7,7 @@ use App\Enums\Difficulty;
 /**
  * Curated offline vocabulary bank for Word Match. Entries are bundled in code
  * (no database table) so the game runs fully offline; the selected entry is
- * persisted per round in `GameRound.response`, mirroring how Signal Shift
- * records its rule-engine stimuli without a content table.
+ * persisted per round in `GameRound.response`.
  *
  * Each entry pairs a prompt word with one relation ("synonym" | "antonym"),
  * the single correct option, and three unambiguous distractors.
@@ -17,7 +16,7 @@ final class WordBank
 {
     /**
      * Return the vocabulary entries for a difficulty band. Adaptive resolves to
-     * the intermediate band, matching WorkoutService::levelForProfile().
+     * the intermediate band, matching the level selected for the profile.
      *
      * @return list<array{prompt: string, relation: string, answer: string, distractors: list<string>}>
      */

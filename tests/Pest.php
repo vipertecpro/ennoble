@@ -1,15 +1,6 @@
 <?php
 
-use App\Domain\Games\GameSessionService;
-use App\Domain\Workout\WorkoutService;
-use App\Enums\ClearThoughtMode;
-use App\Enums\GameType;
-use App\Models\Challenge;
-use App\Models\DailyWorkoutItem;
-use App\Models\GameSession;
-use App\Models\Profile;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Native\Mobile\Testing\TestableComponent;
 use Tests\TestCase;
 
 /*
@@ -56,98 +47,4 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
-}
-
-/*
-|--------------------------------------------------------------------------
-| Shared Clear Thought gameplay helpers
-|--------------------------------------------------------------------------
-*/
-
-function preparedClearThoughtSession(Profile $profile): GameSession
-{
-    $workout = app(WorkoutService::class)->generateToday($profile);
-    $item = $workout->items->firstOrFail(
-        fn (DailyWorkoutItem $item): bool => $item->game->type === GameType::ClearThought,
-    );
-    $session = app(GameSessionService::class)->startForWorkoutItem($profile, $item);
-
-    return app(GameSessionService::class)->checkpoint($session, ['prepared' => true]);
-}
-
-function currentClearThoughtChallenge(TestableComponent $game): Challenge
-{
-    $challengeIds = $game->get('challengeIds');
-    $roundNumber = $game->get('roundNumber');
-
-    return Challenge::query()->findOrFail($challengeIds[$roundNumber - 1]);
-}
-
-function answerClearThoughtCorrectly(TestableComponent $game): void
-{
-    $challenge = currentClearThoughtChallenge($game);
-    $accepted = $challenge->accepted_answers;
-
-    match ($challenge->mode) {
-        ClearThoughtMode::ChooseClearestSentence => $game->call('chooseOption', (string) $accepted[0]),
-        ClearThoughtMode::RemoveUnnecessaryWords => (function () use ($game, $accepted): void {
-            foreach ($accepted[0] as $wordId) {
-                $game->call('toggleWord', (string) $wordId);
-            }
-
-            $game->call('submitWords');
-        })(),
-        ClearThoughtMode::ReorderSentence => (function () use ($game, $accepted): void {
-            foreach ($accepted[0] as $segmentId) {
-                $game->call('tapSegment', (string) $segmentId);
-            }
-
-            $game->call('submitOrder');
-        })(),
-    };
-}
-
-function answerClearThoughtIncorrectly(TestableComponent $game): void
-{
-    $challenge = currentClearThoughtChallenge($game);
-
-    match ($challenge->mode) {
-        ClearThoughtMode::ChooseClearestSentence => $game->call(
-            'chooseOption',
-            (string) collect($game->get('options'))
-                ->filter(fn (array $option): bool => $option['state'] !== 'wrong')
-                ->pluck('id')
-                ->first(fn (string $id): bool => ! in_array($id, array_map(strval(...), $challenge->accepted_answers), true)),
-        ),
-        ClearThoughtMode::RemoveUnnecessaryWords => (function () use ($game, $challenge): void {
-            $game->call('toggleWord', (string) data_get($challenge->payload, 'words.0.id'));
-            $game->call('submitWords');
-        })(),
-        ClearThoughtMode::ReorderSentence => (function () use ($game, $challenge): void {
-            foreach (array_reverse(collect(data_get($challenge->payload, 'segments'))->pluck('id')->all()) as $segmentId) {
-                $game->call('tapSegment', (string) $segmentId);
-            }
-
-            $game->call('submitOrder');
-        })(),
-    };
-}
-
-function finishClearThoughtPerfectly(TestableComponent $game): TestableComponent
-{
-    if ($game->get('phase') === 'instructions') {
-        $game->tap('Begin Clear Thought');
-    }
-
-    while ($game->get('phase') !== 'game_result') {
-        if ($game->get('phase') === 'challenge') {
-            answerClearThoughtCorrectly($game);
-        } elseif ($game->get('phase') === 'reflection') {
-            $game->call('continueAfterReflection');
-        } else {
-            throw new RuntimeException('Unexpected Clear Thought phase: '.$game->get('phase'));
-        }
-    }
-
-    return $game;
 }

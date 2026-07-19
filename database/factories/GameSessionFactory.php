@@ -29,7 +29,6 @@ class GameSessionFactory extends Factory
                     'game_id' => $attributes['game_id'],
                 ])->getKey();
             },
-            'daily_workout_item_id' => null,
             'status' => SessionStatus::InProgress,
             'snapshot_version' => 1,
             'current_round' => 0,

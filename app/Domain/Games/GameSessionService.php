@@ -3,19 +3,15 @@
 namespace App\Domain\Games;
 
 use App\Domain\Achievements\AchievementService;
-use App\Domain\Games\ClearThought\ClearThoughtScoringService;
 use App\Domain\Games\Contracts\GameScoringService;
 use App\Domain\Games\Contracts\ScoringResult;
 use App\Domain\Games\QuickMath\QuickMathScoringService;
-use App\Domain\Games\SignalShift\SignalShiftScoringService;
 use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\GameType;
 use App\Enums\RoundOutcome;
 use App\Enums\SessionStatus;
-use App\Enums\WorkoutStatus;
-use App\Models\DailyWorkoutItem;
 use App\Models\Game;
 use App\Models\GameLevel;
 use App\Models\GameRound;
@@ -30,8 +26,6 @@ final class GameSessionService
      * Create the focused game-session lifecycle service.
      */
     public function __construct(
-        private readonly SignalShiftScoringService $signalShiftScoringService,
-        private readonly ClearThoughtScoringService $clearThoughtScoringService,
         private readonly WordMatchScoringService $wordMatchScoringService,
         private readonly QuickMathScoringService $quickMathScoringService,
         private readonly ProgressService $progressService,
@@ -40,91 +34,35 @@ final class GameSessionService
     ) {}
 
     /**
-     * Start or resume a game session, optionally within a daily workout item.
+     * Start a fresh, standalone free-play session for a game tile launch.
      */
-    public function start(
-        Profile $profile,
-        Game $game,
-        GameLevel $level,
-        ?DailyWorkoutItem $workoutItem = null,
-        ?string $mode = null,
-    ): GameSession {
+    public function start(Profile $profile, Game $game, GameLevel $level, ?string $mode = null): GameSession
+    {
         if ($level->game_id !== $game->getKey()) {
             throw new LogicException('The selected level does not belong to the game.');
         }
 
-        if ($workoutItem !== null
-            && ($workoutItem->game_id !== $game->getKey()
-                || $workoutItem->workout->profile_id !== $profile->getKey())) {
-            throw new LogicException('The workout item does not match the requested profile and game.');
-        }
-
-        return DB::transaction(function () use ($profile, $game, $level, $workoutItem, $mode): GameSession {
-            if ($workoutItem !== null) {
-                $existingSession = GameSession::query()
-                    ->whereBelongsTo($workoutItem, 'workoutItem')
-                    ->resumable()
-                    ->when(
-                        $mode === null,
-                        fn ($query) => $query->whereNull('mode'),
-                        fn ($query) => $query->where('mode', $mode),
-                    )
-                    ->with(['game', 'level', 'rounds'])
-                    ->latest('started_at')
-                    ->first();
-
-                if ($existingSession !== null) {
-                    return $existingSession;
-                }
-
-                $workoutItem->update([
-                    'status' => WorkoutStatus::InProgress,
-                    'started_at' => $workoutItem->started_at ?? now(),
-                ]);
-                $workoutItem->workout->update([
-                    'status' => WorkoutStatus::InProgress,
-                    'started_at' => $workoutItem->workout->started_at ?? now(),
-                ]);
-            }
-
-            return GameSession::query()->create([
-                'profile_id' => $profile->getKey(),
-                'game_id' => $game->getKey(),
-                'game_level_id' => $level->getKey(),
-                'daily_workout_item_id' => $workoutItem?->getKey(),
-                'status' => SessionStatus::InProgress,
-                'mode' => $mode,
-                'snapshot_version' => 1,
-                'current_round' => 0,
-                'state_snapshot' => ['version' => 1],
-                'started_at' => now(),
-                'last_interaction_at' => now(),
-            ])->load(['game', 'level', 'rounds']);
-        });
+        return GameSession::query()->create([
+            'profile_id' => $profile->getKey(),
+            'game_id' => $game->getKey(),
+            'game_level_id' => $level->getKey(),
+            'status' => SessionStatus::InProgress,
+            'mode' => $mode,
+            'snapshot_version' => 1,
+            'current_round' => 0,
+            'state_snapshot' => ['version' => 1],
+            'started_at' => now(),
+            'last_interaction_at' => now(),
+        ])->load(['game', 'level', 'rounds']);
     }
 
     /**
-     * Start the implemented native game runner for a workout item.
-     */
-    public function startForWorkoutItem(
-        Profile $profile,
-        DailyWorkoutItem $workoutItem,
-    ): GameSession {
-        return match ($workoutItem->game->type) {
-            GameType::ClearThought,
-            GameType::SignalShift,
-            GameType::WordMatch,
-            GameType::QuickMath => $this->startGameplay($profile, $workoutItem),
-        };
-    }
-
-    /**
-     * Start a fresh, standalone free-play session outside any daily workout.
-     * Each launch creates a new session, matching the "play a game tile" flow.
+     * Start a fresh, standalone free-play session. Each launch creates a new
+     * session, matching the "play a game tile" flow.
      */
     public function startFreePlay(Profile $profile, Game $game, GameLevel $level): GameSession
     {
-        return $this->start(profile: $profile, game: $game, level: $level, workoutItem: null);
+        return $this->start(profile: $profile, game: $game, level: $level);
     }
 
     /**
@@ -164,13 +102,8 @@ final class GameSessionService
     {
         return DB::transaction(function () use ($gameSession, $stateSnapshot): GameSession {
             $session = GameSession::query()
-                ->with('workoutItem')
                 ->lockForUpdate()
                 ->findOrFail($gameSession->getKey());
-
-            if ($session->isFrameworkPlaceholder()) {
-                throw new LogicException('Framework placeholders must use placeholder restart.');
-            }
 
             if ($session->status !== SessionStatus::InProgress) {
                 throw new LogicException('Only an in-progress session can be restarted.');
@@ -196,12 +129,7 @@ final class GameSessionService
                 'statistics_recorded_at' => null,
             ]);
 
-            $session->workoutItem?->update([
-                'status' => WorkoutStatus::InProgress,
-                'completed_at' => null,
-            ]);
-
-            return $session->refresh()->load(['game', 'level', 'rounds', 'workoutItem.workout']);
+            return $session->refresh()->load(['game', 'level', 'rounds']);
         });
     }
 
@@ -270,16 +198,12 @@ final class GameSessionService
     {
         return DB::transaction(function () use ($gameSession): ScoringResult {
             $session = GameSession::query()
-                ->with(['game', 'rounds', 'profile', 'workoutItem.workout'])
+                ->with(['game', 'rounds', 'profile'])
                 ->lockForUpdate()
                 ->findOrFail($gameSession->getKey());
 
             if (! in_array($session->status, [SessionStatus::InProgress, SessionStatus::Completed], true)) {
                 throw new LogicException('This session cannot be completed from its current state.');
-            }
-
-            if ($session->isFrameworkPlaceholder()) {
-                throw new LogicException('Framework placeholder sessions cannot create gameplay evidence.');
             }
 
             $result = $this->scoringService($session->game->type)->score($session->rounds);
@@ -297,11 +221,6 @@ final class GameSessionService
                     'best_combo' => $result->bestCombo,
                     'state_snapshot' => null,
                     'last_interaction_at' => now(),
-                    'completed_at' => now(),
-                ]);
-
-                $session->workoutItem?->update([
-                    'status' => WorkoutStatus::Completed,
                     'completed_at' => now(),
                 ]);
             }
@@ -324,45 +243,12 @@ final class GameSessionService
         });
     }
 
-    /**
-     * Retrieve the newest resumable attempt for a workout item.
-     */
-    public function resume(DailyWorkoutItem $workoutItem): ?GameSession
-    {
-        return GameSession::query()
-            ->whereBelongsTo($workoutItem, 'workoutItem')
-            ->resumable()
-            ->with(['game', 'level', 'rounds.challenge'])
-            ->latest('last_interaction_at')
-            ->first();
-    }
-
     private function scoringService(GameType $gameType): GameScoringService
     {
         return match ($gameType) {
-            GameType::SignalShift => $this->signalShiftScoringService,
-            GameType::ClearThought => $this->clearThoughtScoringService,
             GameType::WordMatch => $this->wordMatchScoringService,
             GameType::QuickMath => $this->quickMathScoringService,
         };
-    }
-
-    private function startGameplay(
-        Profile $profile,
-        DailyWorkoutItem $workoutItem,
-    ): GameSession {
-        GameSession::query()
-            ->whereBelongsTo($workoutItem, 'workoutItem')
-            ->where('mode', GameSession::FRAMEWORK_PLACEHOLDER_MODE)
-            ->resumable()
-            ->delete();
-
-        return $this->start(
-            profile: $profile,
-            game: $workoutItem->game,
-            level: $workoutItem->level,
-            workoutItem: $workoutItem,
-        );
     }
 
     private function skillDelta(ScoringResult $result): int

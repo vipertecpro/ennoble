@@ -1,18 +1,35 @@
 <?php
 
-use App\Domain\Games\SignalShift\SignalShiftScoringService;
+use App\Domain\Games\Contracts\ScoringResult;
+use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\GameType;
 use App\Enums\RoundOutcome;
 use App\Enums\SessionStatus;
-use App\Models\DailyWorkout;
-use App\Models\DailyWorkoutItem;
 use App\Models\Game;
 use App\Models\GameRound;
 use App\Models\GameSession;
 use App\Models\Profile;
 use App\Models\Statistic;
 use Carbon\CarbonImmutable;
+
+/**
+ * A minimal completed-game score with no timed rounds.
+ */
+function plainScore(): ScoringResult
+{
+    return new ScoringResult(
+        score: 120,
+        accuracy: 100.0,
+        averageResponseMs: null,
+        correctCount: 1,
+        incorrectCount: 0,
+        missedCount: 0,
+        hintCount: 0,
+        bestCombo: 1,
+        summary: [],
+    );
+}
 
 test('statistics calculations preserve unavailable values and validate counts', function () {
     $service = app(StatisticsService::class);
@@ -35,7 +52,7 @@ test('statistics calculations preserve unavailable values and validate counts', 
 
 test('game previews combine aggregate personal bests with session history', function () {
     $profile = Profile::factory()->create();
-    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
     $level = $game->levels()->firstOrFail();
 
     GameSession::factory()->completed()->create([
@@ -56,7 +73,7 @@ test('game previews combine aggregate personal bests with session history', func
         ->for($profile)
         ->for($game)
         ->create([
-            'scope_key' => 'game:signal_shift',
+            'scope_key' => 'game:word_match',
             'sessions_completed' => 1,
             'best_score' => 975,
         ]);
@@ -73,7 +90,7 @@ test('game previews combine aggregate personal bests with session history', func
 
 test('completed session statistics are overall per-game and idempotent', function () {
     $profile = Profile::factory()->create();
-    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
     $level = $game->levels()->firstOrFail();
     $session = GameSession::factory()->create([
         'profile_id' => $profile->getKey(),
@@ -103,7 +120,7 @@ test('completed session statistics are overall per-game and idempotent', functio
         'response_ms' => 500,
         'combo' => 0,
     ]);
-    $result = app(SignalShiftScoringService::class)->score($session->rounds()->get());
+    $result = app(WordMatchScoringService::class)->score($session->rounds()->get());
     $session->update([
         'score' => $result->score,
         'accuracy' => $result->accuracy,
@@ -120,7 +137,7 @@ test('completed session statistics are overall per-game and idempotent', functio
     $overall = Statistic::query()->whereBelongsTo($profile)->overall()->firstOrFail();
     $perGame = Statistic::query()
         ->whereBelongsTo($profile)
-        ->where('scope_key', 'game:signal_shift')
+        ->where('scope_key', 'game:word_match')
         ->firstOrFail();
 
     expect($overall->sessions_completed)->toBe(1)
@@ -132,68 +149,68 @@ test('completed session statistics are overall per-game and idempotent', functio
         ->and($session->refresh()->statistics_recorded_at)->not->toBeNull();
 });
 
-test('workout statistics derive current and longest streaks across gaps', function () {
-    CarbonImmutable::setTestNow('2026-07-18 10:00:00');
+test('completing sessions on consecutive calendar days grows the play streak', function () {
+    CarbonImmutable::setTestNow('2026-07-19 10:00:00');
     $profile = Profile::factory()->create();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
+    $level = $game->levels()->firstOrFail();
+    $service = app(StatisticsService::class);
+
+    foreach (['2026-07-17', '2026-07-18', '2026-07-19'] as $date) {
+        $session = GameSession::factory()->completed()->create([
+            'profile_id' => $profile->getKey(),
+            'game_id' => $game->getKey(),
+            'game_level_id' => $level->getKey(),
+            'completed_at' => $date.' 10:00:00',
+        ]);
+
+        $service->recordGameSession($session, plainScore());
+    }
+
+    $overall = Statistic::query()->whereBelongsTo($profile)->overall()->firstOrFail();
+
+    expect($overall->current_streak)->toBe(3)
+        ->and($overall->longest_streak)->toBe(3)
+        ->and($overall->last_played_date->toDateString())->toBe('2026-07-19')
+        ->and($overall->sessions_completed)->toBe(3);
+
+    CarbonImmutable::setTestNow();
+});
+
+test('a gap between play days resets the current streak while longest retains the max', function () {
+    CarbonImmutable::setTestNow('2026-07-17 10:00:00');
+    $profile = Profile::factory()->create();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
+    $level = $game->levels()->firstOrFail();
     $service = app(StatisticsService::class);
 
     foreach (['2026-07-14', '2026-07-15', '2026-07-17'] as $date) {
-        $workout = DailyWorkout::factory()->completed()->for($profile)->create([
-            'workout_date' => $date,
-            'training_seconds' => 300,
+        $session = GameSession::factory()->completed()->create([
+            'profile_id' => $profile->getKey(),
+            'game_id' => $game->getKey(),
+            'game_level_id' => $level->getKey(),
+            'completed_at' => $date.' 10:00:00',
         ]);
-        $service->recordWorkoutCompletion($workout);
+
+        $service->recordGameSession($session, plainScore());
     }
 
     $overall = Statistic::query()->whereBelongsTo($profile)->overall()->firstOrFail();
 
-    expect($overall->workouts_completed)->toBe(3)
-        ->and($overall->training_seconds)->toBe(900)
-        ->and($overall->current_streak)->toBe(1)
-        ->and($overall->longest_streak)->toBe(2)
-        ->and($overall->last_workout_date->toDateString())->toBe('2026-07-17');
-
-    CarbonImmutable::setTestNow();
-});
-
-test('a lapsed streak decays at write time and restarts with new evidence', function () {
-    CarbonImmutable::setTestNow('2026-07-18 10:00:00');
-    $profile = Profile::factory()->create();
-    $service = app(StatisticsService::class);
-
-    foreach (['2026-07-14', '2026-07-15'] as $date) {
-        $workout = DailyWorkout::factory()->completed()->for($profile)->create([
-            'workout_date' => $date,
-            'training_seconds' => 300,
-        ]);
-        $service->recordWorkoutCompletion($workout);
-    }
-
-    $overall = Statistic::query()->whereBelongsTo($profile)->overall()->firstOrFail();
-
-    expect($overall->current_streak)->toBe(0)
-        ->and($overall->longest_streak)->toBe(2);
-
-    $todaysWorkout = DailyWorkout::factory()->completed()->for($profile)->create([
-        'workout_date' => '2026-07-18',
-        'training_seconds' => 300,
-    ]);
-    $service->recordWorkoutCompletion($todaysWorkout);
-
-    expect($overall->refresh()->current_streak)->toBe(1)
+    expect($overall->current_streak)->toBe(1)
         ->and($overall->longest_streak)->toBe(2);
 
     CarbonImmutable::setTestNow();
 });
 
-test('a stored streak reads truthfully as days pass without new workouts', function () {
+test('a stored streak decays through its accessor as days pass without new play', function () {
     CarbonImmutable::setTestNow('2026-07-18 10:00:00');
     $profile = Profile::factory()->create();
     $statistic = Statistic::factory()->for($profile)->create([
         'scope_key' => 'overall',
         'current_streak' => 4,
         'longest_streak' => 4,
-        'last_workout_date' => '2026-07-17',
+        'last_played_date' => '2026-07-17',
     ]);
 
     expect($statistic->current_streak)->toBe(4);
@@ -202,35 +219,6 @@ test('a stored streak reads truthfully as days pass without new workouts', funct
 
     expect($statistic->fresh()->current_streak)->toBe(0)
         ->and($statistic->fresh()->longest_streak)->toBe(4);
-
-    CarbonImmutable::setTestNow();
-});
-
-test('daily summary clamps implausible session durations to the training bound', function () {
-    CarbonImmutable::setTestNow('2026-07-18 10:00:00');
-    $profile = Profile::factory()->create();
-    $workout = DailyWorkout::factory()->completed()->for($profile)->create([
-        'workout_date' => '2026-07-18',
-    ]);
-    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
-    $item = DailyWorkoutItem::factory()->create([
-        'daily_workout_id' => $workout->getKey(),
-        'game_id' => $game->getKey(),
-        'game_level_id' => $game->levels()->firstOrFail()->getKey(),
-    ]);
-    GameSession::factory()->completed()->create([
-        'profile_id' => $profile->getKey(),
-        'game_id' => $item->game_id,
-        'game_level_id' => $item->game_level_id,
-        'daily_workout_item_id' => $item->getKey(),
-        'started_at' => now()->subHours(30),
-        'completed_at' => now(),
-    ]);
-
-    $summary = app(StatisticsService::class)->dailySummary($workout);
-
-    expect($summary['training_seconds'])->toBe(21600)
-        ->and($summary['has_gameplay_evidence'])->toBeTrue();
 
     CarbonImmutable::setTestNow();
 });

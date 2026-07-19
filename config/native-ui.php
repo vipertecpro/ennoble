@@ -84,6 +84,11 @@ return [
             'selected' => '#C5DB5540',
             'disabled' => '#1B1B1F4D',
             'focus-ring' => '#657D0A80',
+
+            // Badge tier medals (Bronze / Silver / Gold).
+            'badge-bronze' => '#B06C38',
+            'badge-silver' => '#8A8F99',
+            'badge-gold' => '#C79A25',
         ],
 
         'dark' => [
@@ -121,6 +126,11 @@ return [
             'selected' => '#C5DB5533',
             'disabled' => '#F5F5F452',
             'focus-ring' => '#C5DB558C',
+
+            // Badge tier medals (Bronze / Silver / Gold).
+            'badge-bronze' => '#D08A5C',
+            'badge-silver' => '#C3C8D0',
+            'badge-gold' => '#E7C24B',
         ],
 
         // Corner radii (points / dp) — Cortex: controls M(12) · cards L(16) · sheets XL(24).

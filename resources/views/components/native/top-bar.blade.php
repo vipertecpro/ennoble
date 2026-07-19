@@ -30,9 +30,9 @@
     @endif
 
     <native:column class="flex-1 gap-1">
-        <native:text class="text-[17] font-semibold text-theme-primary-text">{{ $title }}</native:text>
+        <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $title }}</native:text>
         @if ($subtitle)
-            <native:text class="text-[15] text-theme-secondary-text">{{ $subtitle }}</native:text>
+            <native:text class="text-[13] text-theme-secondary-text">{{ $subtitle }}</native:text>
         @endif
     </native:column>
 

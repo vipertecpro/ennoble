@@ -17,7 +17,7 @@
     <native:column class="w-full px-4 items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
             @if ($monogram !== '')
-                <native:text class="text-[28] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
+                <native:text class="text-[22] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
             @else
                 <x-native.icon
                     :ios="Ios::Person"
@@ -29,103 +29,45 @@
         </native:column>
 
         <native:column class="items-center gap-1">
-            <native:text class="text-[22] font-semibold tracking-tight leading-tight text-center text-theme-primary-text">{{ $identityName }}</native:text>
-            <native:text class="text-[15] text-theme-muted-text">{{ $memberSince }}</native:text>
+            <native:text class="text-[18] font-semibold tracking-tight leading-tight text-center text-theme-primary-text">{{ $identityName }}</native:text>
+            <native:text class="text-[13] text-theme-muted-text">{{ $memberSince }}</native:text>
         </native:column>
 
-        <native:text class="text-[15] font-semibold text-theme-secondary-text">
+        <native:text class="text-[13] font-semibold text-theme-secondary-text">
             {{ $goalLabel }} · {{ $paceLabel }}
         </native:text>
     </native:column>
     </native:column>
 
-    <x-native.dashboard-section-header title="Your practice" />
-
-    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-3">
-        <native:row class="gap-3">
-            <x-native.game-stat
-                :ios="Ios::CheckmarkSeal"
-                :android="AndroidOutlined::Verified"
-                label="Workouts"
-                :value="$workoutsLabel"
-            />
-            <x-native.game-stat
-                :ios="Ios::Flame"
-                :android="AndroidOutlined::LocalFireDepartment"
-                label="Day streak"
-                :value="$streakLabel"
-            />
-        </native:row>
-        <native:row class="gap-3">
-            <x-native.game-stat
-                :ios="Ios::Rosette"
-                :android="AndroidOutlined::MilitaryTech"
-                label="Achievements"
-                :value="$achievementsLabel"
-            />
-        </native:row>
-    </native:column>
-    </native:column>
-
-    <x-native.dashboard-section-header title="Your details" />
-
-    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-4">
-        <x-native.onboarding-display-name-input
-            :display-name="$displayName"
-            :overlong="! $this->isDisplayNameValid()"
-            supporting="Your name never leaves this device."
-        />
-
-        <native:radio-group native:model="trainingGoal" label="Training focus">
-            <native:radio value="focus" label="Focus" />
-            <native:radio value="thinking_speed" label="Thinking speed" />
-            <native:radio value="language" label="Communication" />
-            <native:radio value="mental_sharpness" label="Mental sharpness" />
-            <native:radio value="balanced" label="Balanced training" />
-        </native:radio-group>
-
-        <native:radio-group native:model="difficulty" label="Training pace">
-            <native:radio value="beginner" label="Gentle" />
-            <native:radio value="intermediate" label="Steady" />
-            <native:radio value="advanced" label="Challenging" />
-            <native:radio value="adaptive" label="Adaptive" />
-        </native:radio-group>
-
-        @if ($this->hasUnsavedChanges())
-            <native:row class="justify-end">
-                <native:button
-                    class="w-44"
-                    label="Save changes"
-                    size="md"
-                    :loading="$isSaving"
-                    :disabled="! $this->isDisplayNameValid()"
-                    a11y-hint="Saves your local details on this device"
-                    @press="saveDetails"
-                />
-            </native:row>
-        @endif
-    </native:column>
-    </native:column>
-
-    <x-native.dashboard-section-header title="More" />
-
     <native:column class="rounded-2xl bg-theme-surface shadow-sm">
+        <x-native.settings-link-row
+            label="My Details"
+            description="Your name, focus, and pace."
+            method="openMyDetails"
+            :ios="Ios::PersonTextRectangle"
+            :android="AndroidOutlined::Badge"
+            :press-scale="$pressScale"
+            :press-opacity="$pressOpacity"
+        />
+        <native:divider />
         <x-native.settings-link-row
             label="Settings"
             description="Appearance, feedback, and motion."
             method="openSettings"
             :ios="Ios::Gearshape"
             :android="AndroidOutlined::Settings"
+            :press-scale="$pressScale"
+            :press-opacity="$pressOpacity"
         />
         <native:divider />
         <x-native.settings-link-row
             label="About Ennoble"
-            description="A private daily practice for a clearer mind."
+            description="A private offline games companion."
             method="openAbout"
             :ios="Ios::Info"
             :android="AndroidOutlined::Info"
+            :press-scale="$pressScale"
+            :press-opacity="$pressOpacity"
         />
     </native:column>
     @endif

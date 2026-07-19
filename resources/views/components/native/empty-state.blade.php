@@ -22,8 +22,8 @@
             :a11y-label="$title"
         />
     </native:column>
-    <native:text class="text-[22] font-semibold tracking-tight text-center text-theme-primary-text">{{ $title }}</native:text>
-    <native:text class="text-[17] leading-relaxed text-center text-theme-secondary-text">{{ $description }}</native:text>
+    <native:text class="text-[18] font-semibold tracking-tight text-center text-theme-primary-text">{{ $title }}</native:text>
+    <native:text class="text-[15] leading-relaxed text-center text-theme-secondary-text">{{ $description }}</native:text>
     @if ($actionLabel && $actionMethod)
         <native:button
             class="w-44"

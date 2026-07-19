@@ -46,5 +46,5 @@
     a11y-label="{{ $option }}"
     @press="chooseOption('{{ $option }}')"
 >
-    <native:text class="text-[24] font-bold {{ $ink }}">{{ number_format($option) }}</native:text>
+    <native:text class="text-[20] font-bold {{ $ink }}">{{ number_format($option) }}</native:text>
 </native:pressable>

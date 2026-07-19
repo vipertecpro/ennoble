@@ -8,6 +8,7 @@ use App\Domain\Profile\ProfileService;
 use App\Enums\Difficulty;
 use App\Models\Game;
 use App\Models\GameLevel;
+use App\Models\GameSession;
 use App\Models\Statistic;
 use App\NativeUI\Feedback\HapticFeedback;
 use App\NativeUI\Feedback\HapticService;
@@ -68,6 +69,11 @@ final class GameDetail extends NativeComponent
     public array $skills = [];
 
     public ?int $bestScore = null;
+
+    /**
+     * @var list<array{date: string, score: string, accuracy: string, correct: string, duration: string, avg: string}>
+     */
+    public array $history = [];
 
     public string $difficultyLabel = '';
 
@@ -183,11 +189,60 @@ final class GameDetail extends NativeComponent
                 ->whereBelongsTo($profile)
                 ->where('game_id', $game->getKey())
                 ->value('best_score');
+            $this->loadHistory($profile->getKey(), $game->getKey());
         } catch (Throwable $exception) {
             report($exception);
 
             $this->screenState = 'error';
         }
+    }
+
+    /**
+     * Load the most recent completed sessions for this game as a results log.
+     */
+    private function loadHistory(int $profileId, int $gameId): void
+    {
+        $this->history = GameSession::query()
+            ->where('profile_id', $profileId)
+            ->where('game_id', $gameId)
+            ->completed()
+            ->latest('completed_at')
+            ->limit(8)
+            ->get()
+            ->map(function (GameSession $session): array {
+                $attempted = $session->correct_count + $session->incorrect_count + $session->missed_count;
+                $durationSeconds = $session->completed_at !== null
+                    ? (int) $session->started_at->diffInSeconds($session->completed_at)
+                    : 0;
+
+                return [
+                    'date' => $session->completed_at?->format('M j') ?? '—',
+                    'score' => number_format($session->score ?? 0),
+                    'accuracy' => $session->accuracy === null ? '—' : round($session->accuracy).'%',
+                    'correct' => $session->correct_count.'/'.max(1, $attempted),
+                    'duration' => $this->formatDuration($durationSeconds),
+                    'avg' => $session->average_response_ms === null
+                        ? '—'
+                        : $this->formatMs($session->average_response_ms),
+                ];
+            })
+            ->all();
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return $seconds.'s';
+        }
+
+        return intdiv($seconds, 60).'m '.($seconds % 60).'s';
+    }
+
+    private function formatMs(int $milliseconds): string
+    {
+        return $milliseconds < 1000
+            ? $milliseconds.'ms'
+            : number_format($milliseconds / 1000, 1).'s';
     }
 
     private function levelFor(Game $game, Difficulty $difficulty): GameLevel

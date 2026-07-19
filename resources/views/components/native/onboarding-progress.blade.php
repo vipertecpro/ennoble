@@ -7,7 +7,7 @@
 {{-- Explicit w-full so the label and dots pin to the shared px-4 gutters —
      without it the row hugs its content and justify-between collapses. --}}
 <native:row class="w-full items-center justify-between">
-    <native:text class="text-[13] font-semibold text-theme-secondary-text">
+    <native:text class="text-[12] font-semibold text-theme-secondary-text">
         Step {{ $currentStep }} of {{ $totalSteps }}
     </native:text>
 

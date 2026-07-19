@@ -50,5 +50,5 @@
     a11y-label="{{ $option }}"
     @press="chooseOption('{{ $option }}')"
 >
-    <native:text class="text-[19] font-semibold {{ $ink }}">{{ $option }}</native:text>
+    <native:text class="text-[16] font-semibold {{ $ink }}">{{ $option }}</native:text>
 </native:pressable>

@@ -50,10 +50,10 @@
             />
 
             <native:column class="w-full items-center gap-2">
-                <native:text class="w-full text-[34] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
+                <native:text class="w-full text-[26] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
                     Train a sharper mind.
                 </native:text>
-                <native:text class="w-full text-[17] leading-relaxed text-center text-theme-secondary-text">
+                <native:text class="w-full text-[15] leading-relaxed text-center text-theme-secondary-text">
                     Short, private exercises designed for calm daily progress.
                 </native:text>
             </native:column>
@@ -81,10 +81,10 @@
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
                     What should we train first?
                 </native:text>
-                <native:text class="w-full text-[15] leading-relaxed text-theme-secondary-text">
+                <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
                     Pick one focus. You can change it later.
                 </native:text>
             </native:column>
@@ -110,10 +110,10 @@
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
                     Choose your pace.
                 </native:text>
-                <native:text class="w-full text-[15] leading-relaxed text-theme-secondary-text">
+                <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
                     Start comfortably. Ennoble will adapt with you.
                 </native:text>
             </native:column>
@@ -138,10 +138,10 @@
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
                     What should we call you?
                 </native:text>
-                <native:text class="w-full text-[15] leading-relaxed text-theme-secondary-text">
+                <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
                     Your name stays on this device.
                 </native:text>
             </native:column>
@@ -159,10 +159,10 @@
                  viewport, clipping the halo mid-circle. Dropping the decoration
                  lets the whole step sit in view without scrolling. --}}
             <native:column class="w-full gap-2 pt-2">
-                <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
                     Make it feel right.
                 </native:text>
-                <native:text class="w-full text-[15] leading-relaxed text-theme-secondary-text">
+                <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
                     Set your appearance and feedback preferences.
                 </native:text>
             </native:column>
@@ -171,7 +171,7 @@
                  consistent treatment for both preference groups so the step
                  reads as a single, symmetric settings moment. --}}
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">
+                <native:text class="w-full text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                     Appearance
                 </native:text>
                 <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm px-4 py-3">
@@ -184,7 +184,7 @@
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">
+                <native:text class="w-full text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                     Feedback
                 </native:text>
                 <native:column class="w-full gap-3 rounded-2xl bg-theme-surface shadow-sm px-4 py-2">
@@ -204,10 +204,10 @@
                 />
 
                 <native:column class="w-full items-center gap-2">
-                    <native:text class="w-full text-[28] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
+                    <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
                         Ready for day one.
                     </native:text>
-                    <native:text class="w-full text-[15] leading-relaxed text-center text-theme-secondary-text">
+                    <native:text class="w-full text-[13] leading-relaxed text-center text-theme-secondary-text">
                         Your private training space is ready.
                     </native:text>
                 </native:column>
@@ -232,7 +232,7 @@
     <native:column ref="onboarding-actions" class="w-full px-4 pt-3 pb-8 gap-2 bg-theme-background">
         @if ($errorMessage)
             <native:column class="w-full rounded-2xl bg-theme-secondary-surface p-4">
-                <native:text class="w-full text-[15] font-semibold text-theme-danger">
+                <native:text class="w-full text-[13] font-semibold text-theme-danger">
                     {{ $errorMessage }}
                 </native:text>
             </native:column>

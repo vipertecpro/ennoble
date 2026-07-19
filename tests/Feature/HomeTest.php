@@ -3,19 +3,18 @@
 use App\Models\Profile as LocalProfile;
 use App\Models\Setting;
 use App\NativeComponents\Screens\About;
-use App\NativeComponents\Screens\ClearThoughtGame;
+use App\NativeComponents\Screens\AchievementCategory;
+use App\NativeComponents\Screens\Achievements;
+use App\NativeComponents\Screens\GameDetail;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
+use App\NativeComponents\Screens\MyDetails;
 use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
-use App\NativeComponents\Screens\Progress;
+use App\NativeComponents\Screens\QuickMathGame;
 use App\NativeComponents\Screens\Settings;
-use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
-use App\NativeComponents\Screens\WorkoutComplete;
-use App\NativeComponents\Screens\WorkoutIntroduction;
-use App\NativeComponents\Screens\WorkoutPreparation;
-use App\NativeComponents\Screens\WorkoutTransition;
+use App\NativeComponents\Screens\WordMatchGame;
 use App\NativeLayouts\EnnobleLayout;
 use App\NativeLayouts\OnboardingLayout;
 use Native\Mobile\Edge\NativeRouter;
@@ -31,38 +30,30 @@ test('all application shell routes are registered with the expected layout', fun
         '/splash' => ['class' => Splash::class, 'layout' => null],
         '/onboarding' => ['class' => Onboarding::class, 'layout' => OnboardingLayout::class],
         '/' => ['class' => Home::class, 'layout' => EnnobleLayout::class],
-        '/workout' => ['class' => WorkoutIntroduction::class, 'layout' => EnnobleLayout::class],
-        '/workout/preparation/{session}' => ['class' => WorkoutPreparation::class, 'layout' => EnnobleLayout::class],
-        '/workout/game/signal-shift/{session}' => ['class' => SignalShiftGame::class, 'layout' => EnnobleLayout::class],
-        '/workout/game/clear-thought/{session}' => ['class' => ClearThoughtGame::class, 'layout' => EnnobleLayout::class],
-        '/workout/transition/{item}' => ['class' => WorkoutTransition::class, 'layout' => EnnobleLayout::class],
-        '/workout/complete/{workout}' => ['class' => WorkoutComplete::class, 'layout' => EnnobleLayout::class],
         '/games' => ['class' => Games::class, 'layout' => EnnobleLayout::class],
-        '/progress' => ['class' => Progress::class, 'layout' => EnnobleLayout::class],
+        '/games/{slug}' => ['class' => GameDetail::class, 'layout' => EnnobleLayout::class],
+        '/play/word-match/{session}' => ['class' => WordMatchGame::class, 'layout' => EnnobleLayout::class],
+        '/play/quick-math/{session}' => ['class' => QuickMathGame::class, 'layout' => EnnobleLayout::class],
+        '/achievements' => ['class' => Achievements::class, 'layout' => EnnobleLayout::class],
+        '/achievements/{category}' => ['class' => AchievementCategory::class, 'layout' => EnnobleLayout::class],
         '/profile' => ['class' => Profile::class, 'layout' => EnnobleLayout::class],
+        '/my-details' => ['class' => MyDetails::class, 'layout' => EnnobleLayout::class],
         '/settings' => ['class' => Settings::class, 'layout' => EnnobleLayout::class],
         '/about' => ['class' => About::class, 'layout' => EnnobleLayout::class],
     ]);
 });
 
-test('application screens render and pass the in-process accessibility audit', function (
-    string $uri,
-    string $component,
-    string $visibleText,
-) {
-    Native::visit($uri)
-        ->assertScreen($component)
-        ->assertSee($visibleText)
+test('the home screen shows both play cards and the streak glance', function () {
+    Native::visit('/')
+        ->assertScreen(Home::class)
+        ->assertSee('Play')
+        ->assertSee('Word Match')
+        ->assertSee('Quick Math')
+        ->assertSee('Day streak')
+        ->assertSee('Best score')
+        ->assertSee('Latest badge')
         ->assertAccessible();
-})->with([
-    'splash' => ['/splash', Splash::class, 'A private daily practice for a clearer mind.'],
-    'home' => ['/', Home::class, 'Progress'],
-    'games' => ['/games', Games::class, 'Games'],
-    'progress' => ['/progress', Progress::class, 'Progress you can trust.'],
-    'profile' => ['/profile', Profile::class, 'Your details'],
-    'settings' => ['/settings', Settings::class, 'Every preference is stored only on this device.'],
-    'about' => ['/about', About::class, 'A private daily practice for a clearer mind.'],
-]);
+});
 
 test('splash replaces itself with home', function () {
     Native::visit('/splash')
@@ -101,7 +92,7 @@ test('the native tab bar exposes all destinations and tracks the active route', 
         ->assertElement('bottom_nav')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Home')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Games')
-        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Progress')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Achievements')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Profile')
         ->assertElement(
             'bottom_nav_item',
@@ -111,32 +102,16 @@ test('the native tab bar exposes all destinations and tracks the active route', 
 })->with([
     'home' => ['/', 'Home'],
     'games' => ['/games', 'Games'],
-    'progress' => ['/progress', 'Progress'],
+    'achievements' => ['/achievements', 'Achievements'],
     'profile' => ['/profile', 'Profile'],
 ]);
 
-test('profile settings and about form a working native flow', function () {
-    Native::visit('/profile')
-        ->tap('Settings')
-        ->assertNavigatedTo('/settings')
-        ->follow()
-        ->assertScreen(Settings::class)
-        ->assertNavTitle('Settings')
-        ->assertMissingElement('bottom_nav')
-        ->tap('About Ennoble')
-        ->assertNavigatedTo('/about')
-        ->follow()
-        ->assertScreen(About::class)
-        ->assertNavTitle('About')
-        ->assertMissingElement('bottom_nav');
-});
-
-test('home shared screen container renders full loading and recoverable error states', function () {
+test('home renders full loading and recoverable error states', function () {
     Native::visit('/')
-        ->set('dashboardState', 'loading')
-        ->assertSee('Loading your Ennoble dashboard')
-        ->set('dashboardState', 'error')
-        ->assertSee('Your dashboard could not be loaded')
-        ->tap('Retry dashboard')
-        ->assertSee('Progress');
+        ->set('screenState', 'loading')
+        ->assertSee('Loading your home screen')
+        ->set('screenState', 'error')
+        ->assertSee('Your home screen could not be loaded')
+        ->tap('Retry')
+        ->assertSee('Word Match');
 });

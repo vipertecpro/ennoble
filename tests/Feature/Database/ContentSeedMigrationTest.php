@@ -10,22 +10,21 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-test('content migration seeds only bundled definitions', function () {
-    expect(Game::query()->count())->toBe(4)
+test('content migration seeds only the two bundled games and the full badge catalogue', function () {
+    expect(Game::query()->count())->toBe(2)
         ->and(Game::query()->pluck('type')->all())->toContain(
-            GameType::SignalShift,
-            GameType::ClearThought,
+            GameType::WordMatch,
+            GameType::QuickMath,
         )
-        ->and(DB::table('game_levels')->count())->toBe(12)
-        ->and(DB::table('achievements')->count())->toBe(6)
+        ->and(DB::table('game_levels')->count())->toBe(6)
+        ->and(DB::table('achievements')->count())->toBe(175)
         ->and(DB::table('profiles')->count())->toBe(0)
-        ->and(DB::table('daily_workouts')->count())->toBe(0)
         ->and(DB::table('statistics')->count())->toBe(0);
 });
 
 test('bundled seeders are idempotent and preserve in-progress data', function () {
     $profile = Profile::factory()->create();
-    $game = Game::query()->where('type', GameType::SignalShift)->firstOrFail();
+    $game = Game::query()->where('type', GameType::WordMatch)->firstOrFail();
     $level = $game->levels()->firstOrFail();
     $session = GameSession::factory()->create([
         'profile_id' => $profile->getKey(),
@@ -36,9 +35,9 @@ test('bundled seeders are idempotent and preserve in-progress data', function ()
 
     $this->seed(DatabaseSeeder::class);
 
-    expect(Game::query()->count())->toBe(4)
-        ->and(DB::table('game_levels')->count())->toBe(12)
-        ->and(DB::table('achievements')->count())->toBe(6);
+    expect(Game::query()->count())->toBe(2)
+        ->and(DB::table('game_levels')->count())->toBe(6)
+        ->and(DB::table('achievements')->count())->toBe(175);
 
     $this->assertModelExists($session);
     expect($session->refresh()->status)->toBe(SessionStatus::InProgress);
@@ -90,9 +89,9 @@ test('product migrations upgrade the previous scaffold schema without losing leg
         ]);
 
         expect(DB::table('users')->where('email', 'legacy@example.test')->exists())->toBeTrue()
-            ->and(DB::table('games')->count())->toBe(4)
-            ->and(DB::table('game_levels')->count())->toBe(12)
-            ->and(DB::table('achievements')->count())->toBe(6)
+            ->and(DB::table('games')->count())->toBe(2)
+            ->and(DB::table('game_levels')->count())->toBe(6)
+            ->and(DB::table('achievements')->count())->toBe(175)
             ->and(Schema::connection('upgrade_test')->hasColumn('profiles', 'onboarding_completed_at'))->toBeTrue();
     } finally {
         DB::setDefaultConnection($originalConnection);

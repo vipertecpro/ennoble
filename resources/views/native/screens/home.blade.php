@@ -4,13 +4,13 @@
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
-    @if ($dashboardState === 'loading')
-        <x-native.loading-overlay label="Loading your Ennoble dashboard" />
-    @elseif ($dashboardState === 'error')
+    @if ($screenState === 'loading')
+        <x-native.loading-overlay label="Loading your home screen" />
+    @elseif ($screenState === 'error')
         <x-native.error-state
-            :description="$dashboardError"
-            retry-label="Retry dashboard"
-            retry-method="retryDashboard"
+            :description="$screenError"
+            retry-label="Retry"
+            retry-method="retryHome"
         />
     @else
     <x-native.dashboard-greeting
@@ -22,46 +22,57 @@
         :motion-duration="$motionDuration"
     />
 
-    <x-native.dashboard-section-header title="Progress" />
+    {{-- Quick play --}}
+    <x-native.dashboard-section-header title="Play" />
 
-    @if ($isProgressLoading)
-        <x-native.dashboard-loading-card label="Loading skill progress" />
-    @elseif ($progressError)
-        <x-native.error-state
-            :description="$progressError"
-            retry-label="Retry progress"
-            retry-method="retryProgress"
-        />
-    @else
-        <x-native.dashboard-progress-card
-            :skill-highlights="$skillHighlights"
-            :weekly-completed="$weeklyCompleted"
-            :weekly-completion-percentage="$weeklyCompletionPercentage"
-            :personal-best-score="$personalBestScore"
-            :personal-best-game="$personalBestGame"
-            :has-workout-history="$hasWorkoutHistory"
+    @foreach ($games as $game)
+        <x-native.home-play-card
+            :slug="$game['slug']"
+            :title="$game['title']"
+            :subtitle="$game['subtitle']"
+            :press-scale="$pressScale"
+            :press-opacity="$pressOpacity"
             :motion-duration="$motionDuration"
         />
-    @endif
+    @endforeach
 
-    <x-native.dashboard-section-header title="Recent Achievement" />
+    {{-- At a glance --}}
+    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+    <native:column class="w-full px-4 gap-3">
+        <native:row class="gap-3">
+            <x-native.game-stat
+                :ios="Ios::Flame"
+                :android="AndroidOutlined::LocalFireDepartment"
+                label="Day streak"
+                :value="(string) $currentStreak"
+            />
+            <x-native.game-stat
+                :ios="Ios::Crown"
+                :android="AndroidOutlined::WorkspacePremium"
+                label="Best score"
+                :value="$bestLabel"
+            />
+        </native:row>
+    </native:column>
+    </native:column>
 
-    @if ($isAchievementLoading)
-        <x-native.dashboard-loading-card label="Loading latest achievement" />
-    @elseif ($achievementError)
-        <x-native.error-state
-            :description="$achievementError"
-            retry-label="Retry achievement"
-            retry-method="retryAchievement"
-        />
-    @else
+    {{-- Latest badge --}}
+    <x-native.dashboard-section-header title="Latest badge" />
+
+    <native:pressable
+        class="w-full"
+        :press-scale="$pressScale"
+        :press-opacity="$pressOpacity"
+        a11y-label="View all achievements"
+        a11y-hint="Opens the Achievements screen"
+        @press="openAchievements"
+    >
         <x-native.dashboard-achievement-card
             :title="$achievementTitle"
             :description="$achievementDescription"
             :motion-duration="$motionDuration"
         />
-    @endif
-
+    </native:pressable>
     @endif
 </native:column>
 </native:scroll-view>

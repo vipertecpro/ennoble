@@ -40,11 +40,6 @@ class Game extends Model
         return $this->hasMany(Challenge::class);
     }
 
-    public function workoutItems(): HasMany
-    {
-        return $this->hasMany(DailyWorkoutItem::class);
-    }
-
     public function sessions(): HasMany
     {
         return $this->hasMany(GameSession::class);

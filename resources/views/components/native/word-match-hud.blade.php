@@ -37,9 +37,9 @@
                 animate-easing="ease-out"
                 a11y-label="Combo times {{ $combo }}"
             >
-                <native:text class="text-[12] font-bold text-theme-accent">×{{ $combo }}</native:text>
+                <native:text class="text-[11] font-bold text-theme-accent">×{{ $combo }}</native:text>
             </native:column>
         @endif
-        <native:text class="text-[17] font-bold text-theme-primary-text">{{ number_format($score) }}</native:text>
+        <native:text class="text-[15] font-bold text-theme-primary-text">{{ number_format($score) }}</native:text>
     </native:row>
 </native:row>

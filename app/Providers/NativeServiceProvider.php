@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Ennoble\Lottie\LottieServiceProvider;
 use Illuminate\Support\ServiceProvider;
+use NativePHP\MediaPlayer\MediaPlayerServiceProvider;
 use Nativephp\NativeUi\NativeUIServiceProvider;
+use NativePHP\Vibe\VibeServiceProvider;
 
 class NativeServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,8 @@ class NativeServiceProvider extends ServiceProvider
         return [
             NativeUIServiceProvider::class,
             LottieServiceProvider::class,
+            VibeServiceProvider::class,
+            MediaPlayerServiceProvider::class,
 
         ];
     }

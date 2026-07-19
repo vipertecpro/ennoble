@@ -16,7 +16,6 @@ class AchievementUnlock extends Model
         'profile_id',
         'achievement_id',
         'game_session_id',
-        'daily_workout_id',
         'unlocked_at',
         'evidence',
     ];
@@ -34,11 +33,6 @@ class AchievementUnlock extends Model
     public function gameSession(): BelongsTo
     {
         return $this->belongsTo(GameSession::class);
-    }
-
-    public function dailyWorkout(): BelongsTo
-    {
-        return $this->belongsTo(DailyWorkout::class);
     }
 
     protected function casts(): array

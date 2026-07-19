@@ -4,10 +4,10 @@ namespace App\NativeLayouts;
 
 use App\Icons\AndroidOutlined;
 use App\Icons\Ios;
+use App\NativeComponents\Screens\Achievements;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Profile;
-use App\NativeComponents\Screens\Progress;
 use App\NativeUI\Navigation\TopNavigation;
 use App\NativeUI\Theme\ThemeManager;
 use Native\Mobile\Edge\Layouts\Builders\NavBar;
@@ -66,7 +66,7 @@ final class EnnobleLayout extends NativeLayout
             ->dark($isDark)
             ->add(Tab::link('Home', '/', ios: Ios::House, android: AndroidOutlined::Home))
             ->add(Tab::link('Games', '/games', ios: Ios::Gamecontroller, android: AndroidOutlined::SportsEsports))
-            ->add(Tab::link('Progress', '/progress', ios: Ios::ChartBar, android: AndroidOutlined::TrendingUp))
+            ->add(Tab::link('Achievements', '/achievements', ios: Ios::Rosette, android: AndroidOutlined::MilitaryTech))
             ->add(Tab::link('Profile', '/profile', ios: Ios::Person, android: AndroidOutlined::Person));
     }
 
@@ -74,7 +74,7 @@ final class EnnobleLayout extends NativeLayout
     {
         return $screen instanceof Home
             || $screen instanceof Games
-            || $screen instanceof Progress
+            || $screen instanceof Achievements
             || $screen instanceof Profile;
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\DailyWorkout;
 use App\Models\Profile;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +12,6 @@ test('fresh migrations create the complete offline domain schema', function () {
         'games',
         'game_levels',
         'challenges',
-        'daily_workouts',
-        'daily_workout_items',
         'game_sessions',
         'game_rounds',
         'progress_snapshots',
@@ -33,6 +30,7 @@ test('fresh migrations create the complete offline domain schema', function () {
             'statistics_recorded_at',
             'completed_at',
         ]))->toBeTrue()
+        ->and(Schema::hasColumn('game_sessions', 'daily_workout_item_id'))->toBeFalse()
         ->and(Schema::hasColumns('settings', [
             'theme_preference',
             'sound_enabled',
@@ -48,7 +46,20 @@ test('fresh migrations create the complete offline domain schema', function () {
             'longest_combo',
             'current_streak',
             'longest_streak',
-        ]))->toBeTrue();
+            'last_played_date',
+        ]))->toBeTrue()
+        ->and(Schema::hasColumns('statistics', [
+            'workouts_completed',
+            'training_seconds',
+            'last_workout_date',
+        ]))->toBeFalse()
+        ->and(Schema::hasColumn('achievements', 'tier'))->toBeTrue()
+        ->and(Schema::hasColumn('achievement_unlocks', 'daily_workout_id'))->toBeFalse();
+});
+
+test('the daily workout tables are gone after the refactor', function () {
+    expect(Schema::hasTable('daily_workouts'))->toBeFalse()
+        ->and(Schema::hasTable('daily_workout_items'))->toBeFalse();
 });
 
 test('sqlite foreign keys and singleton uniqueness are enforced', function () {
@@ -60,16 +71,4 @@ test('sqlite foreign keys and singleton uniqueness are enforced', function () {
 
     expect(fn () => Profile::factory()->create())
         ->toThrow(QueryException::class);
-});
-
-test('one workout per profile and local date is enforced by the database', function () {
-    $profile = Profile::factory()->create();
-
-    DailyWorkout::factory()->for($profile)->create([
-        'workout_date' => '2026-07-18',
-    ]);
-
-    expect(fn () => DailyWorkout::factory()->for($profile)->create([
-        'workout_date' => '2026-07-18',
-    ]))->toThrow(QueryException::class);
 });

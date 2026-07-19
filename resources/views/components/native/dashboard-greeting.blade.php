@@ -19,16 +19,16 @@
 >
     <native:column class="flex-1 gap-1">
         @if ($date)
-            <native:text class="text-[13] text-theme-muted-text">{{ $date }}</native:text>
+            <native:text class="text-[12] text-theme-muted-text">{{ $date }}</native:text>
         @endif
-        <native:text class="text-[28] font-bold tracking-tight leading-tight text-theme-primary-text">
+        <native:text class="text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
             {{ $greeting }}, {{ $displayName }}
         </native:text>
         @if ($message)
-            <native:text class="text-[14] leading-relaxed text-theme-secondary-text">{{ $message }}</native:text>
+            <native:text class="text-[12] leading-relaxed text-theme-secondary-text">{{ $message }}</native:text>
         @endif
     </native:column>
     <native:column class="w-10 h-10 items-center justify-center rounded-full bg-theme-secondary-surface">
-        <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $initial }}</native:text>
+        <native:text class="text-[13] font-semibold text-theme-primary-text">{{ $initial }}</native:text>
     </native:column>
 </native:row>

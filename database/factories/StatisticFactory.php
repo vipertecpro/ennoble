@@ -23,8 +23,6 @@ class StatisticFactory extends Factory
             'game_id' => null,
             'scope_key' => 'overall',
             'sessions_completed' => 0,
-            'workouts_completed' => 0,
-            'training_seconds' => 0,
             'correct_count' => 0,
             'attempted_count' => 0,
             'total_response_ms' => 0,

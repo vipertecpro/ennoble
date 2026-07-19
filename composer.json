@@ -42,6 +42,8 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "nativephp/mobile": "dev-element",
+        "nativephp/mobile-media-player": "^1.0",
+        "nativephp/mobile-vibe": "^1.0",
         "nativephp/native-ui": "dev-feat/webview-element"
     },
     "require-dev": {

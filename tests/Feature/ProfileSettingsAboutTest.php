@@ -5,7 +5,6 @@ use App\Enums\ThemePreference;
 use App\Enums\TrainingGoal;
 use App\Models\Profile as LocalProfile;
 use App\Models\Setting;
-use App\Models\Statistic;
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Settings;
@@ -33,26 +32,18 @@ afterEach(function () {
     CarbonImmutable::setTestNow();
 });
 
-test('the profile screen renders the local identity practice snapshot and details', function () {
-    Statistic::factory()->for($this->profile)->create([
-        'scope_key' => 'overall',
-        'workouts_completed' => 4,
-        'current_streak' => 3,
-    ]);
-
+test('the profile screen renders the local identity and navigation list only', function () {
     Native::visit('/profile')
         ->assertScreen(Profile::class)
         ->assertSee('Ada')
-        ->assertSee('Training since')
+        ->assertSee('Playing since')
         ->assertSee('Improve Focus')
-        ->assertSee('Steady')
-        ->assertSee('Your practice')
-        ->assertSee('Workouts')
-        ->assertSee('Day streak')
-        ->assertSee('0 of 6')
-        ->assertSee('Your details')
+        ->assertSee('Intermediate')
+        ->assertSee('My Details')
         ->assertSee('Settings')
         ->assertSee('About Ennoble')
+        ->assertDontSee('Your practice')
+        ->assertDontSee('Workouts')
         ->assertDontSee('Save changes')
         ->assertAccessible();
 });
@@ -66,49 +57,41 @@ test('an empty display name renders the friendly identity fallback', function ()
         ->assertAccessible();
 });
 
-test('edited profile details persist through the existing profile service', function () {
-    Native::visit('/profile')
-        ->set('displayName', 'Grace')
-        ->assertSee('Save changes')
-        ->set('trainingGoal', TrainingGoal::MentalSharpness->value)
-        ->set('difficulty', Difficulty::Advanced->value)
-        ->tap('Save changes')
-        ->assertSet('savedDisplayName', 'Grace')
-        ->assertSee('Grace')
-        ->assertSee('Stay Mentally Sharp')
-        ->assertSee('Challenging')
-        ->assertDontSee('Save changes')
-        ->assertAccessible();
-
-    $profile = $this->profile->refresh();
-
-    expect($profile->display_name)->toBe('Grace')
-        ->and($profile->training_goal)->toBe(TrainingGoal::MentalSharpness)
-        ->and($profile->difficulty_preference)->toBe(Difficulty::Advanced);
-});
-
-test('an overlong display name blocks saving with honest supporting copy', function () {
-    Native::visit('/profile')
-        ->set('displayName', str_repeat('a', 41))
-        ->assertSee('Use 40 characters or fewer.')
-        ->tap('Save changes');
-
-    expect($this->profile->refresh()->display_name)->toBe('Ada');
-});
-
-test('forged profile selections revert to the persisted values', function () {
-    Native::visit('/profile')
-        ->set('trainingGoal', 'not-a-goal')
-        ->assertSet('trainingGoal', TrainingGoal::Focus->value)
-        ->set('difficulty', 'impossible')
-        ->assertSet('difficulty', Difficulty::Intermediate->value);
-});
-
 test('an incomplete profile is returned to onboarding before the profile loads', function () {
     $this->profile->update(['onboarding_completed_at' => null]);
 
     Native::visit('/profile')
         ->assertReplacedWith('/onboarding');
+});
+
+test('the profile navigation list routes to details, settings, and about', function () {
+    Native::visit('/profile')
+        ->tap('My Details')
+        ->assertNavigatedTo('/my-details');
+
+    Native::visit('/profile')
+        ->tap('Settings')
+        ->assertNavigatedTo('/settings');
+
+    Native::visit('/profile')
+        ->tap('About Ennoble')
+        ->assertNavigatedTo('/about');
+});
+
+test('profile settings and about form a working native flow', function () {
+    Native::visit('/profile')
+        ->tap('Settings')
+        ->assertNavigatedTo('/settings')
+        ->follow()
+        ->assertScreen(Settings::class)
+        ->assertNavTitle('Settings')
+        ->assertMissingElement('bottom_nav')
+        ->tap('About Ennoble')
+        ->assertNavigatedTo('/about')
+        ->follow()
+        ->assertScreen(About::class)
+        ->assertNavTitle('About')
+        ->assertMissingElement('bottom_nav');
 });
 
 test('settings render every persisted preference control', function () {

@@ -15,8 +15,8 @@
         </native:column>
 
         <native:column class="items-center gap-2">
-            <native:text class="text-[34] font-bold tracking-tight leading-tight text-center text-theme-primary-text">Ennoble</native:text>
-            <native:text class="w-full text-[17] leading-relaxed text-center text-theme-secondary-text">
+            <native:text class="text-[26] font-bold tracking-tight leading-tight text-center text-theme-primary-text">Ennoble</native:text>
+            <native:text class="w-full text-[15] leading-relaxed text-center text-theme-secondary-text">
                 A private daily practice for a clearer mind.
             </native:text>
         </native:column>
@@ -46,8 +46,8 @@
     </native:column>
 
     <native:column class="items-center gap-1">
-        <native:text class="text-[15] font-semibold text-theme-muted-text">{{ $versionLabel }}</native:text>
-        <native:text class="text-[15] text-theme-muted-text">Crafted for quiet, focused minds.</native:text>
+        <native:text class="text-[13] font-semibold text-theme-muted-text">{{ $versionLabel }}</native:text>
+        <native:text class="text-[13] text-theme-muted-text">Crafted for quiet, focused minds.</native:text>
     </native:column>
 </native:column>
 </native:scroll-view>

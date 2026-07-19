@@ -2,10 +2,10 @@
 
 namespace App\Domain\Achievements;
 
+use App\Enums\AchievementTier;
 use App\Enums\AchievementType;
 use App\Models\Achievement;
 use App\Models\AchievementUnlock;
-use App\Models\DailyWorkout;
 use App\Models\GameSession;
 use App\Models\Profile;
 use App\Models\Statistic;
@@ -16,28 +16,26 @@ use LogicException;
 final class AchievementService
 {
     /**
-     * Evaluate active local definitions and persist new unlocks idempotently.
+     * Evaluate active badge definitions against the profile's overall statistics
+     * and persist any newly cleared unlocks idempotently.
+     *
+     * Thresholds within a category ascend, so clearing a high tier naturally
+     * unlocks every lower badge in the same pass — Bronze is always earned
+     * before Silver, and Silver before Gold.
      *
      * @return Collection<int, AchievementUnlock>
      */
-    public function evaluate(
-        Profile $profile,
-        ?GameSession $gameSession = null,
-        ?DailyWorkout $dailyWorkout = null,
-    ): Collection {
+    public function evaluate(Profile $profile, ?GameSession $gameSession = null): Collection
+    {
         if ($gameSession !== null && $gameSession->profile_id !== $profile->getKey()) {
             throw new LogicException('Achievement session evidence must belong to the same profile.');
         }
 
-        if ($dailyWorkout !== null && $dailyWorkout->profile_id !== $profile->getKey()) {
-            throw new LogicException('Achievement workout evidence must belong to the same profile.');
-        }
-
-        return DB::transaction(function () use ($profile, $gameSession, $dailyWorkout): Collection {
-            $statistics = Statistic::query()
+        return DB::transaction(function () use ($profile, $gameSession): Collection {
+            $statistic = Statistic::query()
                 ->whereBelongsTo($profile)
-                ->get()
-                ->keyBy('scope_key');
+                ->overall()
+                ->first();
             $unlockedAchievementIds = AchievementUnlock::query()
                 ->whereBelongsTo($profile)
                 ->pluck('achievement_id');
@@ -46,17 +44,10 @@ final class AchievementService
             Achievement::query()
                 ->active()
                 ->whereNotIn('id', $unlockedAchievementIds)
-                ->with('game')
                 ->orderBy('sort_order')
                 ->get()
-                ->each(function (Achievement $achievement) use (
-                    $profile,
-                    $gameSession,
-                    $dailyWorkout,
-                    $statistics,
-                    $newUnlocks,
-                ): void {
-                    $evidence = $this->matchingEvidence($achievement, $profile, $statistics);
+                ->each(function (Achievement $achievement) use ($profile, $gameSession, $statistic, $newUnlocks): void {
+                    $evidence = $this->matchingEvidence($achievement, $statistic);
 
                     if ($evidence === null) {
                         return;
@@ -69,7 +60,6 @@ final class AchievementService
                         ],
                         [
                             'game_session_id' => $gameSession?->getKey(),
-                            'daily_workout_id' => $dailyWorkout?->getKey(),
                             'unlocked_at' => now(),
                             'evidence' => $evidence,
                         ],
@@ -85,7 +75,7 @@ final class AchievementService
     }
 
     /**
-     * Return every active achievement with this profile's unlock evidence attached.
+     * Return every active badge with this profile's unlock evidence attached.
      *
      * @return Collection<int, Achievement>
      */
@@ -93,80 +83,147 @@ final class AchievementService
     {
         return Achievement::query()
             ->active()
-            ->with([
-                'game',
-                'unlocks' => fn ($query) => $query->whereBelongsTo($profile),
-            ])
+            ->with(['unlocks' => fn ($query) => $query->whereBelongsTo($profile)])
             ->orderBy('sort_order')
             ->get();
     }
 
     /**
-     * Return the latest unlocked achievement for a lightweight preview.
+     * Build the Achievements screen board: an overall tier summary plus a
+     * per-category breakdown of earned badges and the next badge to chase.
+     *
+     * @return array{
+     *     earned: int,
+     *     total: int,
+     *     tiers: array<string, array{label: string, color: string, earned: int, total: int}>,
+     *     categories: list<array<string, mixed>>
+     * }
+     */
+    public function board(Profile $profile): array
+    {
+        $achievements = $this->overview($profile);
+        $statistic = Statistic::query()->whereBelongsTo($profile)->overall()->first();
+
+        $tiers = [];
+
+        foreach (AchievementTier::ascending() as $tier) {
+            $inTier = $achievements->where('tier', $tier);
+            $tiers[$tier->value] = [
+                'label' => $tier->label(),
+                'color' => $tier->colorToken(),
+                'earned' => $inTier->filter($this->isUnlocked(...))->count(),
+                'total' => $inTier->count(),
+            ];
+        }
+
+        $grouped = $achievements->groupBy(fn (Achievement $achievement): string => $achievement->type->value);
+        $categories = collect(AchievementType::cases())
+            ->map(function (AchievementType $type) use ($grouped, $statistic): array {
+                $items = ($grouped->get($type->value) ?? collect())->sortBy('sort_order')->values();
+                $value = $statistic?->getAttribute($type->metric());
+                $next = $items->first(fn (Achievement $achievement): bool => ! $this->isUnlocked($achievement));
+
+                $tierBuckets = [];
+
+                foreach (AchievementTier::ascending() as $tier) {
+                    $inTier = $items->where('tier', $tier);
+                    $tierBuckets[] = [
+                        'label' => $tier->label(),
+                        'color' => $tier->colorToken(),
+                        'earned' => $inTier->filter($this->isUnlocked(...))->count(),
+                        'total' => $tier->badgesPerCategory(),
+                    ];
+                }
+
+                return [
+                    'key' => $type->value,
+                    'label' => $type->label(),
+                    'tagline' => $type->tagline(),
+                    'currentLabel' => $type->formatValue($value),
+                    'earned' => $items->filter($this->isUnlocked(...))->count(),
+                    'total' => $items->count(),
+                    'tiers' => $tierBuckets,
+                    'nextLabel' => $next !== null
+                        ? $type->formatValue((int) data_get($next->criterion, 'threshold'))
+                        : null,
+                    'nextTier' => $next?->tier->label(),
+                ];
+            })
+            ->all();
+
+        return [
+            'earned' => $achievements->filter($this->isUnlocked(...))->count(),
+            'total' => $achievements->count(),
+            'tiers' => $tiers,
+            'categories' => $categories,
+        ];
+    }
+
+    /**
+     * Return every badge in one category with this profile's unlock state,
+     * ordered by ascending difficulty.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function categoryBadges(Profile $profile, AchievementType $category): Collection
+    {
+        return $this->overview($profile)
+            ->where('type', $category)
+            ->sortBy('sort_order')
+            ->map(fn (Achievement $achievement): array => [
+                'name' => $achievement->name,
+                'description' => $achievement->description,
+                'tier' => $achievement->tier,
+                'thresholdLabel' => $category->formatValue((int) data_get($achievement->criterion, 'threshold')),
+                'unlocked' => $this->isUnlocked($achievement),
+                'unlockedAt' => $achievement->unlocks->first()?->unlocked_at,
+            ])
+            ->values();
+    }
+
+    /**
+     * Return the latest unlocked badge for a lightweight preview.
      */
     public function latestUnlock(Profile $profile): ?AchievementUnlock
     {
         return AchievementUnlock::query()
             ->whereBelongsTo($profile)
-            ->with('achievement.game')
+            ->with('achievement')
             ->latest('unlocked_at')
             ->latest('id')
             ->first();
     }
 
     /**
-     * @param  Collection<string, Statistic>  $statistics
-     * @return array<string, int|float|string>|null
+     * Whether the profile has unlocked the badge (its eager-loaded unlocks are
+     * already scoped to the profile by overview()).
      */
-    private function matchingEvidence(
-        Achievement $achievement,
-        Profile $profile,
-        Collection $statistics,
-    ): ?array {
-        $scopeKey = $achievement->game === null
-            ? 'overall'
-            : 'game:'.$achievement->game->type->value;
-        $statistic = $statistics->get($scopeKey);
-
-        return match ($achievement->type) {
-            AchievementType::FirstWorkout => $this->thresholdEvidence(
-                'workouts_completed',
-                $statistic?->workouts_completed,
-                (int) data_get($achievement->criterion, 'workouts', 1),
-            ),
-            AchievementType::WorkoutStreak => $this->thresholdEvidence(
-                'current_streak',
-                $statistic?->current_streak,
-                (int) data_get($achievement->criterion, 'days', 1),
-            ),
-            AchievementType::Accuracy => $this->thresholdEvidence(
-                'accuracy',
-                $statistic?->accuracy,
-                (float) data_get($achievement->criterion, 'accuracy', 100),
-            ),
-            AchievementType::Score => $this->thresholdEvidence(
-                'best_score',
-                $statistic?->best_score,
-                (int) data_get($achievement->criterion, 'score', PHP_INT_MAX),
-            ),
-            AchievementType::Combo => $this->thresholdEvidence(
-                'longest_combo',
-                $statistic?->longest_combo,
-                (int) data_get($achievement->criterion, 'combo', PHP_INT_MAX),
-            ),
-            AchievementType::HintFree => $this->hintFreeEvidence($achievement, $profile),
-        };
+    private function isUnlocked(Achievement $achievement): bool
+    {
+        return $achievement->unlocks->isNotEmpty();
     }
 
     /**
-     * @return array<string, int|float|string>|null
+     * Compare the measured metric for a badge's category against its threshold.
+     *
+     * @return array{metric: string, value: int|float, threshold: int}|null
      */
-    private function thresholdEvidence(
-        string $metric,
-        int|float|null $value,
-        int|float $threshold,
-    ): ?array {
-        if ($value === null || $value < $threshold) {
+    private function matchingEvidence(Achievement $achievement, ?Statistic $statistic): ?array
+    {
+        $type = $achievement->type;
+        $metric = $type->metric();
+        $threshold = (int) data_get($achievement->criterion, 'threshold', 0);
+        $value = $statistic?->getAttribute($metric);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $cleared = $type->comparator() === '<='
+            ? $value <= $threshold
+            : $value >= $threshold;
+
+        if (! $cleared) {
             return null;
         }
 
@@ -174,37 +231,6 @@ final class AchievementService
             'metric' => $metric,
             'value' => $value,
             'threshold' => $threshold,
-        ];
-    }
-
-    /**
-     * @return array<string, int|float|string>|null
-     */
-    private function hintFreeEvidence(Achievement $achievement, Profile $profile): ?array
-    {
-        if ($achievement->game_id === null) {
-            return null;
-        }
-
-        $minimumCorrect = (int) data_get($achievement->criterion, 'minimum_correct', 1);
-        $session = GameSession::query()
-            ->whereBelongsTo($profile)
-            ->completed()
-            ->withGameplayEvidence()
-            ->where('game_id', $achievement->game_id)
-            ->where('hint_count', 0)
-            ->where('correct_count', '>=', $minimumCorrect)
-            ->latest('completed_at')
-            ->first();
-
-        if ($session === null) {
-            return null;
-        }
-
-        return [
-            'metric' => 'hint_free_correct',
-            'value' => $session->correct_count,
-            'threshold' => $minimumCorrect,
         ];
     }
 }

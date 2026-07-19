@@ -5,25 +5,18 @@ namespace App\NativeComponents\Screens;
 use App\Domain\Achievements\AchievementService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
-use App\Domain\Progress\ProgressService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
-use App\Domain\Workout\WorkoutExperienceService;
-use App\Domain\Workout\WorkoutService;
-use App\Enums\WorkoutStatus;
-use App\Models\DailyWorkout;
+use App\Enums\GameType;
+use App\Models\Game;
 use App\Models\Profile;
-use App\Models\Statistic;
-use App\NativeUI\Dialogs\InteractsWithDialogs;
 use App\NativeUI\Feedback\HapticFeedback;
 use App\NativeUI\Feedback\HapticService;
-use App\NativeUI\Feedback\ToastService;
-use App\NativeUI\Feedback\ToastType;
 use App\NativeUI\Home\GreetingResolver;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
-use Illuminate\Support\Collection;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 use Native\Mobile\Attributes\Lazy;
 use Native\Mobile\Edge\Element;
@@ -35,27 +28,9 @@ use Throwable;
 #[Lazy]
 final class Home extends NativeComponent
 {
-    use InteractsWithDialogs;
+    public string $screenState = 'content';
 
-    public string $dashboardState = 'content';
-
-    public string $dashboardError = 'Your dashboard could not be loaded. Please try again.';
-
-    public bool $isWorkoutLoading = true;
-
-    public bool $isStatisticsLoading = true;
-
-    public bool $isProgressLoading = true;
-
-    public bool $isAchievementLoading = true;
-
-    public ?string $workoutError = null;
-
-    public ?string $statisticsError = null;
-
-    public ?string $progressError = null;
-
-    public ?string $achievementError = null;
+    public string $screenError = 'Your home screen could not be loaded. Please try again.';
 
     public string $greeting = '';
 
@@ -65,59 +40,20 @@ final class Home extends NativeComponent
 
     public string $avatarInitial = '';
 
-    public string $greetingMessage = 'A small focused step is ready when you are.';
-
-    public bool $returningUser = false;
-
-    public bool $hasWorkoutHistory = false;
-
-    public string $workoutTitle = 'Daily Momentum';
-
-    public string $workoutDuration = 'About 5 min';
+    public string $greetingMessage = 'Pick a game and take a focused few minutes.';
 
     /**
-     * @var list<string>
+     * @var list<array{slug: string, title: string, subtitle: string}>
      */
-    public array $workoutSkills = [];
-
-    public string $workoutDifficulty = '';
-
-    public string $workoutAction = 'Start Training';
-
-    public string $workoutStatus = WorkoutStatus::Pending->value;
-
-    public int $workoutGameCount = 0;
-
-    public int $workoutCompletionPercentage = 0;
+    public array $games = [];
 
     public int $currentStreak = 0;
 
-    public int $longestStreak = 0;
-
-    /**
-     * @var list<array{label: string, score: int, progress: float}>
-     */
-    public array $skillHighlights = [];
-
-    public int $weeklyCompleted = 0;
-
-    public int $weeklyCompletionPercentage = 0;
-
-    public ?int $personalBestScore = null;
-
-    public ?string $personalBestGame = null;
+    public string $bestLabel = 'None yet';
 
     public ?string $achievementTitle = null;
 
     public ?string $achievementDescription = null;
-
-    public bool $celebrateWorkoutReturn = false;
-
-    public string $workoutReturnMessage = '';
-
-    public string $workoutReturnStreak = '';
-
-    public ?string $workoutReturnAchievement = null;
 
     public bool $reducedMotion = false;
 
@@ -128,7 +64,7 @@ final class Home extends NativeComponent
     public float $pressOpacity = 1.0;
 
     /**
-     * Apply the saved theme, enforce onboarding, and assemble local dashboard previews.
+     * Apply the saved theme, enforce onboarding, and assemble the home screen.
      */
     public function mount(): void
     {
@@ -145,7 +81,7 @@ final class Home extends NativeComponent
             return;
         }
 
-        $this->loadDashboard();
+        $this->loadHome();
     }
 
     public function render(): Element
@@ -154,36 +90,36 @@ final class Home extends NativeComponent
     }
 
     /**
-     * Refresh local previews after returning from another native screen.
+     * Refresh previews after returning from another native screen.
      */
     public function onResume(): void
     {
-        $this->loadDashboard();
+        $this->loadHome();
     }
 
     /**
-     * Supply the Home title and a concise dashboard purpose to native chrome.
+     * Supply the Home title and a concise purpose to native chrome.
      */
     public function navigationOptions(): ?NavBarOptions
     {
         return NavBarOptions::make()
             ->title('Home')
-            ->subtitle('Your daily training overview')
+            ->subtitle('Your offline games')
             ->back(false);
     }
 
     /**
-     * Navigate to today's workout flow.
+     * Open a game's detail screen from a play card.
      */
-    public function openWorkout(): void
+    public function openGame(string $slug): void
     {
-        if ($this->workoutStatus === WorkoutStatus::Completed->value || $this->workoutError !== null) {
+        if (! collect($this->games)->contains('slug', $slug)) {
             return;
         }
 
         app(HapticService::class)->trigger(HapticFeedback::Impact);
 
-        $navigation = $this->navigate('/workout');
+        $navigation = $this->navigate('/games/'.$slug);
 
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
@@ -191,74 +127,28 @@ final class Home extends NativeComponent
     }
 
     /**
-     * Retry only the workout section after a recoverable local failure.
+     * Open the Achievements screen from the latest-badge card.
      */
-    public function retryWorkout(): void
+    public function openAchievements(): void
     {
-        $profile = app(ProfileService::class)->current();
+        $navigation = $this->navigate('/achievements');
 
-        if ($profile === null) {
-            return;
-        }
-
-        $this->loadWorkout($profile);
-
-        if ($this->workoutError !== null) {
-            app(ToastService::class)->show(
-                'Today’s workout is still unavailable.',
-                ToastType::Error,
-            );
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
         }
     }
 
     /**
-     * Retry only the statistics section.
+     * Retry the complete screen after a recoverable local failure.
      */
-    public function retryStatistics(): void
+    public function retryHome(): void
     {
-        $profile = app(ProfileService::class)->current();
-
-        if ($profile !== null) {
-            $this->loadStatistics($profile);
-        }
+        $this->loadHome();
     }
 
-    /**
-     * Retry only the progress section.
-     */
-    public function retryProgress(): void
+    private function loadHome(): void
     {
-        $profile = app(ProfileService::class)->current();
-
-        if ($profile !== null) {
-            $this->loadProgress($profile);
-        }
-    }
-
-    /**
-     * Retry only the achievement section.
-     */
-    public function retryAchievement(): void
-    {
-        $profile = app(ProfileService::class)->current();
-
-        if ($profile !== null) {
-            $this->loadAchievement($profile);
-        }
-    }
-
-    /**
-     * Retry the complete dashboard after a profile-level failure.
-     */
-    public function retryDashboard(): void
-    {
-        $this->loadDashboard();
-    }
-
-    private function loadDashboard(): void
-    {
-        $this->dashboardState = 'content';
-        $this->dashboardError = 'Your dashboard could not be loaded. Please try again.';
+        $this->screenState = 'content';
 
         try {
             $profile = app(ProfileService::class)->current();
@@ -281,185 +171,87 @@ final class Home extends NativeComponent
                 ? 0
                 : DesignTokens::motionDuration(MotionToken::Normal);
             $this->pressScale = $this->reducedMotion ? 1.0 : 0.985;
-            $this->pressOpacity = $this->reducedMotion
-                ? 1.0
-                : DesignTokens::OPACITY['pressed'];
+            $this->pressOpacity = $this->reducedMotion ? 1.0 : DesignTokens::OPACITY['pressed'];
 
-            $this->loadStatistics($profile);
-            $this->loadProgress($profile);
-            $this->loadAchievement($profile);
+            $this->loadGames($profile);
+            $this->loadGlance($profile);
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->dashboardState = 'error';
+            $this->screenState = 'error';
         }
     }
 
-    private function loadWorkout(Profile $profile): void
+    private function loadGames(Profile $profile): void
     {
-        $this->isWorkoutLoading = true;
-        $this->workoutError = null;
+        $games = Game::query()
+            ->playable()
+            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath])
+            ->orderBy('sort_order')
+            ->get();
+        $previews = app(StatisticsService::class)->gamePreviews($profile);
 
-        try {
-            $workouts = app(WorkoutService::class);
-            $workout = $workouts->generateToday($profile);
-            $history = $workouts->history($profile);
+        $this->games = $games
+            ->map(function (Game $game) use ($previews): array {
+                $preview = $previews->get($game->getKey(), []);
 
-            $this->workoutDuration = 'About '.$workouts->estimatedDurationMinutes($workout).' min';
-            $this->mapWorkout($workout, $profile);
-            $this->mapHistory($history);
-        } catch (Throwable $exception) {
-            report($exception);
-
-            $this->workoutError = 'Today’s workout could not be prepared. Your local progress is safe.';
-        } finally {
-            $this->isWorkoutLoading = false;
-        }
-    }
-
-    private function loadStatistics(Profile $profile): void
-    {
-        $this->isStatisticsLoading = true;
-        $this->statisticsError = null;
-
-        try {
-            $statistics = app(StatisticsService::class);
-            $overview = $statistics->overview($profile);
-            $personalBest = $statistics->personalBests($profile)
-                ->sortByDesc(fn (Statistic $statistic): int => $statistic->best_score ?? 0)
-                ->first();
-
-            $this->currentStreak = $overview?->current_streak ?? 0;
-            $this->longestStreak = $overview?->longest_streak ?? 0;
-            $this->personalBestScore = $personalBest?->best_score;
-            $this->personalBestGame = $personalBest?->game?->name;
-        } catch (Throwable $exception) {
-            report($exception);
-
-            $this->statisticsError = 'Streak and personal-best previews are temporarily unavailable.';
-        } finally {
-            $this->isStatisticsLoading = false;
-        }
-    }
-
-    private function loadProgress(Profile $profile): void
-    {
-        $this->isProgressLoading = true;
-        $this->progressError = null;
-
-        try {
-            $this->skillHighlights = collect(app(ProgressService::class)->currentSkillValues($profile))
-                ->sortDesc()
-                ->take(3)
-                ->map(fn (int $score, string $skill): array => [
-                    'label' => Str::headline($skill),
-                    'score' => $score,
-                    'progress' => round($score / 1000, 3),
-                ])
-                ->values()
-                ->all();
-        } catch (Throwable $exception) {
-            report($exception);
-
-            $this->progressError = 'Skill progress could not be summarized right now.';
-        } finally {
-            $this->isProgressLoading = false;
-        }
-    }
-
-    private function loadAchievement(Profile $profile): void
-    {
-        $this->isAchievementLoading = true;
-        $this->achievementError = null;
-
-        try {
-            $unlock = app(AchievementService::class)->latestUnlock($profile);
-
-            $this->achievementTitle = $unlock?->achievement->name;
-            $this->achievementDescription = $unlock?->achievement->description;
-        } catch (Throwable $exception) {
-            report($exception);
-
-            $this->achievementError = 'Your latest achievement could not be displayed right now.';
-        } finally {
-            $this->isAchievementLoading = false;
-        }
-    }
-
-    private function mapWorkout(DailyWorkout $workout, Profile $profile): void
-    {
-        $items = $workout->items;
-        $completedItems = $items->where('status', WorkoutStatus::Completed)->count();
-        $itemCount = $items->count();
-
-        $this->workoutStatus = $workout->status->value;
-        $this->workoutGameCount = $itemCount;
-        $this->workoutAction = match ($workout->status) {
-            WorkoutStatus::Pending => 'Start Training',
-            WorkoutStatus::InProgress => 'Continue Training',
-            WorkoutStatus::Completed => 'Completed Today',
-        };
-        $this->workoutCompletionPercentage = $workout->status === WorkoutStatus::Completed
-            ? 100
-            : ($itemCount === 0 ? 0 : (int) round(($completedItems / $itemCount) * 100));
-        $this->workoutDifficulty = $profile->difficulty_preference->label();
-        $this->workoutSkills = $items
-            ->flatMap(fn ($item): array => $item->game->skill_keys)
-            ->unique()
-            ->take(4)
-            ->map(fn (string $skill): string => Str::headline($skill))
+                return [
+                    'slug' => $game->slug,
+                    'title' => $game->name,
+                    'subtitle' => $this->gameSubtitle($preview),
+                ];
+            })
             ->values()
             ->all();
+
+        $this->greetingMessage = collect($this->games)->contains(
+            fn (array $game): bool => ! str_starts_with($game['subtitle'], 'Tap to play'),
+        )
+            ? 'Welcome back. Keep your streak alive.'
+            : 'Pick a game and take a focused few minutes.';
     }
 
     /**
-     * @param  Collection<int, DailyWorkout>  $history
+     * @param  array<string, mixed>  $preview
      */
-    private function mapHistory(Collection $history): void
+    private function gameSubtitle(array $preview): string
     {
-        $completedHistory = $history->where('status', WorkoutStatus::Completed);
-        $weekStart = today()->subDays(6)->startOfDay();
+        $bestScore = $preview['best_score'] ?? null;
 
-        $this->hasWorkoutHistory = $completedHistory->isNotEmpty();
-        $this->returningUser = $history->contains(
-            fn (DailyWorkout $workout): bool => $workout->workout_date->isBefore(today())
-                || $workout->status === WorkoutStatus::Completed,
-        );
-        $this->weeklyCompleted = $completedHistory
-            ->filter(fn (DailyWorkout $workout): bool => $workout->workout_date->greaterThanOrEqualTo($weekStart))
-            ->count();
-        $this->weeklyCompletionPercentage = (int) round(($this->weeklyCompleted / 7) * 100);
-        $this->greetingMessage = $this->returningUser
-            ? 'Welcome back. Your next focused step is ready.'
-            : 'A small focused step is ready when you are.';
+        if ($bestScore === null) {
+            return 'Tap to play';
+        }
+
+        return 'Best '.number_format($bestScore).' · Played '.$this->formatLastPlayed($preview['last_played_at'] ?? null);
     }
 
-    private function loadWorkoutReturn(): void
+    private function loadGlance(Profile $profile): void
     {
-        $profile = app(ProfileService::class)->current();
-        $workoutId = (int) $this->data('workout_id', 0);
+        $overview = app(StatisticsService::class)->overview($profile);
+        $this->currentStreak = $overview?->current_streak ?? 0;
+        $this->bestLabel = ($overview?->best_score ?? 0) > 0
+            ? number_format($overview->best_score)
+            : 'None yet';
 
-        if ($profile === null || $workoutId < 1) {
-            $this->celebrateWorkoutReturn = false;
+        $unlock = app(AchievementService::class)->latestUnlock($profile);
+        $this->achievementTitle = $unlock?->achievement->name;
+        $this->achievementDescription = $unlock?->achievement->description;
+    }
 
-            return;
+    private function formatLastPlayed(?CarbonInterface $lastPlayedAt): string
+    {
+        if ($lastPlayedAt === null) {
+            return 'recently';
         }
 
-        $workout = DailyWorkout::query()
-            ->whereKey($workoutId)
-            ->whereBelongsTo($profile)
-            ->completed()
-            ->first();
-
-        if ($workout === null) {
-            $this->celebrateWorkoutReturn = false;
-
-            return;
+        if ($lastPlayedAt->isToday()) {
+            return 'today';
         }
 
-        $summary = app(WorkoutExperienceService::class)->completionSummary($workout);
-        $this->workoutReturnMessage = $summary['coaching'];
-        $this->workoutReturnStreak = $summary['streak_message'];
-        $this->workoutReturnAchievement = $summary['achievement_title'];
+        if ($lastPlayedAt->isYesterday()) {
+            return 'yesterday';
+        }
+
+        return $lastPlayedAt->format('M j');
     }
 }
