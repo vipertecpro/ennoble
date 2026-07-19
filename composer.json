@@ -27,10 +27,18 @@
         "plugins": {
             "type": "composer",
             "url": "https://plugins.nativephp.com"
+        },
+        "lottie": {
+            "type": "path",
+            "url": "plugins/nativephp-lottie",
+            "options": {
+                "symlink": true
+            }
         }
     },
     "require": {
         "php": "^8.4",
+        "ennoble/nativephp-lottie": "@dev",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "nativephp/mobile": "dev-element",

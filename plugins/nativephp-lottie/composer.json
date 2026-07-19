@@ -1,0 +1,23 @@
+{
+    "name": "ennoble/nativephp-lottie",
+    "description": "Render Lottie animations as a native EDGE component for NativePHP Mobile.",
+    "type": "nativephp-ui-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ennoble\\Lottie\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ennoble\\Lottie\\LottieServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

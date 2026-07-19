@@ -22,7 +22,7 @@ test('domain enums expose stable unique persisted values', function (string $enu
         ->toBe($expectedValues)
         ->and(array_unique($actualValues))->toHaveCount(count($actualValues));
 })->with([
-    'game types' => [GameType::class, ['signal_shift', 'clear_thought']],
+    'game types' => [GameType::class, ['signal_shift', 'clear_thought', 'word_match', 'quick_math']],
     'difficulty' => [Difficulty::class, ['beginner', 'intermediate', 'advanced', 'adaptive']],
     'game status' => [GameStatus::class, ['playable', 'coming_soon']],
     'workout status' => [WorkoutStatus::class, ['pending', 'in_progress', 'completed']],

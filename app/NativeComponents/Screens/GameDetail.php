@@ -95,7 +95,9 @@ final class GameDetail extends NativeComponent
 
     public function navigationOptions(): ?NavBarOptions
     {
-        return NavBarOptions::make()->title($this->title !== '' ? $this->title : 'Game');
+        return NavBarOptions::make()
+            ->title($this->title !== '' ? $this->title : 'Game')
+            ->back(true);
     }
 
     public function tabBarOptions(): ?TabBarOptions

@@ -1,0 +1,38 @@
+{
+    "name": "Ennoble Lottie",
+    "version": "1.0.0",
+    "description": "Render Lottie animations as a native EDGE component.",
+    "namespace": "Lottie",
+    "platforms": ["android", "ios"],
+    "components": [
+        {
+            "type": "lottie.player",
+            "element": "Ennoble\\Lottie\\Elements\\Lottie",
+            "blade": "Ennoble\\Lottie\\Components\\Lottie",
+            "android_renderer": "com.ennoble.lottie.ui.LottieRenderer",
+            "ios_renderer": "LottieRenderer",
+            "self_closing": true
+        }
+    ],
+    "hooks": {
+        "copy_assets": "nativephp:lottie:copy-animations"
+    },
+    "android": {
+        "dependencies": {
+            "implementation": [
+                "com.airbnb.android:lottie-compose:6.4.0"
+            ]
+        }
+    },
+    "ios": {
+        "dependencies": {
+            "swift_packages": [],
+            "pods": [
+                {
+                    "name": "lottie-ios",
+                    "version": "~> 4.5"
+                }
+            ]
+        }
+    }
+}

@@ -97,6 +97,25 @@ test('the simplified home shows only progress and recent achievement', function 
         ->assertAccessible();
 });
 
+test('swiping right leaves the game only when a round is not live', function () {
+    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
+
+    $session = startWordMatch($this->profile);
+
+    // Mid-round swipes are ignored so a fast tap streak cannot drop the player out.
+    Native::visit('/play/word-match/'.$session->getKey())
+        ->call('tickGame')
+        ->assertSet('phase', 'playing')
+        ->call('handleSwipe', 'right')
+        ->assertNoNavigation();
+
+    // On the ready screen a right swipe flicks back to the library.
+    Native::visit('/play/word-match/'.$session->getKey())
+        ->assertSet('phase', 'ready')
+        ->call('handleSwipe', 'right')
+        ->assertReplacedWith('/games');
+});
+
 test('a wrong answer costs a life and a lost run ends the game', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 

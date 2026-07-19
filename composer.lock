@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3de6b1d8a8a18d1137bf6a7661f65703",
+    "content-hash": "22429e097674c062ca77837d77cf5532",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -683,6 +683,39 @@
                 }
             ],
             "time": "2026-02-05T07:01:58+00:00"
+        },
+        {
+            "name": "ennoble/nativephp-lottie",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "plugins/nativephp-lottie",
+                "reference": "6d19d7e7170db37e273d4aa8f8751c7381849acb"
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "type": "nativephp-ui-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Ennoble\\Lottie\\LottieServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Ennoble\\Lottie\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Render Lottie animations as a native EDGE component for NativePHP Mobile.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "evenement/evenement",
@@ -10672,6 +10705,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "ennoble/nativephp-lottie": 20,
         "nativephp/mobile": 20,
         "nativephp/native-ui": 20
     },

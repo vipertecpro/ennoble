@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Ennoble\Lottie\LottieServiceProvider;
 use Illuminate\Support\ServiceProvider;
 use Nativephp\NativeUi\NativeUIServiceProvider;
 
@@ -36,6 +37,8 @@ class NativeServiceProvider extends ServiceProvider
     {
         return [
             NativeUIServiceProvider::class,
+            LottieServiceProvider::class,
+
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Progress;
+use App\NativeComponents\Screens\QuickMathGame;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
@@ -42,6 +43,7 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/games', Games::class)->name('native.games');
     Route::native('/games/{slug}', GameDetail::class)->name('native.game.detail');
     Route::native('/play/word-match/{session}', WordMatchGame::class)->name('native.play.word-match');
+    Route::native('/play/quick-math/{session}', QuickMathGame::class)->name('native.play.quick-math');
     Route::native('/progress', Progress::class)->name('native.progress');
     Route::native('/profile', Profile::class)->name('native.profile');
     Route::native('/settings', Settings::class)->name('native.settings');

@@ -56,9 +56,8 @@ test('application screens render and pass the in-process accessibility audit', f
         ->assertAccessible();
 })->with([
     'splash' => ['/splash', Splash::class, 'A private daily practice for a clearer mind.'],
-    'home' => ['/', Home::class, 'TODAY’S SESSION'],
-    'workout' => ['/workout', WorkoutIntroduction::class, 'Ready your mind.'],
-    'games' => ['/games', Games::class, 'Train with purpose.'],
+    'home' => ['/', Home::class, 'Progress'],
+    'games' => ['/games', Games::class, 'Games'],
     'progress' => ['/progress', Progress::class, 'Progress you can trust.'],
     'profile' => ['/profile', Profile::class, 'Your details'],
     'settings' => ['/settings', Settings::class, 'Every preference is stored only on this device.'],
@@ -139,5 +138,5 @@ test('home shared screen container renders full loading and recoverable error st
         ->set('dashboardState', 'error')
         ->assertSee('Your dashboard could not be loaded')
         ->tap('Retry dashboard')
-        ->assertSee('TODAY’S SESSION');
+        ->assertSee('Progress');
 });

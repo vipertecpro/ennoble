@@ -1,4 +1,4 @@
-<native:gesture-area @swipe="handleSwipe" class="h-full w-full" a11y-label="Word Match game" a11y-hint="Swipe right to leave the game">
+<native:gesture-area @swipe="handleSwipe" class="h-full w-full" a11y-label="Quick Math game" a11y-hint="Swipe right to leave the game">
 <native:column class="h-full w-full bg-theme-background">
     @if ($screenState === 'error')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4">
@@ -8,9 +8,9 @@
         </native:column>
     @elseif ($phase === 'ready')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-6">
-            <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-accent">Word Match</native:text>
+            <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-accent">Quick Math</native:text>
             <native:text
-                native:key="word-match-ready-{{ $readyCountdown }}"
+                native:key="quick-math-ready-{{ $readyCountdown }}"
                 class="text-[80] font-bold tracking-tight text-theme-primary-text"
                 :scale="$reducedMotion ? 1 : 1.15"
                 :opacity="0.85"
@@ -45,18 +45,16 @@
 
         <native:row class="flex-1 w-full px-4 items-center justify-center gap-4">
             <native:column class="flex-1 items-center justify-center gap-3">
-                <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-muted-text">
-                    Find the {{ strtoupper($relation) }}
-                </native:text>
+                <native:text class="text-[13] font-semibold uppercase tracking-widest text-theme-muted-text">Solve</native:text>
                 <native:text
-                    native:key="word-match-prompt-{{ $roundIndex }}"
-                    class="w-full text-[38] font-bold tracking-tight leading-tight text-center text-theme-primary-text"
+                    native:key="quick-math-prompt-{{ $roundIndex }}"
+                    class="w-full text-[44] font-bold tracking-tight leading-tight text-center text-theme-primary-text"
                     :translate-y="$reducedMotion ? 0 : 6"
                     :opacity="0.9"
                     :animate-duration="$motionDuration"
                     animate-easing="ease-out"
                 >
-                    {{ $prompt }}
+                    {{ $expression }}
                 </native:text>
                 <native:text class="text-[12] text-theme-muted-text">Round {{ $roundIndex + 1 }} of {{ $totalRounds }}</native:text>
             </native:column>
@@ -70,16 +68,20 @@
         </native:row>
 
         <native:column class="w-full px-4 pb-8 gap-3">
-            @foreach ($options as $option)
-                <x-native.word-match-option
-                    :option="$option"
-                    :answer="$answer"
-                    :selected="$selectedOption"
-                    :tone="$feedbackTone"
-                    :serial="$feedbackSerial"
-                    :reduced-motion="$reducedMotion"
-                    :motion-duration="$feedbackMotionDuration"
-                />
+            @foreach (array_chunk($options, 2) as $optionRow)
+                <native:row class="w-full items-stretch gap-3">
+                    @foreach ($optionRow as $option)
+                        <x-native.quick-math-option
+                            :option="$option"
+                            :answer="$answer"
+                            :selected="$selectedOption"
+                            :tone="$feedbackTone"
+                            :serial="$feedbackSerial"
+                            :reduced-motion="$reducedMotion"
+                            :motion-duration="$feedbackMotionDuration"
+                        />
+                    @endforeach
+                </native:row>
             @endforeach
         </native:column>
     @endif

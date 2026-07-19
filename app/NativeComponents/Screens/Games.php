@@ -182,11 +182,8 @@ final class Games extends NativeComponent
 
         app(HapticService::class)->trigger(HapticFeedback::Impact);
 
-        $navigation = $this->navigate('/games/'.$slug);
-
-        if ($this->reducedMotion) {
-            $navigation->transition(Transition::None);
-        }
+        $this->navigate('/games/'.$slug)
+            ->transition($this->reducedMotion ? Transition::None : Transition::ParallaxPush);
     }
 
     /**

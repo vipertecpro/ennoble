@@ -145,12 +145,7 @@ final class Home extends NativeComponent
             return;
         }
 
-        $this->celebrateWorkoutReturn = (bool) $this->data('workout_completed', false);
         $this->loadDashboard();
-
-        if ($this->celebrateWorkoutReturn) {
-            $this->loadWorkoutReturn();
-        }
     }
 
     public function render(): Element
@@ -290,7 +285,6 @@ final class Home extends NativeComponent
                 ? 1.0
                 : DesignTokens::OPACITY['pressed'];
 
-            $this->loadWorkout($profile);
             $this->loadStatistics($profile);
             $this->loadProgress($profile);
             $this->loadAchievement($profile);

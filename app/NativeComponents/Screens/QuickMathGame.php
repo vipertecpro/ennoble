@@ -3,7 +3,7 @@
 namespace App\NativeComponents\Screens;
 
 use App\Domain\Games\GameSessionService;
-use App\Domain\Games\WordMatch\WordMatchGameService;
+use App\Domain\Games\QuickMath\QuickMathGameService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
@@ -24,13 +24,13 @@ use Native\Mobile\Edge\Transition;
 use Throwable;
 
 /**
- * Word Match — a timed, free-play vocabulary game. Each round shows a prompt
- * word and a relation to match ("synonym" / "antonym"); the player taps the
- * matching option before the per-round timer expires. Correct answers build a
- * combo and score; wrong answers and time-outs cost a life. The session's
- * authoritative evidence and score are owned by GameSessionService.
+ * Quick Math — a timed, free-play mental-arithmetic game. Each round shows an
+ * equation and four numeric options; the player taps the correct answer before
+ * the round timer expires. Correct answers build a combo and score; wrong
+ * answers and time-outs cost a life. Score/evidence are owned by
+ * GameSessionService.
  */
-final class WordMatchGame extends NativeComponent
+final class QuickMathGame extends NativeComponent
 {
     public string $screenState = 'content';
 
@@ -41,21 +41,19 @@ final class WordMatchGame extends NativeComponent
 
     public int $readyCountdown = 3;
 
-    /** @var list<array{prompt: string, relation: string, answer: string, options: list<string>}> */
+    /** @var list<array{expression: string, answer: int, options: list<int>}> */
     public array $rounds = [];
 
     public int $roundIndex = 0;
 
     public int $totalRounds = 0;
 
-    public string $prompt = '';
+    public string $expression = '';
 
-    public string $relation = '';
-
-    /** @var list<string> */
+    /** @var list<int> */
     public array $options = [];
 
-    public string $answer = '';
+    public int $answer = 0;
 
     public int $lives = 3;
 
@@ -67,9 +65,9 @@ final class WordMatchGame extends NativeComponent
 
     public int $score = 0;
 
-    public int $secondsPerRound = 7;
+    public int $secondsPerRound = 6;
 
-    public int $secondsRemaining = 7;
+    public int $secondsRemaining = 6;
 
     public int $roundStartedAtMs = 0;
 
@@ -78,7 +76,7 @@ final class WordMatchGame extends NativeComponent
 
     public int $feedbackSerial = 0;
 
-    public ?string $selectedOption = null;
+    public ?int $selectedOption = null;
 
     public bool $awaitingAdvance = false;
 
@@ -115,7 +113,7 @@ final class WordMatchGame extends NativeComponent
 
     public function render(): Element
     {
-        return $this->view('screens.word-match-game');
+        return $this->view('screens.quick-math-game');
     }
 
     public function navigationOptions(): ?NavBarOptions
@@ -168,7 +166,7 @@ final class WordMatchGame extends NativeComponent
     }
 
     /**
-     * Resolve the current round from the tapped option.
+     * Resolve the current round from the tapped answer tile.
      */
     public function chooseOption(string $value): void
     {
@@ -176,25 +174,27 @@ final class WordMatchGame extends NativeComponent
             return;
         }
 
-        if (! in_array($value, $this->options, true)) {
+        $chosen = (int) $value;
+
+        if (! in_array($chosen, $this->options, true)) {
             return;
         }
 
         $session = $this->session();
-        $correct = $value === $this->answer;
+        $correct = $chosen === $this->answer;
         $responseMs = max(1, $this->nowMs() - $this->roundStartedAtMs);
         $newCombo = $correct ? $this->combo + 1 : 0;
 
-        app(WordMatchGameService::class)->recordAnswer(
+        app(QuickMathGameService::class)->recordAnswer(
             session: $session,
             round: $this->rounds[$this->roundIndex],
-            chosen: $value,
+            chosen: $chosen,
             responseMs: $responseMs,
             combo: $newCombo,
             stateSnapshot: $this->snapshot(),
         );
 
-        $this->selectedOption = $value;
+        $this->selectedOption = $chosen;
         $this->feedbackSerial++;
 
         if ($correct) {
@@ -209,7 +209,7 @@ final class WordMatchGame extends NativeComponent
             app(HapticService::class)->trigger(HapticFeedback::Error);
         }
 
-        $this->score = app(WordMatchGameService::class)->score($session)->score;
+        $this->score = app(QuickMathGameService::class)->score($session)->score;
         $this->awaitingAdvance = true;
     }
 
@@ -229,7 +229,7 @@ final class WordMatchGame extends NativeComponent
         $session = $this->session();
         $fresh = app(GameSessionService::class)->startFreePlay($profile, $session->game, $session->level);
 
-        $this->replace('/play/word-match/'.$fresh->getKey())
+        $this->replace('/play/quick-math/'.$fresh->getKey())
             ->transition($this->reducedMotion ? Transition::None : Transition::Fade);
     }
 
@@ -263,7 +263,7 @@ final class WordMatchGame extends NativeComponent
     {
         $session = $this->session();
 
-        app(WordMatchGameService::class)->recordTimeout(
+        app(QuickMathGameService::class)->recordTimeout(
             session: $session,
             round: $this->rounds[$this->roundIndex],
             stateSnapshot: $this->snapshot(),
@@ -274,7 +274,7 @@ final class WordMatchGame extends NativeComponent
         $this->selectedOption = null;
         $this->combo = 0;
         $this->lives = max(0, $this->lives - 1);
-        $this->score = app(WordMatchGameService::class)->score($session)->score;
+        $this->score = app(QuickMathGameService::class)->score($session)->score;
         app(HapticService::class)->trigger(HapticFeedback::Warning);
         $this->awaitingAdvance = true;
     }
@@ -293,7 +293,7 @@ final class WordMatchGame extends NativeComponent
     private function finish(): void
     {
         $session = $this->session();
-        $result = app(WordMatchGameService::class)->complete($session);
+        $result = app(QuickMathGameService::class)->complete($session);
 
         $this->resultScore = $result->score;
         $this->resultAccuracy = $result->accuracy;
@@ -323,14 +323,14 @@ final class WordMatchGame extends NativeComponent
                 ->whereBelongsTo($profile)
                 ->find((int) $this->param('session'));
 
-            if ($session === null || $session->game->type !== GameType::WordMatch) {
+            if ($session === null || $session->game->type !== GameType::QuickMath) {
                 $this->screenState = 'error';
 
                 return;
             }
 
             if ($session->status === SessionStatus::Completed) {
-                $this->replace('/games/word-match');
+                $this->replace('/games/quick-math');
 
                 return;
             }
@@ -340,13 +340,13 @@ final class WordMatchGame extends NativeComponent
             $this->motionDuration = $this->reducedMotion ? 0 : DesignTokens::motionDuration(MotionToken::Normal);
             $this->feedbackMotionDuration = $this->reducedMotion ? 0 : DesignTokens::motionDuration(MotionToken::Success);
 
-            $service = app(WordMatchGameService::class);
+            $service = app(QuickMathGameService::class);
             $this->rounds = $service->roundsFor($session);
             $this->totalRounds = count($this->rounds);
             $this->previousBest = $service->previousBestScore($session);
 
             $configuration = is_array($session->level->configuration) ? $session->level->configuration : [];
-            $this->secondsPerRound = max(3, (int) ($configuration['seconds_per_round'] ?? 7));
+            $this->secondsPerRound = max(3, (int) ($configuration['seconds_per_round'] ?? 6));
             $this->maxLives = max(1, (int) ($configuration['lives'] ?? 3));
             $this->lives = $this->maxLives;
             $this->readyCountdown = $this->reducedMotion ? 1 : 3;
@@ -365,8 +365,7 @@ final class WordMatchGame extends NativeComponent
         $round = $this->rounds[$index];
 
         $this->roundIndex = $index;
-        $this->prompt = $round['prompt'];
-        $this->relation = $round['relation'];
+        $this->expression = $round['expression'];
         $this->options = $round['options'];
         $this->answer = $round['answer'];
         $this->secondsRemaining = $this->secondsPerRound;
