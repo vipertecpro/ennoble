@@ -34,11 +34,7 @@
         />
     @else
         <native:stack class="flex-1 w-full">
-            <x-native.game-water-background
-                :seconds-remaining="$secondsRemaining"
-                :seconds-per-round="$secondsPerRound"
-                :motion-duration="$motionDuration"
-            />
+            <x-native.game-water-webview :seconds-per-round="$secondsPerRound" />
 
             <native:column class="h-full w-full safe-area">
                 <native:column class="w-full px-4 pt-3 pb-2">
