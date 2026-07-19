@@ -17,15 +17,12 @@ use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Str;
-use Native\Mobile\Attributes\Lazy;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
 use Throwable;
 
-#[Lazy]
 final class Home extends NativeComponent
 {
     public string $screenState = 'content';
@@ -38,18 +35,18 @@ final class Home extends NativeComponent
 
     public string $todayLabel = '';
 
-    public string $avatarInitial = '';
-
     public string $greetingMessage = 'Pick a game and take a focused few minutes.';
 
+    public string $playSectionTitle = 'Start playing';
+
     /**
-     * @var list<array{slug: string, title: string, subtitle: string}>
+     * @var array{slug: string, title: string, subtitle: string}|null
      */
-    public array $games = [];
+    public ?array $recentGame = null;
 
     public int $currentStreak = 0;
 
-    public string $bestLabel = 'None yet';
+    public int $gamesPlayed = 0;
 
     public ?string $achievementTitle = null;
 
@@ -113,7 +110,7 @@ final class Home extends NativeComponent
      */
     public function openGame(string $slug): void
     {
-        if (! collect($this->games)->contains('slug', $slug)) {
+        if ($this->recentGame === null || $this->recentGame['slug'] !== $slug) {
             return;
         }
 
@@ -165,7 +162,6 @@ final class Home extends NativeComponent
             $this->greeting = $greetings->greeting(now());
             $this->displayName = $greetings->displayName($profile->display_name);
             $this->todayLabel = now()->format('l, M j');
-            $this->avatarInitial = Str::upper(Str::substr($this->displayName, 0, 1));
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
@@ -173,7 +169,7 @@ final class Home extends NativeComponent
             $this->pressScale = $this->reducedMotion ? 1.0 : 0.985;
             $this->pressOpacity = $this->reducedMotion ? 1.0 : DesignTokens::OPACITY['pressed'];
 
-            $this->loadGames($profile);
+            $this->loadRecentGame($profile);
             $this->loadGlance($profile);
         } catch (Throwable $exception) {
             report($exception);
@@ -182,31 +178,41 @@ final class Home extends NativeComponent
         }
     }
 
-    private function loadGames(Profile $profile): void
+    private function loadRecentGame(Profile $profile): void
     {
         $games = Game::query()
             ->playable()
             ->whereIn('type', [GameType::WordMatch, GameType::QuickMath])
             ->orderBy('sort_order')
             ->get();
+
+        if ($games->isEmpty()) {
+            $this->recentGame = null;
+
+            return;
+        }
+
         $previews = app(StatisticsService::class)->gamePreviews($profile);
 
-        $this->games = $games
-            ->map(function (Game $game) use ($previews): array {
-                $preview = $previews->get($game->getKey(), []);
+        // The most recently played game leads; before any play, the first game does.
+        $recent = $games
+            ->sortByDesc(function (Game $game) use ($previews): int {
+                $lastPlayed = $previews->get($game->getKey())['last_played_at'] ?? null;
 
-                return [
-                    'slug' => $game->slug,
-                    'title' => $game->name,
-                    'subtitle' => $this->gameSubtitle($preview),
-                ];
+                return $lastPlayed?->getTimestamp() ?? 0;
             })
-            ->values()
-            ->all();
+            ->first();
 
-        $this->greetingMessage = collect($this->games)->contains(
-            fn (array $game): bool => ! str_starts_with($game['subtitle'], 'Tap to play'),
-        )
+        $preview = $previews->get($recent->getKey(), []);
+        $hasHistory = ($preview['best_score'] ?? null) !== null;
+
+        $this->recentGame = [
+            'slug' => $recent->slug,
+            'title' => $recent->name,
+            'subtitle' => $this->gameSubtitle($preview),
+        ];
+        $this->playSectionTitle = $hasHistory ? 'Jump back in' : 'Start playing';
+        $this->greetingMessage = $hasHistory
             ? 'Welcome back. Keep your streak alive.'
             : 'Pick a game and take a focused few minutes.';
     }
@@ -229,9 +235,7 @@ final class Home extends NativeComponent
     {
         $overview = app(StatisticsService::class)->overview($profile);
         $this->currentStreak = $overview?->current_streak ?? 0;
-        $this->bestLabel = ($overview?->best_score ?? 0) > 0
-            ? number_format($overview->best_score)
-            : 'None yet';
+        $this->gamesPlayed = $overview?->sessions_completed ?? 0;
 
         $unlock = app(AchievementService::class)->latestUnlock($profile);
         $this->achievementTitle = $unlock?->achievement->name;

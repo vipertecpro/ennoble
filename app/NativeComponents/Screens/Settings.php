@@ -27,8 +27,6 @@ final class Settings extends NativeComponent
 
     public string $screenError = 'Your preferences could not be loaded. Please try again.';
 
-    public string $themePreference = ThemePreference::System->value;
-
     public bool $soundEnabled = true;
 
     public bool $hapticsEnabled = true;
@@ -73,25 +71,6 @@ final class Settings extends NativeComponent
     }
 
     /**
-     * Persist a valid appearance choice and repaint semantic tokens immediately.
-     */
-    public function updatedThemePreference(string $value): void
-    {
-        $preference = ThemePreference::tryFrom($value);
-
-        if ($preference === null) {
-            $this->themePreference = ThemePreference::System->value;
-
-            return;
-        }
-
-        if ($this->persistSettings()) {
-            app(ThemeManager::class)->apply($preference);
-            app(HapticService::class)->trigger(HapticFeedback::Selection);
-        }
-    }
-
-    /**
      * Persist the sound preference.
      */
     public function updatedSoundEnabled(): void
@@ -108,32 +87,6 @@ final class Settings extends NativeComponent
     {
         if ($this->persistSettings() && $this->hapticsEnabled) {
             app(HapticService::class)->trigger(HapticFeedback::Selection);
-        }
-    }
-
-    /**
-     * Persist the Reduced Motion preference and resolve authored durations.
-     */
-    public function updatedReducedMotion(): void
-    {
-        if ($this->persistSettings()) {
-            $this->motionDuration = $this->reducedMotion
-                ? 0
-                : DesignTokens::motionDuration(MotionToken::Normal);
-
-            app(HapticService::class)->trigger(HapticFeedback::Selection);
-        }
-    }
-
-    /**
-     * Navigate to About.
-     */
-    public function openAbout(): void
-    {
-        $navigation = $this->navigate('/about');
-
-        if ($this->reducedMotion) {
-            $navigation->transition(Transition::None);
         }
     }
 
@@ -221,7 +174,6 @@ final class Settings extends NativeComponent
 
     private function applySetting(Setting $setting): void
     {
-        $this->themePreference = $setting->theme_preference->value;
         $this->soundEnabled = $setting->sound_enabled;
         $this->hapticsEnabled = $setting->haptics_enabled;
         $this->reducedMotion = $setting->reduced_motion;
@@ -245,7 +197,7 @@ final class Settings extends NativeComponent
 
             $saved = $settings->save(
                 profile: $profile,
-                themePreference: ThemePreference::from($this->themePreference),
+                themePreference: ThemePreference::System,
                 soundEnabled: $this->soundEnabled,
                 hapticsEnabled: $this->hapticsEnabled,
                 reducedMotion: $this->reducedMotion,

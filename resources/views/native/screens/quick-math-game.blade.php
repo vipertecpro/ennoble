@@ -34,7 +34,15 @@
         />
     @else
         <native:stack class="flex-1 w-full">
-            <x-native.game-water-webview :seconds-per-round="$secondsPerRound" :round-key="$roundIndex" />
+            {{-- The draining water is the timer; hide it the moment an answer
+                 is locked in so it stops instead of running through the reveal. --}}
+            @unless ($awaitingAdvance)
+                <x-native.game-water
+                    :seconds-per-round="$secondsPerRound"
+                    :seconds-remaining="$secondsRemaining"
+                    :round-key="$roundIndex"
+                />
+            @endunless
 
             <native:column class="h-full w-full safe-area">
                 <native:column class="w-full px-4 pt-3 pb-2">

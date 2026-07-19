@@ -2,33 +2,26 @@
     'date' => '',
     'greeting',
     'displayName',
-    'initial' => '',
     'message' => null,
     'motionDuration' => 0,
 ])
 
-{{-- Cortex dashboard header — a quiet date line, the greeting + name as the
-     display heading, and a neutral avatar initial on the right. The avatar
-     stays off-accent so the screen's single lime moment is the session CTA. --}}
-<native:row
-    class="w-full items-center justify-between gap-4"
+{{-- Home header — plain text on the page background (no card: no fill, no
+     rounding, no shadow) so it merges seamlessly with the top. Bold two-line
+     greeting; the player's name pops in the lime accent for a game-like feel. --}}
+<native:column
+    class="w-full gap-1"
     :translate-y="$motionDuration > 0 ? -2 : 0"
     :animate-duration="$motionDuration"
     animate-easing="ease-out"
     a11y-label="{{ $greeting }}, {{ $displayName }}"
 >
-    <native:column class="flex-1 gap-1">
-        @if ($date)
-            <native:text class="text-[12] text-theme-muted-text">{{ $date }}</native:text>
-        @endif
-        <native:text class="text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
-            {{ $greeting }}, {{ $displayName }}
-        </native:text>
-        @if ($message)
-            <native:text class="text-[12] leading-relaxed text-theme-secondary-text">{{ $message }}</native:text>
-        @endif
-    </native:column>
-    <native:column class="w-10 h-10 items-center justify-center rounded-full bg-theme-secondary-surface">
-        <native:text class="text-[13] font-semibold text-theme-primary-text">{{ $initial }}</native:text>
-    </native:column>
-</native:row>
+    @if ($date)
+        <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">{{ $date }}</native:text>
+    @endif
+    <native:text class="text-[30] font-bold tracking-tight leading-tight text-theme-primary-text">{{ $greeting }},</native:text>
+    <native:text class="text-[30] font-bold tracking-tight leading-tight text-theme-accent">{{ $displayName }}</native:text>
+    @if ($message)
+        <native:text class="text-[13] leading-relaxed text-theme-secondary-text">{{ $message }}</native:text>
+    @endif
+</native:column>

@@ -13,52 +13,55 @@
             retry-method="retryHome"
         />
     @else
+    {{-- Header — plain text, merged with the page (no card) --}}
     <x-native.dashboard-greeting
         :date="$todayLabel"
         :greeting="$greeting"
         :display-name="$displayName"
-        :initial="$avatarInitial"
         :message="$greetingMessage"
         :motion-duration="$motionDuration"
     />
 
-    {{-- Quick play --}}
-    <x-native.dashboard-section-header title="Play" />
+    {{-- Recently played game (the full catalogue lives on the Games tab) --}}
+    @if ($recentGame !== null)
+        <x-native.dashboard-section-header :title="$playSectionTitle" />
 
-    @foreach ($games as $game)
         <x-native.home-play-card
-            :slug="$game['slug']"
-            :title="$game['title']"
-            :subtitle="$game['subtitle']"
+            :slug="$recentGame['slug']"
+            :title="$recentGame['title']"
+            :subtitle="$recentGame['subtitle']"
             :press-scale="$pressScale"
             :press-opacity="$pressOpacity"
             :motion-duration="$motionDuration"
         />
-    @endforeach
+    @endif
 
     {{-- At a glance --}}
     <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-3">
         <native:row class="gap-3">
-            <x-native.game-stat
-                :ios="Ios::Flame"
-                :android="AndroidOutlined::LocalFireDepartment"
-                label="Day streak"
-                :value="(string) $currentStreak"
-            />
-            <x-native.game-stat
-                :ios="Ios::Crown"
-                :android="AndroidOutlined::WorkspacePremium"
-                label="Best score"
-                :value="$bestLabel"
-            />
+            {{-- Day streak — centered game-HUD stat --}}
+            <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-secondary-surface py-4 px-3">
+                <native:column class="w-14 h-14">
+                    <native:lottie-player source="flame" loop class="flex-1 w-full" alt="Streak flame" />
+                </native:column>
+                <native:text class="text-[30] font-bold leading-tight text-theme-primary-text">{{ $currentStreak }}</native:text>
+                <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">Day streak</native:text>
+            </native:column>
+
+            {{-- Games played — centered game-HUD stat --}}
+            <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-secondary-surface py-4 px-3">
+                <native:column class="w-14 h-14">
+                    <native:lottie-player source="gaming" loop class="flex-1 w-full" alt="Games played" />
+                </native:column>
+                <native:text class="text-[30] font-bold leading-tight text-theme-primary-text">{{ $gamesPlayed }}</native:text>
+                <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">Games played</native:text>
+            </native:column>
         </native:row>
     </native:column>
     </native:column>
 
-    {{-- Latest badge --}}
-    <x-native.dashboard-section-header title="Latest badge" />
-
+    {{-- Latest badge (the card self-labels "LATEST UNLOCK") --}}
     <native:pressable
         class="w-full"
         :press-scale="$pressScale"

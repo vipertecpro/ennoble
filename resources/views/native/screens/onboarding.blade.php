@@ -18,7 +18,7 @@
     px-4` column as a DIRECT child of a column/scroll-view is the only correct
     rail pattern.
 --}}
-<native:column class="h-full w-full bg-theme-background">
+<native:column class="h-full w-full bg-theme-background {{ $this->appliesManualSafeArea() ? 'safe-area' : '' }}">
 
     {{-- Fixed header — progress rail stays put while content scrolls --}}
     <native:column class="w-full px-4 pt-2 pb-3 bg-theme-background">
@@ -163,26 +163,13 @@
                     Make it feel right.
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
-                    Set your appearance and feedback preferences.
+                    Set your feedback preferences.
                 </native:text>
             </native:column>
 
-            {{-- Two matching cards under Cortex ALL-CAPS section labels — one
-                 consistent treatment for both preference groups so the step
-                 reads as a single, symmetric settings moment. --}}
-            <native:column class="w-full gap-2">
-                <native:text class="w-full text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
-                    Appearance
-                </native:text>
-                <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm px-4 py-3">
-                    <native:radio-group native:model="themePreference" a11y-label="Appearance">
-                        <native:radio value="system" label="Use device setting" />
-                        <native:radio value="light" label="Light" />
-                        <native:radio value="dark" label="Dark" />
-                    </native:radio-group>
-                </native:column>
-            </native:column>
-
+            {{-- Sound and haptics grouped under a Cortex ALL-CAPS section
+                 label. Appearance is not offered here: the app follows the
+                 device's Light/Dark setting so every surface stays coherent. --}}
             <native:column class="w-full gap-2">
                 <native:text class="w-full text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                     Feedback
@@ -219,8 +206,6 @@
                 <x-native.onboarding-summary-row label="Focus" :value="$this->trainingGoalLabel()" />
                 <native:divider />
                 <x-native.onboarding-summary-row label="Pace" :value="$this->paceLabel()" />
-                <native:divider />
-                <x-native.onboarding-summary-row label="Appearance" :value="$this->themeLabel()" />
             </native:column>
         @endif
     </native:column>

@@ -55,7 +55,8 @@ test('a full correct Quick Math playthrough records an evidence-backed score', f
 
     for ($round = 0; $round < $totalRounds; $round++) {
         $answer = (string) $screen->get('answer');
-        $screen->call('chooseOption', $answer)->call('tickGame');
+        // One tick holds the reveal, the next advances to the following round.
+        $screen->call('chooseOption', $answer)->call('tickGame')->call('tickGame');
     }
 
     $screen->assertSet('phase', 'result')

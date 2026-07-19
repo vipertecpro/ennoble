@@ -23,14 +23,12 @@ use Carbon\CarbonInterface;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Native\Mobile\Attributes\Lazy;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
 use Throwable;
 
-#[Lazy]
 final class Games extends NativeComponent
 {
     use InteractsWithDialogs;

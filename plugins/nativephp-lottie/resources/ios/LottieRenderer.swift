@@ -12,25 +12,28 @@ struct LottieRenderer: View {
     var body: some View {
         let source = node.props.getString("source", default: "")
         let loop = node.props.getBool("loop")
-        let speed = CGFloat(node.props.getFloat("speed", default: 1.0))
-        let progress = CGFloat(node.props.getFloat("progress", default: -1.0))
+        let speed = node.props.getFloat("speed", default: 1.0)
+        let progress = node.props.getFloat("progress", default: -1.0)
+        let animation = source.isEmpty ? nil : LottieAnimation.named(source)
 
-        if source.isEmpty {
-            Color.clear
-        } else if progress >= 0 {
-            LottieView(animation: .named(source))
-                .resizable()
-                .currentProgress(progress)
-        } else if loop {
-            LottieView(animation: .named(source))
-                .resizable()
-                .looping()
-                .animationSpeed(speed)
-        } else {
-            LottieView(animation: .named(source))
-                .resizable()
-                .playing()
-                .animationSpeed(speed)
+        return Group {
+            if let animation {
+                if progress >= 0 {
+                    LottieView(animation: animation)
+                        .resizable()
+                        .currentProgress(CGFloat(progress))
+                } else {
+                    LottieView(animation: animation)
+                        .resizable()
+                        .playing(loopMode: loop ? .loop : .playOnce)
+                        .animationSpeed(Double(speed))
+                }
+            } else {
+                Color.clear
+            }
         }
+        // Fill whatever frame the EDGE layout gives us. Without an explicit
+        // fill, a `.resizable()` Lottie can collapse to a zero-size view.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

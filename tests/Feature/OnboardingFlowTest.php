@@ -11,7 +11,6 @@ use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Onboarding;
 use Native\Mobile\Edge\Transition;
 use Native\Mobile\Testing\Native;
-use Nativephp\NativeUi\Theme;
 
 test('first launch replaces the shell home with onboarding', function () {
     Native::visit('/')
@@ -76,21 +75,14 @@ test('scrolling onboarding steps remain inside chrome-free native layout geometr
         ->assertAccessible();
 });
 
-test('appearance choices apply the explicit palette immediately in onboarding', function () {
-    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
-
-    Native::visit('/onboarding')
+test('the preferences step offers only feedback toggles, not an appearance override', function () {
+    Native::test(Onboarding::class)
         ->set('currentStep', 5)
-        ->selectRadio('themePreference', ThemePreference::Dark->value)
-        ->assertSet('themePreference', ThemePreference::Dark->value)
-        ->assertNoNavigation()
+        ->assertSee('Feedback')
+        ->assertDontSee('Appearance')
+        ->assertDontSee('Use device setting')
+        ->assertMissingElement('radio')
         ->assertAccessible();
-
-    $tokens = Theme::all();
-
-    expect(data_get($tokens, 'light.background'))
-        ->toBe(data_get($tokens, 'dark.background'))
-        ->and(data_get($tokens, 'dark.background'))->toBe('#0F0F11');
 });
 
 test('the complete onboarding journey persists local choices and enters home', function () {
@@ -116,10 +108,8 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertAccessible()
         ->tap('Continue')
         ->assertSet('currentStep', 5)
-        ->selectRadio('themePreference', ThemePreference::Dark->value)
         ->toggle('soundEnabled', false)
         ->toggle('hapticsEnabled', false)
-        ->assertSet('themePreference', ThemePreference::Dark->value)
         ->assertSet('soundEnabled', false)
         ->assertSet('hapticsEnabled', false)
         ->assertAccessible()
@@ -129,7 +119,6 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertSee('Ada Local')
         ->assertSee('Improve Thinking Speed')
         ->assertSee('Adaptive')
-        ->assertSee('Dark')
         ->assertAccessible()
         ->tap('Start training')
         ->assertReplacedWith('/')
@@ -142,7 +131,7 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->and($profile->difficulty_preference)->toBe(Difficulty::Adaptive)
         ->and($profile->onboarding_completed_at)->not->toBeNull()
         ->and($profile->setting)->toBeInstanceOf(Setting::class)
-        ->and($profile->setting->theme_preference)->toBe(ThemePreference::Dark)
+        ->and($profile->setting->theme_preference)->toBe(ThemePreference::System)
         ->and($profile->setting->sound_enabled)->toBeFalse()
         ->and($profile->setting->haptics_enabled)->toBeFalse()
         ->and($profile->setting->reduced_motion)->toBeFalse();
@@ -176,10 +165,6 @@ test('selection controls expose their individual visible labels to assistive tec
         ->set('currentStep', 3)
         ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Gentle')
         ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Adaptive')
-        ->assertAccessible()
-        ->set('currentStep', 5)
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Use device setting')
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Dark')
         ->assertAccessible();
 });
 

@@ -59,7 +59,8 @@ test('a full correct Word Match playthrough records an evidence-backed score', f
 
     for ($round = 0; $round < $totalRounds; $round++) {
         $answer = $screen->get('answer');
-        $screen->call('chooseOption', $answer)->call('tickGame');
+        // One tick holds the reveal, the next advances to the following round.
+        $screen->call('chooseOption', $answer)->call('tickGame')->call('tickGame');
     }
 
     $screen->assertSet('phase', 'result')
@@ -87,13 +88,14 @@ test('the simplified games library shows compact tiles and opens a detail', func
         ->assertNavigatedTo('/games/word-match');
 });
 
-test('the simplified home shows the play cards, streak glance, and latest badge', function () {
+test('the simplified home shows a single recent game, streak glance, and latest badge', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
-        ->assertSee('Play')
+        ->assertSee('Start playing')
         ->assertSee('Word Match')
-        ->assertSee('Quick Math')
-        ->assertSee('Latest badge')
+        ->assertDontSee('Quick Math')
+        ->assertDontSee('Latest badge')
+        ->assertSee('No achievements yet')
         ->assertDontSee('TODAY’S SESSION')
         ->assertDontSee('Your rhythm')
         ->assertAccessible();

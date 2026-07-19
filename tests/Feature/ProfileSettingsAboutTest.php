@@ -10,7 +10,6 @@ use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Settings;
 use Carbon\CarbonImmutable;
 use Native\Mobile\Testing\Native;
-use Nativephp\NativeUi\Theme;
 
 beforeEach(function () {
     CarbonImmutable::setTestNow('2026-07-18 09:30:00');
@@ -85,7 +84,10 @@ test('profile settings and about form a working native flow', function () {
         ->follow()
         ->assertScreen(Settings::class)
         ->assertNavTitle('Settings')
-        ->assertMissingElement('bottom_nav')
+        ->assertMissingElement('bottom_nav');
+
+    // About lives on the Profile screen only (not duplicated under Settings).
+    Native::visit('/profile')
         ->tap('About Ennoble')
         ->assertNavigatedTo('/about')
         ->follow()
@@ -97,54 +99,38 @@ test('profile settings and about form a working native flow', function () {
 test('settings render every persisted preference control', function () {
     Native::visit('/settings')
         ->assertScreen(Settings::class)
-        ->assertSee('Appearance')
-        ->assertSee('Use device setting')
-        ->assertSee('Light')
-        ->assertSee('Dark')
+        ->assertDontSee('Appearance')
+        ->assertDontSee('Use device setting')
+        ->assertSee('Feedback')
         ->assertSee('Sound')
         ->assertSee('Haptics')
-        ->assertSee('Reduce motion')
-        ->assertSee('About Ennoble')
+        ->assertSee('Reset stats & badges')
+        ->assertDontSee('Reduce motion')
+        ->assertDontSee('About Ennoble')
         ->assertSee('Every preference is stored only on this device.')
-        ->assertSet('themePreference', ThemePreference::System->value)
         ->assertSet('soundEnabled', true)
         ->assertSet('hapticsEnabled', true)
-        ->assertSet('reducedMotion', false)
         ->assertAccessible();
 });
 
-test('changing appearance persists and applies the explicit palette immediately', function () {
+test('settings expose no in-app appearance override — the app follows the device', function () {
     Native::visit('/settings')
-        ->set('themePreference', ThemePreference::Dark->value)
-        ->assertSet('themePreference', ThemePreference::Dark->value);
+        ->assertDontSee('Appearance')
+        ->assertMissingElement('radio');
 
-    $tokens = Theme::all();
-
-    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::Dark)
-        ->and(data_get($tokens, 'light.background'))
-        ->toBe(data_get($tokens, 'dark.background'));
-});
-
-test('a forged appearance value falls back to the device setting', function () {
-    Native::visit('/settings')
-        ->set('themePreference', 'sepia')
-        ->assertSet('themePreference', ThemePreference::System->value);
-
+    // The stored preference stays System; there is no control to change it.
     expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::System);
 });
 
-test('feedback and motion toggles persist atomically', function () {
+test('feedback toggles persist atomically', function () {
     Native::visit('/settings')
         ->set('soundEnabled', false)
-        ->set('hapticsEnabled', false)
-        ->set('reducedMotion', true)
-        ->assertSet('motionDuration', 0);
+        ->set('hapticsEnabled', false);
 
     $setting = $this->profile->refresh()->setting;
 
     expect($setting->sound_enabled)->toBeFalse()
-        ->and($setting->haptics_enabled)->toBeFalse()
-        ->and($setting->reduced_motion)->toBeTrue();
+        ->and($setting->haptics_enabled)->toBeFalse();
 });
 
 test('saving a preference preserves untouched reminder and accessibility values', function () {

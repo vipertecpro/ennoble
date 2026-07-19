@@ -15,12 +15,14 @@ final class ThemeManager
     public function __construct(private readonly ProfileService $profiles) {}
 
     /**
-     * Read the saved preference for the current local profile.
+     * The app follows the device appearance — there is no in-app override.
+     * Forcing an independent Light/Dark could not reach Android's native
+     * status-bar icon color (it reads the OS dark-mode flag), producing
+     * dark-on-dark chrome; following the system keeps every surface coherent.
      */
     public function currentPreference(): ThemePreference
     {
-        return $this->profiles->current()?->setting?->theme_preference
-            ?? ThemePreference::System;
+        return ThemePreference::System;
     }
 
     /**

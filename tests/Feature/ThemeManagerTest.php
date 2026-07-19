@@ -66,29 +66,26 @@ test('system preference preserves distinct light and dark semantic palettes', fu
         ->and(Theme::get('color-scheme'))->toBe('system');
 });
 
-test('explicit appearance keeps typed icon colors independent from device appearance', function (
-    ThemePreference $preference,
-    string $expectedColor,
-) {
+test('a stored explicit appearance is ignored so the app follows the device', function () {
     $profile = Profile::factory()->onboarded()->create();
     Setting::factory()->for($profile)->create([
-        'theme_preference' => $preference,
+        'theme_preference' => ThemePreference::Dark,
     ]);
 
-    app(ThemeManager::class)->apply($preference);
+    $manager = app(ThemeManager::class);
 
-    Native::visit('/')
-        ->assertElement(
-            'icon',
-            fn (array $node): bool => data_get($node, 'props.color') === $expectedColor
-                && data_get($node, 'props.dark_color') === $expectedColor,
-        );
-})->with([
-    'light' => [ThemePreference::Light, '#1B1B1F'],
-    'dark' => [ThemePreference::Dark, '#F5F5F4'],
-]);
+    // The app has no in-app override — it always follows the OS appearance,
+    // which keeps Android's native status-bar icons coherent with the surface.
+    expect($manager->currentPreference())->toBe(ThemePreference::System)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::System);
 
-test('saved Prompt 2 settings drive theme and reduced motion behavior', function () {
+    // System keeps distinct light/dark palettes so native renderers pick by device.
+    $tokens = Theme::all();
+    expect($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
+        ->and(Theme::get('color-scheme'))->toBe('system');
+});
+
+test('saved settings drive reduced motion while appearance follows the device', function () {
     $profile = app(ProfileService::class)->createOrUpdate(
         displayName: 'Shell Tester',
         trainingGoal: TrainingGoal::Balanced,
@@ -106,8 +103,8 @@ test('saved Prompt 2 settings drive theme and reduced motion behavior', function
 
     $manager = app(ThemeManager::class);
 
-    expect($manager->currentPreference())->toBe(ThemePreference::Dark)
-        ->and($manager->applyCurrent())->toBe(ThemePreference::Dark)
+    expect($manager->currentPreference())->toBe(ThemePreference::System)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::System)
         ->and($manager->prefersReducedMotion())->toBeTrue()
         ->and($manager->motionDuration(MotionToken::Success))->toBe(0);
 });

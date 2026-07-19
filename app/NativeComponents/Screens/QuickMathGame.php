@@ -80,6 +80,8 @@ final class QuickMathGame extends NativeComponent
 
     public bool $awaitingAdvance = false;
 
+    public int $revealTicks = 0;
+
     public bool $reducedMotion = false;
 
     public int $motionDuration = 0;
@@ -153,6 +155,14 @@ final class QuickMathGame extends NativeComponent
         }
 
         if ($this->awaitingAdvance) {
+            // Hold the answered round for one full tick so the reveal reads
+            // before the next question slides in — a smooth beat between rounds.
+            if ($this->revealTicks > 0) {
+                $this->revealTicks--;
+
+                return;
+            }
+
             $this->advance();
 
             return;
@@ -210,6 +220,7 @@ final class QuickMathGame extends NativeComponent
         }
 
         $this->score = app(QuickMathGameService::class)->score($session)->score;
+        $this->revealTicks = 1;
         $this->awaitingAdvance = true;
     }
 
@@ -276,6 +287,7 @@ final class QuickMathGame extends NativeComponent
         $this->lives = max(0, $this->lives - 1);
         $this->score = app(QuickMathGameService::class)->score($session)->score;
         app(HapticService::class)->trigger(HapticFeedback::Warning);
+        $this->revealTicks = 1;
         $this->awaitingAdvance = true;
     }
 

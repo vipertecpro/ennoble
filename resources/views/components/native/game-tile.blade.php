@@ -12,7 +12,7 @@
     a11y-hint="Opens {{ $game['title'] }} details"
     @press="openGame('{{ $game['slug'] }}')"
 >
-    <x-native.game-illustration :slug="$game['slug']" :motion-duration="$motionDuration" />
+    <x-native.game-illustration :slug="$game['slug']" :motion-duration="$motionDuration" :animated="true" />
 
     <native:column class="w-full items-center gap-1">
         <native:text class="w-full text-[14] font-semibold text-center text-theme-primary-text">{{ $game['title'] }}</native:text>

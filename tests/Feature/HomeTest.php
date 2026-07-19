@@ -43,15 +43,17 @@ test('all application shell routes are registered with the expected layout', fun
     ]);
 });
 
-test('the home screen shows both play cards and the streak glance', function () {
+test('the home screen shows a single recent game card and the streak glance', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
-        ->assertSee('Play')
+        ->assertSee('Start playing')
         ->assertSee('Word Match')
-        ->assertSee('Quick Math')
+        ->assertDontSee('Quick Math')
         ->assertSee('Day streak')
-        ->assertSee('Best score')
-        ->assertSee('Latest badge')
+        ->assertSee('Games played')
+        ->assertDontSee('Best score')
+        ->assertDontSee('Latest badge')
+        ->assertSee('No achievements yet')
         ->assertAccessible();
 });
 

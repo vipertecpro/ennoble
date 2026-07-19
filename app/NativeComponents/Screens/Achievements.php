@@ -12,14 +12,12 @@ use App\Models\Profile as LocalProfile;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
-use Native\Mobile\Attributes\Lazy;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
 use Throwable;
 
-#[Lazy]
 final class Achievements extends NativeComponent
 {
     public string $screenState = 'content';

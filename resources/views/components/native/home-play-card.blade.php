@@ -22,7 +22,7 @@
     @press="openGame('{{ $slug }}')"
 >
     <native:row class="items-center gap-4">
-        <x-native.game-illustration :slug="$slug" :motion-duration="$motionDuration" />
+        <x-native.game-illustration :slug="$slug" :motion-duration="$motionDuration" :animated="true" />
         <native:column class="flex-1 gap-1">
             <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $title }}</native:text>
             <native:text class="text-[13] leading-relaxed text-theme-secondary-text">{{ $subtitle }}</native:text>

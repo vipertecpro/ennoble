@@ -18,6 +18,7 @@ use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\Layouts\Builders\TabBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
+use Native\Mobile\Facades\System;
 use Throwable;
 
 final class Onboarding extends NativeComponent
@@ -31,8 +32,6 @@ final class Onboarding extends NativeComponent
     public string $difficulty = '';
 
     public string $displayName = '';
-
-    public string $themePreference = ThemePreference::System->value;
 
     public bool $soundEnabled = true;
 
@@ -61,6 +60,17 @@ final class Onboarding extends NativeComponent
     public function render(): Element
     {
         return $this->view('screens.onboarding');
+    }
+
+    /**
+     * Onboarding runs under a native chrome host with a hidden nav bar. iOS
+     * reserves the top/bottom safe-area geometry even when the bar is hidden;
+     * Android collapses it, letting content slide under the status-bar notch.
+     * So the screen applies its own inset only on Android.
+     */
+    public function appliesManualSafeArea(): bool
+    {
+        return System::isAndroid();
     }
 
     public function navigationOptions(): ?NavBarOptions
@@ -130,13 +140,12 @@ final class Onboarding extends NativeComponent
                 displayName: $this->displayName,
                 trainingGoal: TrainingGoal::from($this->trainingGoal),
                 difficulty: Difficulty::from($this->difficulty),
-                themePreference: ThemePreference::from($this->themePreference),
+                themePreference: ThemePreference::System,
                 soundEnabled: $this->soundEnabled,
                 hapticsEnabled: $this->hapticsEnabled,
                 reducedMotion: $this->reducedMotion,
             );
 
-            app(ThemeManager::class)->apply(ThemePreference::from($this->themePreference));
             app(HapticService::class)->trigger(HapticFeedback::Success);
 
             $transition = $this->reducedMotion
@@ -150,23 +159,6 @@ final class Onboarding extends NativeComponent
             $this->errorMessage = 'Your choices could not be saved. Please try again.';
             $this->isSaving = false;
         }
-    }
-
-    /**
-     * Apply a valid appearance choice immediately so the whole flow repaints live.
-     */
-    public function updatedThemePreference(string $value): void
-    {
-        $preference = ThemePreference::tryFrom($value);
-
-        if ($preference === null) {
-            $this->themePreference = ThemePreference::System->value;
-
-            return;
-        }
-
-        app(ThemeManager::class)->apply($preference);
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
     }
 
     /**
@@ -208,7 +200,6 @@ final class Onboarding extends NativeComponent
             4 => $this->isDisplayNameValid(),
             6 => TrainingGoal::tryFrom($this->trainingGoal) !== null
                 && Difficulty::tryFrom($this->difficulty) !== null
-                && ThemePreference::tryFrom($this->themePreference) !== null
                 && $this->isDisplayNameValid(),
             default => true,
         };
@@ -254,14 +245,6 @@ final class Onboarding extends NativeComponent
             Difficulty::Adaptive => 'Adaptive',
             default => 'Not selected',
         };
-    }
-
-    /**
-     * Return the selected theme's display label.
-     */
-    public function themeLabel(): string
-    {
-        return ThemePreference::tryFrom($this->themePreference)?->label() ?? 'Use Device Setting';
     }
 
     /**
