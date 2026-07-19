@@ -39,7 +39,7 @@ test('a first-time dashboard renders an intentional pending workout and honest e
     Native::visit('/')
         ->assertSee('Good Morning')
         ->assertSee('Ada')
-        ->assertSee('TODAY’S PRACTICE')
+        ->assertSee('TODAY’S SESSION')
         ->assertSee('Daily Momentum')
         ->assertSee('About 7 min')
         ->assertSee('Intermediate')
@@ -214,7 +214,7 @@ test('section error states remain recoverable and accessible without blocking th
         ->assertSee('Statistics preview unavailable.')
         ->assertSee('Progress preview unavailable.')
         ->assertSee('Achievement preview unavailable.')
-        ->assertSee('TODAY’S PRACTICE')
+        ->assertSee('TODAY’S SESSION')
         ->assertAccessible();
 });
 

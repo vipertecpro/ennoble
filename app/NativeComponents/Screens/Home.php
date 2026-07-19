@@ -61,6 +61,10 @@ final class Home extends NativeComponent
 
     public string $displayName = 'friend';
 
+    public string $todayLabel = '';
+
+    public string $avatarInitial = '';
+
     public string $greetingMessage = 'A small focused step is ready when you are.';
 
     public bool $returningUser = false;
@@ -81,6 +85,8 @@ final class Home extends NativeComponent
     public string $workoutAction = 'Start Training';
 
     public string $workoutStatus = WorkoutStatus::Pending->value;
+
+    public int $workoutGameCount = 0;
 
     public int $workoutCompletionPercentage = 0;
 
@@ -273,6 +279,8 @@ final class Home extends NativeComponent
 
             $this->greeting = $greetings->greeting(now());
             $this->displayName = $greetings->displayName($profile->display_name);
+            $this->todayLabel = now()->format('l, M j');
+            $this->avatarInitial = Str::upper(Str::substr($this->displayName, 0, 1));
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
@@ -391,6 +399,7 @@ final class Home extends NativeComponent
         $itemCount = $items->count();
 
         $this->workoutStatus = $workout->status->value;
+        $this->workoutGameCount = $itemCount;
         $this->workoutAction = match ($workout->status) {
             WorkoutStatus::Pending => 'Start Training',
             WorkoutStatus::InProgress => 'Continue Training',

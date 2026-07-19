@@ -182,7 +182,7 @@ final class Games extends NativeComponent
 
         app(HapticService::class)->trigger(HapticFeedback::Impact);
 
-        $navigation = $this->navigate('/workout');
+        $navigation = $this->navigate('/games/'.$slug);
 
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
@@ -245,12 +245,12 @@ final class Games extends NativeComponent
 
             $games = Game::query()
                 ->playable()
-                ->whereIn('type', [GameType::SignalShift, GameType::ClearThought])
+                ->whereIn('type', [GameType::WordMatch, GameType::QuickMath])
                 ->orderBy('sort_order')
                 ->get();
 
-            if ($games->count() !== 2) {
-                throw new DomainException('Both playable game definitions are required for the Games library.');
+            if ($games->isEmpty()) {
+                throw new DomainException('At least one playable game definition is required for the Games library.');
             }
 
             $this->loadPlayableGames($profile, $games);
@@ -318,7 +318,7 @@ final class Games extends NativeComponent
             ->values()
             ->all();
         $this->featuredGame = collect($this->playableGames)
-            ->firstWhere('slug', 'signal-shift');
+            ->firstWhere('slug', 'word-match');
     }
 
     private function applyFilters(): void
@@ -389,6 +389,8 @@ final class Games extends NativeComponent
         return match ($gameType) {
             GameType::SignalShift => ['focus', 'speed'],
             GameType::ClearThought => ['language', 'logic'],
+            GameType::WordMatch => ['language', 'focus'],
+            GameType::QuickMath => ['logic', 'speed'],
         };
     }
 

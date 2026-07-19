@@ -3,7 +3,6 @@
 
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
-<native:row class="w-full justify-center bg-theme-background">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     <native:column class="items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-primary-surface">
@@ -51,6 +50,5 @@
         <native:text class="text-[15] text-theme-muted-text">Crafted for quiet, focused minds.</native:text>
     </native:column>
 </native:column>
-</native:row>
 </native:scroll-view>
 </native:column>

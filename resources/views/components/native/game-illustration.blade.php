@@ -11,6 +11,8 @@
     [$ios, $android, $label] = match ($slug) {
         'signal-shift' => [Ios::Point3ConnectedTrianglepathDotted, AndroidOutlined::Route, 'Abstract shifting signal illustration'],
         'clear-thought' => [Ios::Textformat, AndroidOutlined::TextFields, 'Abstract language clarity illustration'],
+        'word-match' => [Ios::TextformatAbc, AndroidOutlined::Abc, 'Abstract word matching illustration'],
+        'quick-math' => [Ios::NumberSquare, AndroidOutlined::Numbers, 'Abstract quick math illustration'],
         'memory-path' => [Ios::BrainHeadProfile, AndroidOutlined::Memory, 'Abstract memory path illustration'],
         'pattern-pulse' => [Ios::CircleGrid3x3, AndroidOutlined::Pattern, 'Abstract pattern pulse illustration'],
         'word-forge' => [Ios::TextformatAbc, AndroidOutlined::Abc, 'Abstract word forge illustration'],

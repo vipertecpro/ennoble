@@ -2,6 +2,7 @@
 
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\ClearThoughtGame;
+use App\NativeComponents\Screens\GameDetail;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\Onboarding;
@@ -10,6 +11,7 @@ use App\NativeComponents\Screens\Progress;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\SignalShiftGame;
 use App\NativeComponents\Screens\Splash;
+use App\NativeComponents\Screens\WordMatchGame;
 use App\NativeComponents\Screens\WorkoutComplete;
 use App\NativeComponents\Screens\WorkoutIntroduction;
 use App\NativeComponents\Screens\WorkoutPreparation;
@@ -38,6 +40,8 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/workout/complete/{workout}', WorkoutComplete::class)
         ->name('native.workout.complete');
     Route::native('/games', Games::class)->name('native.games');
+    Route::native('/games/{slug}', GameDetail::class)->name('native.game.detail');
+    Route::native('/play/word-match/{session}', WordMatchGame::class)->name('native.play.word-match');
     Route::native('/progress', Progress::class)->name('native.progress');
     Route::native('/profile', Profile::class)->name('native.profile');
     Route::native('/settings', Settings::class)->name('native.settings');

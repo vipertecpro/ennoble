@@ -6,7 +6,9 @@ use App\Domain\Achievements\AchievementService;
 use App\Domain\Games\ClearThought\ClearThoughtScoringService;
 use App\Domain\Games\Contracts\GameScoringService;
 use App\Domain\Games\Contracts\ScoringResult;
+use App\Domain\Games\QuickMath\QuickMathScoringService;
 use App\Domain\Games\SignalShift\SignalShiftScoringService;
+use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\GameType;
@@ -30,6 +32,8 @@ final class GameSessionService
     public function __construct(
         private readonly SignalShiftScoringService $signalShiftScoringService,
         private readonly ClearThoughtScoringService $clearThoughtScoringService,
+        private readonly WordMatchScoringService $wordMatchScoringService,
+        private readonly QuickMathScoringService $quickMathScoringService,
         private readonly ProgressService $progressService,
         private readonly StatisticsService $statisticsService,
         private readonly AchievementService $achievementService,
@@ -107,9 +111,20 @@ final class GameSessionService
         DailyWorkoutItem $workoutItem,
     ): GameSession {
         return match ($workoutItem->game->type) {
-            GameType::ClearThought => $this->startGameplay($profile, $workoutItem),
-            GameType::SignalShift => $this->startGameplay($profile, $workoutItem),
+            GameType::ClearThought,
+            GameType::SignalShift,
+            GameType::WordMatch,
+            GameType::QuickMath => $this->startGameplay($profile, $workoutItem),
         };
+    }
+
+    /**
+     * Start a fresh, standalone free-play session outside any daily workout.
+     * Each launch creates a new session, matching the "play a game tile" flow.
+     */
+    public function startFreePlay(Profile $profile, Game $game, GameLevel $level): GameSession
+    {
+        return $this->start(profile: $profile, game: $game, level: $level, workoutItem: null);
     }
 
     /**
@@ -327,6 +342,8 @@ final class GameSessionService
         return match ($gameType) {
             GameType::SignalShift => $this->signalShiftScoringService,
             GameType::ClearThought => $this->clearThoughtScoringService,
+            GameType::WordMatch => $this->wordMatchScoringService,
+            GameType::QuickMath => $this->quickMathScoringService,
         };
     }
 
