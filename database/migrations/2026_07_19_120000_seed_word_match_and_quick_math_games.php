@@ -19,7 +19,7 @@ return new class extends Migration
     {
         // Cascades to the seeded game_levels rows.
         DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall'])
             ->delete();
     }
 };

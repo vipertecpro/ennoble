@@ -6,6 +6,7 @@ use App\Domain\Achievements\AchievementService;
 use App\Domain\Games\Contracts\GameScoringService;
 use App\Domain\Games\Contracts\ScoringResult;
 use App\Domain\Games\QuickMath\QuickMathScoringService;
+use App\Domain\Games\Recall\RecallScoringService;
 use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Statistics\StatisticsService;
@@ -28,6 +29,7 @@ final class GameSessionService
     public function __construct(
         private readonly WordMatchScoringService $wordMatchScoringService,
         private readonly QuickMathScoringService $quickMathScoringService,
+        private readonly RecallScoringService $recallScoringService,
         private readonly ProgressService $progressService,
         private readonly StatisticsService $statisticsService,
         private readonly AchievementService $achievementService,
@@ -248,6 +250,7 @@ final class GameSessionService
         return match ($gameType) {
             GameType::WordMatch => $this->wordMatchScoringService,
             GameType::QuickMath => $this->quickMathScoringService,
+            GameType::Recall => $this->recallScoringService,
         };
     }
 

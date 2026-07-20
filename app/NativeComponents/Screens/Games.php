@@ -241,7 +241,7 @@ final class Games extends NativeComponent
 
             $games = Game::query()
                 ->playable()
-                ->whereIn('type', [GameType::WordMatch, GameType::QuickMath])
+                ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall])
                 ->orderBy('sort_order')
                 ->get();
 
@@ -384,6 +384,7 @@ final class Games extends NativeComponent
         return match ($gameType) {
             GameType::WordMatch => ['language', 'focus'],
             GameType::QuickMath => ['logic', 'speed'],
+            GameType::Recall => ['memory', 'focus'],
         };
     }
 

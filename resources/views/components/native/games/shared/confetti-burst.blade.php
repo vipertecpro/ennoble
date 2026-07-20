@@ -1,6 +1,7 @@
 @props([
     'serial' => 0,
     'reducedMotion' => false,
+    'accent' => '#C5DB55',
 ])
 
 {{--
@@ -24,7 +25,7 @@
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
         function size() { canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
         size();
-        var tints = ['#C5DB55', '#A7C433', '#E4F08A', '#C5DB55'];
+        var tints = __TINTS__;
         var cx = innerWidth / 2, cy = innerHeight * 0.42, parts = [];
         for (var i = 0; i < 70; i++) {
             var a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 8;
@@ -50,6 +51,11 @@
     })();
     </script></body></html>
     HTML;
+
+    // Tint the confetti with the caller's accent (a white sparkle mixed in),
+    // injected into the otherwise-static document.
+    $tints = json_encode([$accent, $accent, '#FFFFFF', $accent], JSON_THROW_ON_ERROR);
+    $html = str_replace('__TINTS__', $tints, $html);
 @endphp
 
 @unless ($reducedMotion)

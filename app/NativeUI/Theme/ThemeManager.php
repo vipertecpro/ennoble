@@ -45,6 +45,31 @@ final class ThemeManager
     }
 
     /**
+     * Apply the base theme with a per-game accent override merged into both the
+     * light and dark palettes. Scoped by convention: every other screen re-applies
+     * the base theme in its own mount()/onResume(), so the override never leaks —
+     * a game screen calls this in mount() to give itself a distinct colour.
+     *
+     * @param  array<string, string>  $accentTokens
+     */
+    public function applyWithAccent(array $accentTokens): ThemePreference
+    {
+        $preference = $this->currentPreference();
+        $tokens = $this->tokensFor($preference);
+
+        foreach (['light', 'dark'] as $mode) {
+            if (isset($tokens[$mode]) && is_array($tokens[$mode])) {
+                $tokens[$mode] = [...$tokens[$mode], ...$accentTokens];
+            }
+        }
+
+        Theme::load($tokens);
+        TailwindParser::clearCache();
+
+        return $preference;
+    }
+
+    /**
      * Resolve the effective appearance for a preference.
      */
     public function appearance(

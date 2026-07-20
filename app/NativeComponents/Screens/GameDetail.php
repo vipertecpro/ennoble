@@ -52,6 +52,15 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong answer or a time-out costs one.',
             ],
         ],
+        'recall' => [
+            'tagline' => 'Watch the sequence light up, then tap it back from memory.',
+            'steps' => [
+                'A sequence of tiles flashes one by one — watch closely.',
+                'Tap the tiles back in the exact same order.',
+                'Each round the sequence grows longer; longer runs score more.',
+                'You have three lives — a wrong tap costs one.',
+            ],
+        ],
     ];
 
     public string $screenState = 'content';

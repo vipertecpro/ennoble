@@ -38,8 +38,8 @@ The walkthrough starts on Home, opens Games, plays Quick Math with both a correc
 
 - Fully native iOS and Android interface from one Laravel codebase.
 - Offline-first SQLite persistence with no account or remote API requirement.
-- Word Match and Quick Math training games with adaptive difficulty.
-- Local progress, achievements, streaks, profile, appearance, sound, haptics, and reduced-motion preferences.
+- Three offline training games — Word Match (vocabulary), Quick Math (arithmetic), and Recall (memory sequence) — with adaptive difficulty and their own accent colours.
+- Local progress, achievements, streaks, profile, System/Light/Dark appearance, sound, haptics, and reduced-motion preferences.
 - Native accessibility labels, scalable system text, light/dark appearance, and reduced-motion support.
 
 ## Local setup

@@ -41,6 +41,16 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Speed->value, SkillKey::Precision->value, SkillKey::Focus->value],
                 'configuration' => ['content_version' => 1],
             ],
+            [
+                'type' => GameType::Recall->value,
+                'slug' => 'recall',
+                'name' => 'Recall',
+                'description' => 'Watch the sequence light up, then tap it back from memory.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 3,
+                'skill_keys' => [SkillKey::Focus->value, SkillKey::Structure->value, SkillKey::Adaptability->value],
+                'configuration' => ['content_version' => 1],
+            ],
         ];
 
         DB::table('games')->upsert(
@@ -56,7 +66,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -69,6 +79,11 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 10, 4000, ['seconds_per_round' => 8, 'operations' => ['add', 'subtract'], 'operand_range' => ['min' => 2, 'max' => 10], 'options_count' => 4, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 12, 3000, ['seconds_per_round' => 6, 'operations' => ['add', 'subtract', 'multiply'], 'operand_range' => ['min' => 2, 'max' => 12], 'options_count' => 4, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 14, 2400, ['seconds_per_round' => 5, 'operations' => ['add', 'subtract', 'multiply', 'divide'], 'operand_range' => ['min' => 3, 'max' => 15], 'options_count' => 4, 'lives' => 3]],
+            ],
+            'recall' => [
+                [Difficulty::Beginner, 'Warm-up', 8, 5000, ['tiles' => 6, 'start_length' => 3, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 10, 4000, ['tiles' => 9, 'start_length' => 3, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 12, 3200, ['tiles' => 9, 'start_length' => 4, 'lives' => 3]],
             ],
         ];
 

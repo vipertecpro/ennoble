@@ -33,6 +33,7 @@
         [$ios, $android, $label] = match ($slug) {
             'word-match' => [Ios::TextformatAbc, AndroidOutlined::Abc, 'Abstract word matching illustration'],
             'quick-math' => [Ios::NumberSquare, AndroidOutlined::Numbers, 'Abstract quick math illustration'],
+            'recall' => [Ios::Grid, AndroidOutlined::GridView, 'Abstract memory recall illustration'],
             default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports, 'Abstract game illustration'],
         };
     @endphp

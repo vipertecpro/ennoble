@@ -182,7 +182,7 @@ final class Home extends NativeComponent
     {
         $games = Game::query()
             ->playable()
-            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath])
+            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall])
             ->orderBy('sort_order')
             ->get();
 

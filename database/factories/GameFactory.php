@@ -42,4 +42,16 @@ class GameFactory extends Factory
             'skill_keys' => ['speed', 'precision', 'focus'],
         ]);
     }
+
+    public function recall(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Recall,
+            'slug' => 'recall',
+            'name' => 'Recall',
+            'description' => 'Watch the sequence light up, then tap it back from memory.',
+            'sort_order' => 3,
+            'skill_keys' => ['focus', 'structure', 'adaptability'],
+        ]);
+    }
 }
