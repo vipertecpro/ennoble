@@ -125,17 +125,9 @@ If you change PHP files, format them before opening a pull request:
 vendor/bin/pint --dirty --format agent
 ```
 
-## Project documentation
+## Development
 
-- [Contributing](docs/CONTRIBUTING.md)
-- [Product specification](docs/PRODUCT_SPECIFICATION.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Implementation status](docs/IMPLEMENTATION_STATUS.md)
-- [Testing checklist](docs/TESTING_CHECKLIST.md)
-- [Design system](docs/DESIGN_SYSTEM.md)
-- [Upstream tracking](docs/UPSTREAM_TRACKING.md)
-
-Application development guidance lives in [AGENTS.md](AGENTS.md).
+Application development guidance for AI assistants lives in [AGENTS.md](AGENTS.md).
 
 ## Design, graphics, and credits
 
@@ -154,4 +146,4 @@ The following products and design studies informed interaction research only; En
 
 Ennoble currently uses NativePHP Mobile v4 pre-release branches. The required NativePHP Mobile branch and Native UI package line are temporarily incompatible through Composer, so the repository includes a narrowly scoped mirror at `packages/nativephp/native-ui`.
 
-This is a transparent compatibility layer, not an application fork. Product code stays outside the mirror, and the mirror will be removed when mutually compatible official packages are available. See [docs/UPSTREAM_TRACKING.md](docs/UPSTREAM_TRACKING.md) for pinned commits, documented differences, and the upgrade checklist.
+This is a transparent compatibility layer, not an application fork. Product code stays outside the mirror, and the mirror will be removed when mutually compatible official packages are available.

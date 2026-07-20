@@ -477,4 +477,3 @@ Button::make()
 - Keep the root Composer path repository, Native UI version mapping, and plugin registration unchanged during ordinary feature work.
 - If NativePHP v4 Stable provides mutually compatible official Composer packages, remove the mirror before implementing new features on the upgraded dependency line.
 - Always prefer compatible upstream packages over local mirrors.
-- Follow `docs/UPSTREAM_TRACKING.md` for the removal and upgrade checklist.
