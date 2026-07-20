@@ -99,8 +99,8 @@ test('profile settings and about form a working native flow', function () {
 test('settings render every persisted preference control', function () {
     Native::visit('/settings')
         ->assertScreen(Settings::class)
-        ->assertDontSee('Appearance')
-        ->assertDontSee('Use device setting')
+        ->assertSee('Appearance')
+        ->assertSee('System')
         ->assertSee('Feedback')
         ->assertSee('Sound')
         ->assertSee('Haptics')
@@ -113,13 +113,24 @@ test('settings render every persisted preference control', function () {
         ->assertAccessible();
 });
 
-test('settings expose no in-app appearance override — the app follows the device', function () {
+test('the appearance selector persists the chosen theme', function () {
     Native::visit('/settings')
-        ->assertDontSee('Appearance')
-        ->assertMissingElement('radio');
+        ->assertScreen(Settings::class)
+        ->assertSee('Appearance')
+        ->assertSet('themeIndex', 0)
+        ->set('themeIndex', 2); // Dark
 
-    // The stored preference stays System; there is no control to change it.
-    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::System);
+    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::Dark);
+});
+
+test('the saved appearance preference loads back into the selector', function () {
+    Setting::query()->whereBelongsTo($this->profile)->update([
+        'theme_preference' => ThemePreference::Light,
+    ]);
+
+    Native::visit('/settings')
+        ->assertScreen(Settings::class)
+        ->assertSet('themeIndex', 1);
 });
 
 test('feedback toggles persist atomically', function () {

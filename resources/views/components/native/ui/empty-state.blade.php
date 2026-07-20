@@ -15,7 +15,7 @@
     :padding="[DesignTokens::SPACING['2xl'], DesignTokens::SCREEN_PADDING]"
 >
     <native:column class="w-16 h-16 items-center justify-center rounded-2xl bg-theme-primary-surface">
-        <x-native.icon
+        <x-native.ui.icon
             :ios="$ios"
             :android="$android"
             :size="DesignTokens::ICON_SIZE['large']"

@@ -117,7 +117,7 @@ final class WordMatchGame extends NativeComponent
 
     public function render(): Element
     {
-        return $this->view('screens.word-match-game');
+        return $this->view('screens.games.word-match.game');
     }
 
     public function navigationOptions(): ?NavBarOptions

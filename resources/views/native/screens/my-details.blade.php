@@ -2,9 +2,9 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
-        <x-native.loading-overlay label="Loading your details" />
+        <x-native.ui.loading-overlay label="Loading your details" />
     @elseif ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$screenError"
             retry-label="Retry"
             retry-method="retryMyDetails"
@@ -12,7 +12,7 @@
     @else
     <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-4">
-        <x-native.onboarding-display-name-input
+        <x-native.onboarding.display-name-input
             :display-name="$displayName"
             :overlong="! $this->isDisplayNameValid()"
             supporting="Your name never leaves this device."

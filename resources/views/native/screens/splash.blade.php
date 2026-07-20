@@ -6,7 +6,7 @@
 <native:column class="w-full px-4 mt-5 mb-12 gap-5 safe-area">
     <native:column class="items-center justify-center gap-5">
         <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-primary-surface">
-            <x-native.icon
+            <x-native.ui.icon
                 :ios="Ios::Brain"
                 :android="AndroidOutlined::Psychology"
                 :size="44"

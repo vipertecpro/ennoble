@@ -29,6 +29,10 @@
     Keyed by the round so the level resets to full at each question; the caller
     hides the element the moment an answer locks in, freezing the level exactly
     where the timer stopped.
+
+    This is the one deliberate WebView in the app — kept because the fluid drain
+    and wave motion aren't expressible with native EDGE primitives. The native
+    `timer-bar` progress indicator is the plain alternative used elsewhere.
 --}}
 @php
     $total = max(1, (int) $secondsPerRound);

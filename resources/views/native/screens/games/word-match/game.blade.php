@@ -22,7 +22,7 @@
             <native:text class="text-[15] text-center text-theme-secondary-text">Get ready…</native:text>
         </native:column>
     @elseif ($phase === 'result')
-        <x-native.word-match-result
+        <x-native.games.shared.game-result
             :score="$resultScore"
             :accuracy="$resultAccuracy"
             :best-combo="$resultBestCombo"
@@ -35,9 +35,9 @@
     @else
         <native:stack class="flex-1 w-full">
             {{-- The draining water is the timer; hide it the moment an answer
-                 is locked in so it stops instead of running through the reveal. --}}
+                 is locked in so it freezes instead of running through the reveal. --}}
             @unless ($awaitingAdvance)
-                <x-native.game-water
+                <x-native.games.shared.water-timer
                     :seconds-per-round="$secondsPerRound"
                     :seconds-remaining="$secondsRemaining"
                     :round-key="$roundIndex"
@@ -45,17 +45,19 @@
             @endunless
 
             <native:column class="h-full w-full safe-area">
-                <native:column class="w-full px-4 pt-3 pb-2">
-                    <x-native.word-match-hud
+                <native:column class="w-full px-4 pt-3 pb-1">
+                    <x-native.games.shared.game-hud
                         :lives="$lives"
                         :max-lives="$maxLives"
                         :score="$score"
                         :combo="$combo"
+                        :round="$roundIndex + 1"
+                        :total="$totalRounds"
                         :motion-duration="$feedbackMotionDuration"
                     />
                 </native:column>
 
-                <native:column class="flex-1 w-full px-4 items-center justify-center gap-3">
+            <native:column class="flex-1 w-full px-4 items-center justify-center gap-3">
                     <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">
                         Find the {{ strtoupper($relation) }}
                     </native:text>
@@ -74,7 +76,7 @@
 
                 <native:column class="w-full px-4 pb-8 gap-3">
                     @foreach ($options as $option)
-                        <x-native.word-match-option
+                        <x-native.games.word-match.option
                             :option="$option"
                             :answer="$answer"
                             :selected="$selectedOption"

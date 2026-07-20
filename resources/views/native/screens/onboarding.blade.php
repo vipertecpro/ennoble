@@ -22,7 +22,7 @@
 
     {{-- Fixed header — progress rail stays put while content scrolls --}}
     <native:column class="w-full px-4 pt-2 pb-3 bg-theme-background">
-        <x-native.onboarding-progress
+        <x-native.onboarding.progress
             :current-step="$currentStep"
             :total-steps="Onboarding::TOTAL_STEPS"
             :motion-duration="$this->motionDuration()"
@@ -41,7 +41,7 @@
             :animate-duration="$this->motionDuration()"
             animate-easing="ease-out"
         >
-            <x-native.onboarding-illustration
+            <x-native.onboarding.illustration
                 :ios="Ios::BrainHeadProfile"
                 :android="AndroidOutlined::Psychology"
                 a11y-label="Ennoble brain training"
@@ -71,7 +71,7 @@
     >
         @if ($currentStep === 2)
             <native:column class="w-full items-center">
-                <x-native.onboarding-illustration
+                <x-native.onboarding.illustration
                     :ios="Ios::Scope"
                     :android="AndroidOutlined::CenterFocusStrong"
                     a11y-label="Choose a training focus"
@@ -100,7 +100,7 @@
             </native:column>
         @elseif ($currentStep === 3)
             <native:column class="w-full items-center">
-                <x-native.onboarding-illustration
+                <x-native.onboarding.illustration
                     :ios="Ios::GaugeOpenWithLinesNeedle33percent"
                     :android="AndroidOutlined::Speed"
                     a11y-label="Choose a training pace"
@@ -128,7 +128,7 @@
             </native:column>
         @elseif ($currentStep === 4)
             <native:column class="w-full items-center">
-                <x-native.onboarding-illustration
+                <x-native.onboarding.illustration
                     :ios="Ios::PersonCropCircle"
                     :android="AndroidOutlined::Person"
                     a11y-label="Local profile"
@@ -147,7 +147,7 @@
             </native:column>
 
             <native:column class="w-full">
-                <x-native.onboarding-display-name-input
+                <x-native.onboarding.display-name-input
                     :display-name="$displayName"
                     :overlong="$this->isDisplayNameTooLong()"
                     a11y-hint="Required to continue. Stays on this device."
@@ -182,7 +182,7 @@
             </native:column>
         @else
             <native:column class="w-full items-center gap-6">
-                <x-native.onboarding-illustration
+                <x-native.onboarding.illustration
                     :ios="Ios::CheckmarkSeal"
                     :android="AndroidOutlined::Verified"
                     a11y-label="Training setup complete"
@@ -201,11 +201,11 @@
             </native:column>
 
             <native:column class="w-full gap-1 rounded-2xl bg-theme-surface shadow-sm px-4 py-2">
-                <x-native.onboarding-summary-row label="Name" :value="$this->displayNameSummary()" />
+                <x-native.onboarding.summary-row label="Name" :value="$this->displayNameSummary()" />
                 <native:divider />
-                <x-native.onboarding-summary-row label="Focus" :value="$this->trainingGoalLabel()" />
+                <x-native.onboarding.summary-row label="Focus" :value="$this->trainingGoalLabel()" />
                 <native:divider />
-                <x-native.onboarding-summary-row label="Pace" :value="$this->paceLabel()" />
+                <x-native.onboarding.summary-row label="Pace" :value="$this->paceLabel()" />
             </native:column>
         @endif
     </native:column>

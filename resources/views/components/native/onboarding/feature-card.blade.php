@@ -7,7 +7,7 @@
 ])
 
 <native:column class="h-72 gap-4 rounded-2xl bg-theme-surface shadow-sm p-5">
-    <x-native.onboarding-illustration
+    <x-native.onboarding.illustration
         :ios="$ios"
         :android="$android"
         :a11y-label="$title"

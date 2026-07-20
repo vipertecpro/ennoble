@@ -5,16 +5,16 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
-        <x-native.loading-overlay label="Loading your home screen" />
+        <x-native.ui.loading-overlay label="Loading your home screen" />
     @elseif ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$screenError"
             retry-label="Retry"
             retry-method="retryHome"
         />
     @else
     {{-- Header — plain text, merged with the page (no card) --}}
-    <x-native.dashboard-greeting
+    <x-native.dashboard.greeting
         :date="$todayLabel"
         :greeting="$greeting"
         :display-name="$displayName"
@@ -24,9 +24,9 @@
 
     {{-- Recently played game (the full catalogue lives on the Games tab) --}}
     @if ($recentGame !== null)
-        <x-native.dashboard-section-header :title="$playSectionTitle" />
+        <x-native.dashboard.section-header :title="$playSectionTitle" />
 
-        <x-native.home-play-card
+        <x-native.dashboard.play-card
             :slug="$recentGame['slug']"
             :title="$recentGame['title']"
             :subtitle="$recentGame['subtitle']"
@@ -70,7 +70,7 @@
         a11y-hint="Opens the Achievements screen"
         @press="openAchievements"
     >
-        <x-native.dashboard-achievement-card
+        <x-native.dashboard.achievement-card
             :title="$achievementTitle"
             :description="$achievementDescription"
             :motion-duration="$motionDuration"

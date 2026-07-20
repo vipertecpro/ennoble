@@ -26,7 +26,7 @@
 <native:column
     class="{{ $disc }} items-center justify-center rounded-full border-2 {{ $unlocked ? 'border-theme-'.$color.' bg-theme-surface-elevated shadow-sm' : 'border-theme-border bg-theme-secondary-surface' }}"
 >
-    <x-native.icon
+    <x-native.ui.icon
         :ios="$unlocked ? Ios::Medal : Ios::Lock"
         :android="$unlocked ? AndroidOutlined::MilitaryTech : AndroidOutlined::Lock"
         :size="$iconSize"

@@ -15,14 +15,14 @@ final class ThemeManager
     public function __construct(private readonly ProfileService $profiles) {}
 
     /**
-     * The app follows the device appearance — there is no in-app override.
-     * Forcing an independent Light/Dark could not reach Android's native
-     * status-bar icon color (it reads the OS dark-mode flag), producing
-     * dark-on-dark chrome; following the system keeps every surface coherent.
+     * The appearance the player has chosen (System / Light / Dark), read from
+     * their saved settings. `tokensFor()` sets the `color-scheme` key so a
+     * forced Light/Dark also drives the platform chrome (status bar, system
+     * inks), not just the palette — following the device remains the default.
      */
     public function currentPreference(): ThemePreference
     {
-        return ThemePreference::System;
+        return $this->profiles->current()?->setting?->theme_preference ?? ThemePreference::System;
     }
 
     /**

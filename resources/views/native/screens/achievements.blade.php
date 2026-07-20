@@ -5,9 +5,9 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
-        <x-native.loading-overlay label="Loading your achievements" />
+        <x-native.ui.loading-overlay label="Loading your achievements" />
     @elseif ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$screenError"
             retry-label="Retry achievements"
             retry-method="retryAchievements"
@@ -30,7 +30,7 @@
 
         <native:row class="items-center justify-between">
             @foreach ($tierSummary as $tier)
-                <x-native.badge-tier-pill
+                <x-native.badges.tier-pill
                     :label="$tier['label']"
                     :earned="$tier['earned']"
                     :total="$tier['total']"
@@ -42,13 +42,13 @@
     </native:column>
 
     {{-- Per-category badge cards --}}
-    <x-native.dashboard-section-header
+    <x-native.dashboard.section-header
         title="Categories"
         eyebrow="EARN BRONZE, THEN SILVER, THEN GOLD"
     />
 
     @foreach ($categories as $category)
-        <x-native.badge-category-card
+        <x-native.badges.category-card
             :category="$category"
             :press-scale="$pressScale"
             :press-opacity="$pressOpacity"
@@ -57,18 +57,18 @@
     @endforeach
 
     {{-- Underlying training stats --}}
-    <x-native.dashboard-section-header title="Your stats" />
+    <x-native.dashboard.section-header title="Your stats" />
 
     <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-3">
         <native:row class="gap-3">
-            <x-native.game-stat
+            <x-native.games.shared.stat
                 :ios="Ios::Flame"
                 :android="AndroidOutlined::LocalFireDepartment"
                 label="Day streak"
                 :value="$streakLabel"
             />
-            <x-native.game-stat
+            <x-native.games.shared.stat
                 :ios="Ios::Target"
                 :android="AndroidOutlined::GpsFixed"
                 label="Accuracy"
@@ -76,13 +76,13 @@
             />
         </native:row>
         <native:row class="gap-3">
-            <x-native.game-stat
+            <x-native.games.shared.stat
                 :ios="Ios::Bolt"
                 :android="AndroidOutlined::Bolt"
                 label="Avg. speed"
                 :value="$speedLabel"
             />
-            <x-native.game-stat
+            <x-native.games.shared.stat
                 :ios="Ios::Gamecontroller"
                 :android="AndroidOutlined::SportsEsports"
                 label="Games played"
@@ -90,7 +90,7 @@
             />
         </native:row>
         <native:row class="gap-3">
-            <x-native.game-stat
+            <x-native.games.shared.stat
                 :ios="Ios::Crown"
                 :android="AndroidOutlined::WorkspacePremium"
                 label="Best score"

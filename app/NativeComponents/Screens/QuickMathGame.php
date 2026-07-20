@@ -25,13 +25,17 @@ use Throwable;
 
 /**
  * Quick Math — a timed, free-play mental-arithmetic game. Each round shows an
- * equation and four numeric options; the player taps the correct answer before
- * the round timer expires. Correct answers build a combo and score; wrong
- * answers and time-outs cost a life. Score/evidence are owned by
+ * equation with a fill-in-the-blank answer slot; the player types the answer on
+ * a transparent keypad before the round timer expires. Correct answers fill the
+ * slot green, fire a confetti burst and build a combo; wrong answers and
+ * time-outs turn the slot red and cost a life. Score/evidence are owned by
  * GameSessionService.
  */
 final class QuickMathGame extends NativeComponent
 {
+    /** Hard cap on typed digits (the largest generated answer is 3 digits). */
+    private const MAX_ANSWER_DIGITS = 4;
+
     public string $screenState = 'content';
 
     public string $errorMessage = 'This game could not be started. Please try again.';
@@ -50,10 +54,10 @@ final class QuickMathGame extends NativeComponent
 
     public string $expression = '';
 
-    /** @var list<int> */
-    public array $options = [];
-
     public int $answer = 0;
+
+    /** The digits typed on the keypad for the current round. */
+    public string $typedAnswer = '';
 
     public int $lives = 3;
 
@@ -76,11 +80,23 @@ final class QuickMathGame extends NativeComponent
 
     public int $feedbackSerial = 0;
 
-    public ?int $selectedOption = null;
-
     public bool $awaitingAdvance = false;
 
+    /**
+     * True while a wrong answer / time-out reveal waits for the player to tap
+     * Continue. Correct answers auto-advance after a brief reward beat instead.
+     */
+    public bool $awaitingContinue = false;
+
     public int $revealTicks = 0;
+
+    /** Seconds left before a wrong-answer / time-out reveal auto-continues. */
+    public int $continueTicks = 0;
+
+    public int $continueTotal = 3;
+
+    /** Paused while the explanation screen is open, so it doesn't auto-advance. */
+    public bool $continuePaused = false;
 
     public bool $reducedMotion = false;
 
@@ -115,7 +131,7 @@ final class QuickMathGame extends NativeComponent
 
     public function render(): Element
     {
-        return $this->view('screens.quick-math-game');
+        return $this->view('screens.games.quick-math.game');
     }
 
     public function navigationOptions(): ?NavBarOptions
@@ -155,8 +171,23 @@ final class QuickMathGame extends NativeComponent
         }
 
         if ($this->awaitingAdvance) {
-            // Hold the answered round for one full tick so the reveal reads
-            // before the next question slides in — a smooth beat between rounds.
+            if ($this->awaitingContinue) {
+                // Auto-continue after a short countdown (paused while the player
+                // reads the explanation), so the reveal never stalls the game.
+                if ($this->continuePaused) {
+                    return;
+                }
+
+                $this->continueTicks--;
+
+                if ($this->continueTicks <= 0) {
+                    $this->awaitingContinue = false;
+                    $this->advance();
+                }
+
+                return;
+            }
+
             if ($this->revealTicks > 0) {
                 $this->revealTicks--;
 
@@ -176,19 +207,45 @@ final class QuickMathGame extends NativeComponent
     }
 
     /**
-     * Resolve the current round from the tapped answer tile.
+     * Append a digit to the typed answer from the numeric keypad.
      */
-    public function chooseOption(string $value): void
+    public function pressKey(string $digit): void
     {
-        if ($this->phase !== 'playing' || $this->awaitingAdvance || $this->feedbackTone !== 'idle') {
+        if (! $this->acceptsInput()) {
             return;
         }
 
-        $chosen = (int) $value;
-
-        if (! in_array($chosen, $this->options, true)) {
+        if (! preg_match('/^[0-9]$/', $digit) || strlen($this->typedAnswer) >= self::MAX_ANSWER_DIGITS) {
             return;
         }
+
+        $this->typedAnswer .= $digit;
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+    }
+
+    /**
+     * Remove the last typed digit.
+     */
+    public function deleteKey(): void
+    {
+        if (! $this->acceptsInput() || $this->typedAnswer === '') {
+            return;
+        }
+
+        $this->typedAnswer = substr($this->typedAnswer, 0, -1);
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+    }
+
+    /**
+     * Resolve the current round from the typed answer.
+     */
+    public function submitAnswer(): void
+    {
+        if (! $this->acceptsInput() || $this->typedAnswer === '') {
+            return;
+        }
+
+        $chosen = (int) $this->typedAnswer;
 
         $session = $this->session();
         $correct = $chosen === $this->answer;
@@ -204,7 +261,6 @@ final class QuickMathGame extends NativeComponent
             stateSnapshot: $this->snapshot(),
         );
 
-        $this->selectedOption = $chosen;
         $this->feedbackSerial++;
 
         if ($correct) {
@@ -212,16 +268,48 @@ final class QuickMathGame extends NativeComponent
             $this->combo = $newCombo;
             $this->bestCombo = max($this->bestCombo, $newCombo);
             app(HapticService::class)->trigger(HapticFeedback::Success);
+            $this->revealTicks = 1;
         } else {
             $this->feedbackTone = 'wrong';
             $this->combo = 0;
             $this->lives = max(0, $this->lives - 1);
             app(HapticService::class)->trigger(HapticFeedback::Error);
+            $this->startContinueCountdown();
         }
 
         $this->score = app(QuickMathGameService::class)->score($session)->score;
-        $this->revealTicks = 1;
         $this->awaitingAdvance = true;
+    }
+
+    /**
+     * Leave the wrong-answer / time-out reveal and move to the next round.
+     */
+    public function continueRound(): void
+    {
+        if (! $this->awaitingContinue) {
+            return;
+        }
+
+        $this->awaitingContinue = false;
+        $this->advance();
+    }
+
+    /**
+     * Open the step-by-step explanation for the round just answered.
+     */
+    public function openExplain(): void
+    {
+        if (! $this->awaitingAdvance) {
+            return;
+        }
+
+        // Freeze the auto-continue countdown while the explanation is open.
+        $this->continuePaused = true;
+
+        $this->navigate('/play/quick-math/'.$this->param('session').'/explain', [
+            'expression' => $this->expression,
+            'answer' => $this->answer,
+        ])->transition($this->reducedMotion ? Transition::None : Transition::SlideFromBottom);
     }
 
     /**
@@ -245,8 +333,7 @@ final class QuickMathGame extends NativeComponent
     }
 
     /**
-     * Leave the game for the games library (which carries the tab bar, so the
-     * player can reach Home again).
+     * Leave the game for the games library.
      */
     public function exit(): void
     {
@@ -260,13 +347,14 @@ final class QuickMathGame extends NativeComponent
     }
 
     /**
-     * Swipe right to leave — a flick back out of the game. Ignored while a
-     * round is live so a fast horizontal tap streak can't drop the player out.
+     * Returning from the explanation restarts the auto-continue countdown so the
+     * player gets a fresh few seconds rather than an instant advance.
      */
-    public function handleSwipe(string $direction): void
+    public function onResume(): void
     {
-        if ($direction === 'right' && $this->phase !== 'playing') {
-            $this->exit();
+        if ($this->awaitingContinue) {
+            $this->continueTicks = $this->continueTotal;
+            $this->continuePaused = false;
         }
     }
 
@@ -282,13 +370,20 @@ final class QuickMathGame extends NativeComponent
 
         $this->feedbackSerial++;
         $this->feedbackTone = 'timeout';
-        $this->selectedOption = null;
+        $this->typedAnswer = '';
         $this->combo = 0;
         $this->lives = max(0, $this->lives - 1);
         $this->score = app(QuickMathGameService::class)->score($session)->score;
         app(HapticService::class)->trigger(HapticFeedback::Warning);
-        $this->revealTicks = 1;
         $this->awaitingAdvance = true;
+        $this->startContinueCountdown();
+    }
+
+    private function startContinueCountdown(): void
+    {
+        $this->awaitingContinue = true;
+        $this->continueTicks = $this->continueTotal;
+        $this->continuePaused = false;
     }
 
     private function advance(): void
@@ -378,12 +473,14 @@ final class QuickMathGame extends NativeComponent
 
         $this->roundIndex = $index;
         $this->expression = $round['expression'];
-        $this->options = $round['options'];
         $this->answer = $round['answer'];
         $this->secondsRemaining = $this->secondsPerRound;
         $this->feedbackTone = 'idle';
-        $this->selectedOption = null;
+        $this->typedAnswer = '';
         $this->awaitingAdvance = false;
+        $this->awaitingContinue = false;
+        $this->continuePaused = false;
+        $this->continueTicks = 0;
         $this->roundStartedAtMs = $this->nowMs();
     }
 
@@ -407,6 +504,17 @@ final class QuickMathGame extends NativeComponent
             'lives' => $this->lives,
             'combo' => $this->combo,
         ];
+    }
+
+    /**
+     * The keypad only accepts input while a round is actively awaiting an
+     * answer — not during the ready countdown, the reveal, or the result.
+     */
+    private function acceptsInput(): bool
+    {
+        return $this->phase === 'playing'
+            && ! $this->awaitingAdvance
+            && $this->feedbackTone === 'idle';
     }
 
     private function nowMs(): int

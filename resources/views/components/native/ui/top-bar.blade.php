@@ -17,7 +17,7 @@
             a11y-label="Go back"
             @press="goBack"
         >
-            <x-native.icon
+            <x-native.ui.icon
                 :ios="Ios::ChevronLeft"
                 :android="AndroidOutlined::ArrowBack"
                 :size="DesignTokens::ICON_SIZE['medium']"

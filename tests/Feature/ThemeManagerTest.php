@@ -66,7 +66,7 @@ test('system preference preserves distinct light and dark semantic palettes', fu
         ->and(Theme::get('color-scheme'))->toBe('system');
 });
 
-test('a stored explicit appearance is ignored so the app follows the device', function () {
+test('a stored explicit appearance is respected and forces the palette', function () {
     $profile = Profile::factory()->onboarded()->create();
     Setting::factory()->for($profile)->create([
         'theme_preference' => ThemePreference::Dark,
@@ -74,18 +74,18 @@ test('a stored explicit appearance is ignored so the app follows the device', fu
 
     $manager = app(ThemeManager::class);
 
-    // The app has no in-app override — it always follows the OS appearance,
-    // which keeps Android's native status-bar icons coherent with the surface.
-    expect($manager->currentPreference())->toBe(ThemePreference::System)
-        ->and($manager->applyCurrent())->toBe(ThemePreference::System);
+    // The saved in-app override wins over the device appearance.
+    expect($manager->currentPreference())->toBe(ThemePreference::Dark)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::Dark);
 
-    // System keeps distinct light/dark palettes so native renderers pick by device.
+    // Forcing Dark collapses both palette slots to the dark palette and sets the
+    // platform color-scheme so the native chrome follows too.
     $tokens = Theme::all();
-    expect($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
-        ->and(Theme::get('color-scheme'))->toBe('system');
+    expect($tokens['light']['background'])->toBe($tokens['dark']['background'])
+        ->and(Theme::get('color-scheme'))->toBe('dark');
 });
 
-test('saved settings drive reduced motion while appearance follows the device', function () {
+test('saved settings drive both the appearance and reduced motion', function () {
     $profile = app(ProfileService::class)->createOrUpdate(
         displayName: 'Shell Tester',
         trainingGoal: TrainingGoal::Balanced,
@@ -103,8 +103,8 @@ test('saved settings drive reduced motion while appearance follows the device', 
 
     $manager = app(ThemeManager::class);
 
-    expect($manager->currentPreference())->toBe(ThemePreference::System)
-        ->and($manager->applyCurrent())->toBe(ThemePreference::System)
+    expect($manager->currentPreference())->toBe(ThemePreference::Dark)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::Dark)
         ->and($manager->prefersReducedMotion())->toBeTrue()
         ->and($manager->motionDuration(MotionToken::Success))->toBe(0);
 });

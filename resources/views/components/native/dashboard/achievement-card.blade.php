@@ -11,7 +11,7 @@
 <native:column class="w-full px-4 gap-4">
     <native:row class="items-center gap-4">
         <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
-            <x-native.icon
+            <x-native.ui.icon
                 :ios="$title ? Ios::Trophy : Ios::Sparkles"
                 :android="$title ? AndroidOutlined::EmojiEvents : AndroidOutlined::AutoAwesome"
                 :size="28"

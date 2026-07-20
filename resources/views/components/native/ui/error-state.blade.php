@@ -17,7 +17,7 @@
 >
     @if ($showIllustration)
         <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-secondary-surface">
-            <x-native.icon
+            <x-native.ui.icon
                 :ios="Ios::ExclamationmarkTriangle"
                 :android="AndroidOutlined::ErrorOutline"
                 :size="DesignTokens::ICON_SIZE['large']"

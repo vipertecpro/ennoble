@@ -27,7 +27,7 @@
         :animate-duration="$motionDuration"
         animate-easing="ease-out"
     >
-        <x-native.icon
+        <x-native.ui.icon
             :ios="$ios"
             :android="$android"
             :size="$compact ? DesignTokens::ICON_SIZE['large'] : DesignTokens::ICON_SIZE['hero']"

@@ -5,9 +5,9 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
-        <x-native.loading-overlay label="Loading your profile" />
+        <x-native.ui.loading-overlay label="Loading your profile" />
     @elseif ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$screenError"
             retry-label="Retry profile"
             retry-method="retryProfile"
@@ -19,7 +19,7 @@
             @if ($monogram !== '')
                 <native:text class="text-[22] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
             @else
-                <x-native.icon
+                <x-native.ui.icon
                     :ios="Ios::Person"
                     :android="AndroidOutlined::Person"
                     :size="32"
@@ -40,7 +40,7 @@
     </native:column>
 
     <native:column class="rounded-2xl bg-theme-surface shadow-sm">
-        <x-native.settings-link-row
+        <x-native.settings.link-row
             label="My Details"
             description="Your name, focus, and pace."
             method="openMyDetails"
@@ -50,7 +50,7 @@
             :press-opacity="$pressOpacity"
         />
         <native:divider />
-        <x-native.settings-link-row
+        <x-native.settings.link-row
             label="Settings"
             description="Appearance, feedback, and motion."
             method="openSettings"
@@ -60,7 +60,7 @@
             :press-opacity="$pressOpacity"
         />
         <native:divider />
-        <x-native.settings-link-row
+        <x-native.settings.link-row
             label="About Ennoble"
             description="A private offline games companion."
             method="openAbout"

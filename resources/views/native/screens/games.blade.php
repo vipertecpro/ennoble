@@ -2,9 +2,9 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-4">
     @if ($libraryState === 'loading')
-        <x-native.loading-overlay label="Loading the games library" />
+        <x-native.ui.loading-overlay label="Loading the games library" />
     @elseif ($libraryState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$libraryError"
             retry-label="Retry games library"
             retry-method="retryLibrary"
@@ -15,7 +15,7 @@
         @foreach (array_chunk($playableGames, 2) as $gameRow)
             <native:row class="w-full items-stretch gap-3">
                 @foreach ($gameRow as $game)
-                    <x-native.game-tile :game="$game" :motion-duration="$motionDuration" />
+                    <x-native.games.shared.tile :game="$game" :motion-duration="$motionDuration" />
                 @endforeach
 
                 @if (count($gameRow) === 1)

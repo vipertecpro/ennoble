@@ -27,6 +27,9 @@ final class Settings extends NativeComponent
 
     public string $screenError = 'Your preferences could not be loaded. Please try again.';
 
+    /** Appearance selector index: 0 = System, 1 = Light, 2 = Dark. */
+    public int $themeIndex = 0;
+
     public bool $soundEnabled = true;
 
     public bool $hapticsEnabled = true;
@@ -68,6 +71,19 @@ final class Settings extends NativeComponent
     public function tabBarOptions(): ?TabBarOptions
     {
         return TabBarOptions::make()->hidden();
+    }
+
+    /**
+     * Apply and persist the chosen appearance (System / Light / Dark) so the
+     * whole app repaints immediately and the choice survives relaunches.
+     */
+    public function updatedThemeIndex(): void
+    {
+        app(ThemeManager::class)->apply($this->themePreference());
+
+        if ($this->persistSettings()) {
+            app(HapticService::class)->trigger(HapticFeedback::Selection);
+        }
     }
 
     /**
@@ -172,8 +188,25 @@ final class Settings extends NativeComponent
         }
     }
 
+    /**
+     * Map the appearance selector index to its ThemePreference.
+     */
+    private function themePreference(): ThemePreference
+    {
+        return match ($this->themeIndex) {
+            1 => ThemePreference::Light,
+            2 => ThemePreference::Dark,
+            default => ThemePreference::System,
+        };
+    }
+
     private function applySetting(Setting $setting): void
     {
+        $this->themeIndex = match ($setting->theme_preference) {
+            ThemePreference::Light => 1,
+            ThemePreference::Dark => 2,
+            default => 0,
+        };
         $this->soundEnabled = $setting->sound_enabled;
         $this->hapticsEnabled = $setting->haptics_enabled;
         $this->reducedMotion = $setting->reduced_motion;
@@ -197,7 +230,7 @@ final class Settings extends NativeComponent
 
             $saved = $settings->save(
                 profile: $profile,
-                themePreference: ThemePreference::System,
+                themePreference: $this->themePreference(),
                 soundEnabled: $this->soundEnabled,
                 hapticsEnabled: $this->hapticsEnabled,
                 reducedMotion: $this->reducedMotion,

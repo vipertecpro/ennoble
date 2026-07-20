@@ -5,15 +5,24 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
-        <x-native.loading-overlay label="Loading your preferences" />
+        <x-native.ui.loading-overlay label="Loading your preferences" />
     @elseif ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             :description="$screenError"
             retry-label="Retry settings"
             retry-method="retrySettings"
         />
     @else
-    <x-native.dashboard-section-header title="Feedback" />
+    <x-native.dashboard.section-header title="Appearance" />
+
+    <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm p-4 gap-3" :animate-duration="$motionDuration">
+        <native:button-group :options="['System', 'Light', 'Dark']" native:model="themeIndex" />
+        <native:text class="text-[12] leading-relaxed text-theme-muted-text">
+            System follows your device’s light or dark setting.
+        </native:text>
+    </native:column>
+
+    <x-native.dashboard.section-header title="Feedback" />
 
     <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-4">
@@ -23,7 +32,7 @@
     </native:column>
     </native:column>
 
-    <x-native.dashboard-section-header title="Data" />
+    <x-native.dashboard.section-header title="Data" />
 
     <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm p-4 gap-3" :animate-duration="$motionDuration">
         @if ($resetArmed)
@@ -44,7 +53,7 @@
             >
                 <native:row class="w-full items-center gap-4">
                     <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
-                        <x-native.icon
+                        <x-native.ui.icon
                             :ios="Ios::ArrowCounterclockwise"
                             :android="AndroidOutlined::RestartAlt"
                             :size="24"

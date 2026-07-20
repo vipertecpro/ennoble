@@ -2,7 +2,7 @@
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'error')
-        <x-native.error-state
+        <x-native.ui.error-state
             description="This badge category could not be found."
             retry-label="Back to achievements"
             retry-method="backToAchievements"
@@ -19,7 +19,7 @@
 
     {{-- Badge wall, grouped by tier --}}
     @foreach ($tierGroups as $group)
-        <x-native.dashboard-section-header
+        <x-native.dashboard.section-header
             :title="$group['label']"
             eyebrow="{{ $group['earned'] }} OF {{ $group['total'] }} EARNED"
         />
@@ -29,7 +29,7 @@
                 <native:row class="items-start gap-3">
                     @foreach ($row as $badge)
                         <native:column class="flex-1 items-center gap-2">
-                            <x-native.badge-medal
+                            <x-native.badges.medal
                                 :color="$group['color']"
                                 :tier-label="$group['label']"
                                 :unlocked="$badge['unlocked']"

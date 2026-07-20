@@ -43,7 +43,7 @@
         animate-easing="ease-out"
     >
         <native:column class="{{ $hero ? 'w-24 h-24' : 'w-12 h-12' }} items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
-            <x-native.icon
+            <x-native.ui.icon
                 :ios="$ios"
                 :android="$android"
                 :size="$hero ? 48 : 28"

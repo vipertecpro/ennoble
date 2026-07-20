@@ -9,6 +9,7 @@ use App\NativeComponents\Screens\Home;
 use App\NativeComponents\Screens\MyDetails;
 use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
+use App\NativeComponents\Screens\QuickMathExplain;
 use App\NativeComponents\Screens\QuickMathGame;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\Splash;
@@ -29,6 +30,7 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/games/{slug}', GameDetail::class)->name('native.game.detail');
     Route::native('/play/word-match/{session}', WordMatchGame::class)->name('native.play.word-match');
     Route::native('/play/quick-math/{session}', QuickMathGame::class)->name('native.play.quick-math');
+    Route::native('/play/quick-math/{session}/explain', QuickMathExplain::class)->name('native.play.quick-math.explain');
     Route::native('/achievements', Achievements::class)->name('native.achievements');
     Route::native('/achievements/{category}', AchievementCategory::class)->name('native.achievements.category');
     Route::native('/profile', Profile::class)->name('native.profile');

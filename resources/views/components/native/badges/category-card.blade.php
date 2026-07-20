@@ -37,7 +37,7 @@
     <native:column class="w-full gap-3">
         <native:row class="items-center gap-3">
             <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
-                <x-native.icon :ios="$ios" :android="$android" :size="24" />
+                <x-native.ui.icon :ios="$ios" :android="$android" :size="24" />
             </native:column>
             <native:column class="flex-1 gap-1">
                 <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $category['label'] }}</native:text>
@@ -45,7 +45,7 @@
             </native:column>
             <native:column class="items-end gap-1">
                 <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $category['earned'] }}/{{ $category['total'] }}</native:text>
-                <x-native.icon
+                <x-native.ui.icon
                     :ios="Ios::ChevronRight"
                     :android="AndroidOutlined::ChevronRight"
                     :size="16"
@@ -55,7 +55,7 @@
 
         <native:row class="items-center gap-4">
             @foreach ($category['tiers'] as $tier)
-                <x-native.badge-tier-pill
+                <x-native.badges.tier-pill
                     :label="$tier['label']"
                     :earned="$tier['earned']"
                     :total="$tier['total']"
