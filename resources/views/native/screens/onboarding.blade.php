@@ -103,7 +103,7 @@
                 <x-native.onboarding.illustration
                     :ios="Ios::GaugeOpenWithLinesNeedle33percent"
                     :android="AndroidOutlined::Speed"
-                    a11y-label="Choose a training pace"
+                    a11y-label="Choose your difficulty"
                     :motion-duration="$this->motionDuration()"
                     compact
                 />
@@ -111,19 +111,18 @@
 
             <native:column class="w-full gap-2">
                 <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
-                    Choose your pace.
+                    Choose your difficulty.
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
-                    Start comfortably. Ennoble will adapt with you.
+                    Start comfortably — you can change this anytime.
                 </native:text>
             </native:column>
 
             <native:column class="w-full gap-4">
-                <native:radio-group native:model="difficulty" label="Training pace">
-                    <native:radio value="beginner" label="Gentle" />
-                    <native:radio value="intermediate" label="Steady" />
-                    <native:radio value="advanced" label="Challenging" />
-                    <native:radio value="adaptive" label="Adaptive" />
+                <native:radio-group native:model="difficulty" label="Difficulty">
+                    <native:radio value="beginner" label="Beginner" />
+                    <native:radio value="intermediate" label="Intermediate" />
+                    <native:radio value="advanced" label="Advanced" />
                 </native:radio-group>
             </native:column>
         @elseif ($currentStep === 4)
@@ -205,7 +204,7 @@
                 <native:divider />
                 <x-native.onboarding.summary-row label="Focus" :value="$this->trainingGoalLabel()" />
                 <native:divider />
-                <x-native.onboarding.summary-row label="Pace" :value="$this->paceLabel()" />
+                <x-native.onboarding.summary-row label="Difficulty" :value="$this->difficultyLabel()" />
             </native:column>
         @endif
     </native:column>

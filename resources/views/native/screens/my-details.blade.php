@@ -26,11 +26,10 @@
             <native:radio value="balanced" label="Balanced training" />
         </native:radio-group>
 
-        <native:radio-group native:model="difficulty" label="Training pace">
-            <native:radio value="beginner" label="Gentle" />
-            <native:radio value="intermediate" label="Steady" />
-            <native:radio value="advanced" label="Challenging" />
-            <native:radio value="adaptive" label="Adaptive" />
+        <native:radio-group native:model="difficulty" label="Difficulty">
+            <native:radio value="beginner" label="Beginner" />
+            <native:radio value="intermediate" label="Intermediate" />
+            <native:radio value="advanced" label="Advanced" />
         </native:radio-group>
 
         @if ($this->hasUnsavedChanges())

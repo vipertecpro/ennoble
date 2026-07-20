@@ -23,4 +23,22 @@ enum TrainingGoal: string
             self::MentalSharpness => 'Stay Mentally Sharp',
         };
     }
+
+    /**
+     * The skill keys this goal prioritises. Used to surface and rank the games
+     * that train the chosen focus. Balanced returns an empty list — every game
+     * is equally relevant.
+     *
+     * @return list<string>
+     */
+    public function recommendedSkills(): array
+    {
+        return match ($this) {
+            self::Balanced => [],
+            self::Focus => [SkillKey::Focus->value],
+            self::ThinkingSpeed => [SkillKey::Speed->value],
+            self::Language => [SkillKey::Clarity->value, SkillKey::CriticalReading->value],
+            self::MentalSharpness => [SkillKey::Structure->value, SkillKey::Precision->value, SkillKey::Adaptability->value],
+        };
+    }
 }

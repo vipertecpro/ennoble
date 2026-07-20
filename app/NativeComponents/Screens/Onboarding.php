@@ -234,20 +234,6 @@ final class Onboarding extends NativeComponent
     }
 
     /**
-     * Return the selected pace using the step-three vocabulary.
-     */
-    public function paceLabel(): string
-    {
-        return match (Difficulty::tryFrom($this->difficulty)) {
-            Difficulty::Beginner => 'Gentle',
-            Difficulty::Intermediate => 'Steady',
-            Difficulty::Advanced => 'Challenging',
-            Difficulty::Adaptive => 'Adaptive',
-            default => 'Not selected',
-        };
-    }
-
-    /**
      * Return a defensive summary when no display name has been captured.
      */
     public function displayNameSummary(): string

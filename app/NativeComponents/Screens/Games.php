@@ -281,8 +281,10 @@ final class Games extends NativeComponent
             $this->statisticsLoading = false;
         }
 
+        $recommendedSkills = $profile->training_goal->recommendedSkills();
+
         $this->playableGames = $games
-            ->map(function (Game $game) use ($profile, $previews): array {
+            ->map(function (Game $game) use ($profile, $previews, $recommendedSkills): array {
                 $level = $this->levelForProfile($game, $profile);
                 $preview = $previews->get($game->getKey(), []);
                 $sessionCount = (int) ($preview['session_count'] ?? 0);
@@ -308,12 +310,15 @@ final class Games extends NativeComponent
                     'last_played' => $this->formatLastPlayed($preview['last_played_at'] ?? null),
                     'has_history' => $sessionCount > 0,
                     'hero_action' => $sessionCount > 0 ? 'Play Again' : 'Start Training',
+                    'recommended' => $recommendedSkills !== []
+                        && array_intersect($recommendedSkills, is_array($game->skill_keys) ? $game->skill_keys : []) !== [],
                 ];
             })
+            ->sortByDesc('recommended')
             ->values()
             ->all();
-        $this->featuredGame = collect($this->playableGames)
-            ->firstWhere('slug', 'word-match');
+        $this->featuredGame = collect($this->playableGames)->firstWhere('recommended', true)
+            ?? collect($this->playableGames)->firstWhere('slug', 'word-match');
     }
 
     private function applyFilters(): void

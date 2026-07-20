@@ -97,9 +97,9 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertAccessible()
         ->tap('Continue')
         ->assertSet('currentStep', 3)
-        ->assertSee('Choose your pace.')
-        ->selectRadio('difficulty', Difficulty::Adaptive->value)
-        ->assertSet('difficulty', Difficulty::Adaptive->value)
+        ->assertSee('Choose your difficulty.')
+        ->selectRadio('difficulty', Difficulty::Intermediate->value)
+        ->assertSet('difficulty', Difficulty::Intermediate->value)
         ->assertAccessible()
         ->tap('Continue')
         ->assertSet('currentStep', 4)
@@ -118,7 +118,7 @@ test('the complete onboarding journey persists local choices and enters home', f
         ->assertSee('Ready for day one.')
         ->assertSee('Ada Local')
         ->assertSee('Improve Thinking Speed')
-        ->assertSee('Adaptive')
+        ->assertSee('Intermediate')
         ->assertAccessible()
         ->tap('Start training')
         ->assertReplacedWith('/')
@@ -128,7 +128,7 @@ test('the complete onboarding journey persists local choices and enters home', f
 
     expect($profile->display_name)->toBe('Ada Local')
         ->and($profile->training_goal)->toBe(TrainingGoal::ThinkingSpeed)
-        ->and($profile->difficulty_preference)->toBe(Difficulty::Adaptive)
+        ->and($profile->difficulty_preference)->toBe(Difficulty::Intermediate)
         ->and($profile->onboarding_completed_at)->not->toBeNull()
         ->and($profile->setting)->toBeInstanceOf(Setting::class)
         ->and($profile->setting->theme_preference)->toBe(ThemePreference::System)
@@ -163,8 +163,8 @@ test('selection controls expose their individual visible labels to assistive tec
         ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Communication')
         ->assertAccessible()
         ->set('currentStep', 3)
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Gentle')
-        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Adaptive')
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Beginner')
+        ->assertElement('radio', fn (array $node): bool => ($node['props']['label'] ?? null) === 'Advanced')
         ->assertAccessible();
 });
 

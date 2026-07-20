@@ -32,7 +32,7 @@ test('the details editor loads the persisted local identity', function () {
         ->assertSet('trainingGoal', TrainingGoal::Focus->value)
         ->assertSet('difficulty', Difficulty::Intermediate->value)
         ->assertSee('Training focus')
-        ->assertSee('Training pace')
+        ->assertSee('Difficulty')
         ->assertAccessible();
 });
 

@@ -6,7 +6,7 @@
 {{-- Compact game tile: illustration, title, best score. Two sit side by side
      so several games are visible at a glance; tapping opens the detail. --}}
 <native:pressable
-    class="flex-1 items-center gap-3 rounded-2xl bg-theme-surface shadow-sm p-4"
+    class="flex-1 items-center gap-3 rounded-2xl bg-theme-surface shadow-sm p-4 border {{ ! empty($game['recommended']) ? 'border-theme-accent' : 'border-transparent' }}"
     :press-scale="0.98"
     a11y-label="{{ $game['title'] }}"
     a11y-hint="Opens {{ $game['title'] }} details"
