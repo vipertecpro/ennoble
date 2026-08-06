@@ -26,11 +26,11 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:transparent;overflow:hidden}
 .field{position:fixed;inset:0;overflow:hidden;filter:blur(48px)}
-.blob{position:absolute;border-radius:50%;opacity:.5;mix-blend-mode:screen}
-.b1{width:70vw;height:70vw;left:-15vw;top:-10vh;background:radial-gradient(circle at center,rgba(99,102,241,0.55),rgba(99,102,241,0) 70%);animation:{$animate} 15s ease-in-out infinite}
-.b2{width:60vw;height:60vw;right:-15vw;top:20vh;background:radial-gradient(circle at center,rgba(129,140,248,0.45),rgba(129,140,248,0) 70%);animation:{$animate} 19s ease-in-out infinite reverse}
-.b3{width:65vw;height:65vw;left:5vw;bottom:-15vh;background:radial-gradient(circle at center,rgba(56,189,248,0.32),rgba(56,189,248,0) 70%);animation:{$animate} 23s ease-in-out infinite}
-.b4{width:45vw;height:45vw;right:5vw;bottom:5vh;background:radial-gradient(circle at center,rgba(167,139,250,0.4),rgba(167,139,250,0) 70%);animation:{$breathe} 11s ease-in-out infinite}
+.blob{position:absolute;border-radius:50%;opacity:.6;mix-blend-mode:screen}
+.b1{width:70vw;height:70vw;left:-15vw;top:-10vh;background:radial-gradient(circle at center,rgba(99,102,241,0.65),rgba(99,102,241,0) 70%);animation:{$animate} 15s ease-in-out infinite}
+.b2{width:60vw;height:60vw;right:-15vw;top:20vh;background:radial-gradient(circle at center,rgba(56,189,248,0.55),rgba(56,189,248,0) 70%);animation:{$animate} 19s ease-in-out infinite reverse}
+.b3{width:65vw;height:65vw;left:5vw;bottom:-15vh;background:radial-gradient(circle at center,rgba(45,212,191,0.42),rgba(45,212,191,0) 70%);animation:{$animate} 23s ease-in-out infinite}
+.b4{width:45vw;height:45vw;right:5vw;bottom:5vh;background:radial-gradient(circle at center,rgba(129,140,248,0.5),rgba(129,140,248,0) 70%);animation:{$breathe} 11s ease-in-out infinite}
 @keyframes drift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(8vw,6vh) scale(1.12)}66%{transform:translate(-6vw,10vh) scale(0.95)}100%{transform:translate(0,0) scale(1)}}
 @keyframes breathe{0%{transform:scale(0.9)}50%{transform:scale(1.15)}100%{transform:scale(0.9)}}
 </style></head>

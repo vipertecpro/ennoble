@@ -36,30 +36,35 @@
         />
     @endif
 
-    {{-- At a glance --}}
-    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-3">
-        <native:row class="gap-3">
-            {{-- Day streak — centered game-HUD stat --}}
-            <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-secondary-surface py-4 px-3">
-                <native:column class="w-14 h-14">
-                    <native:lottie-player source="flame" loop class="flex-1 w-full" alt="Streak flame" />
-                </native:column>
-                <native:text class="text-[30] font-bold leading-tight text-theme-primary-text">{{ $currentStreak }}</native:text>
-                <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">Day streak</native:text>
-            </native:column>
+    {{-- At a glance — vibrant gradient stat badges (first proof of the
+         game-premium direction: gradient fills + glowing coloured borders) --}}
+    <native:row class="w-full gap-3" :animate-duration="$motionDuration">
+        {{-- Day streak — fire gradient --}}
+        <x-native.ui.stat-badge
+            :value="$currentStreak"
+            label="Day streak"
+            accent="orange-500"
+            accentTo="red-600"
+            labelColor="orange-400"
+        >
+            <x-slot:icon>
+                <native:lottie-player source="flame" loop class="flex-1 w-full" alt="Streak flame" />
+            </x-slot:icon>
+        </x-native.ui.stat-badge>
 
-            {{-- Games played — centered game-HUD stat --}}
-            <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-secondary-surface py-4 px-3">
-                <native:column class="w-14 h-14">
-                    <native:lottie-player source="gaming" loop class="flex-1 w-full" alt="Games played" />
-                </native:column>
-                <native:text class="text-[30] font-bold leading-tight text-theme-primary-text">{{ $gamesPlayed }}</native:text>
-                <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">Games played</native:text>
-            </native:column>
-        </native:row>
-    </native:column>
-    </native:column>
+        {{-- Games played — lime → cyan gradient --}}
+        <x-native.ui.stat-badge
+            :value="$gamesPlayed"
+            label="Games played"
+            accent="lime-400"
+            accentTo="cyan-500"
+            labelColor="lime-400"
+        >
+            <x-slot:icon>
+                <native:lottie-player source="gaming" loop class="flex-1 w-full" alt="Games played" />
+            </x-slot:icon>
+        </x-native.ui.stat-badge>
+    </native:row>
 
     {{-- Latest badge (the card self-labels "LATEST UNLOCK") --}}
     <native:pressable

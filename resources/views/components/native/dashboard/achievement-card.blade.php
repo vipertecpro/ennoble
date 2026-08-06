@@ -7,10 +7,10 @@
     'motionDuration' => 0,
 ])
 
-<native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
+<native:column class="w-full items-center rounded-3xl bg-theme-surface border border-amber-400/40 shadow-lg py-5" :animate-duration="$motionDuration">
 <native:column class="w-full px-4 gap-4">
     <native:row class="items-center gap-4">
-        <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
+        <native:column class="items-center justify-center rounded-2xl bg-linear-to-br from-amber-400/30 to-orange-500/10 border border-amber-400/40 p-3">
             <x-native.ui.icon
                 :ios="$title ? Ios::Trophy : Ios::Sparkles"
                 :android="$title ? AndroidOutlined::EmojiEvents : AndroidOutlined::AutoAwesome"
@@ -20,7 +20,7 @@
         </native:column>
         <native:column class="flex-1 gap-1">
             @if ($title)
-                <native:text class="text-[11] font-semibold tracking-widest text-theme-muted-text">LATEST UNLOCK</native:text>
+                <native:text class="text-[11] font-semibold uppercase tracking-widest text-amber-400">LATEST UNLOCK</native:text>
                 <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $title }}</native:text>
                 <native:text class="text-[13] leading-relaxed text-theme-secondary-text">{{ $description }}</native:text>
             @else

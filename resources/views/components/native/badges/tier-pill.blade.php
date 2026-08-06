@@ -6,6 +6,6 @@
 ])
 
 <native:row class="items-center gap-2">
-    <native:column class="w-3 h-3 rounded-full bg-theme-{{ $color }}" />
+    <native:column class="w-3 h-3 rounded-full bg-theme-{{ $color }} border border-theme-{{ $color }} shadow-lg" />
     <native:text class="text-[12] font-semibold text-theme-secondary-text">{{ $label }} {{ $earned }}/{{ $total }}</native:text>
 </native:row>

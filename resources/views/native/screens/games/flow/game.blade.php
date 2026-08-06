@@ -3,7 +3,7 @@
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4 safe-area">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>
             <native:text class="text-[13] leading-relaxed text-center text-theme-secondary-text">{{ $errorMessage }}</native:text>
-            <native:button class="w-full" label="Back to games" size="lg" variant="primary" @press="exit" />
+            <x-native.ui.gradient-button class="w-full" label="Back to games" press="exit" />
         </native:column>
     @elseif ($phase === 'result')
         <native:column class="flex-1 w-full safe-area">

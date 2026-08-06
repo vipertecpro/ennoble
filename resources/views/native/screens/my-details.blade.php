@@ -1,5 +1,5 @@
 <native:column class="h-full w-full bg-theme-background">
-<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your details" />
@@ -10,8 +10,8 @@
             retry-method="retryMyDetails"
         />
     @else
-    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-4">
+    <x-native.ui.glow-card accent="lime-400" class="p-5">
+    <native:column class="w-full gap-4" :animate-duration="$motionDuration">
         <x-native.onboarding.display-name-input
             :display-name="$displayName"
             :overlong="! $this->isDisplayNameValid()"
@@ -33,20 +33,13 @@
         </native:radio-group>
 
         @if ($this->hasUnsavedChanges())
-            <native:row class="justify-end">
-                <native:button
-                    class="w-44"
-                    label="Save changes"
-                    size="md"
-                    :loading="$isSaving"
-                    :disabled="! $this->isDisplayNameValid()"
-                    a11y-hint="Saves your local details on this device"
-                    @press="saveDetails"
-                />
-            </native:row>
+            <x-native.ui.gradient-button
+                label="Save changes"
+                press="saveDetails"
+            />
         @endif
     </native:column>
-    </native:column>
+    </x-native.ui.glow-card>
     @endif
 </native:column>
 </native:scroll-view>

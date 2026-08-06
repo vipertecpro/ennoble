@@ -4,7 +4,7 @@
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>
             <native:text class="text-[13] leading-relaxed text-center text-theme-secondary-text">{{ $errorMessage }}</native:text>
-            <native:button class="w-full" label="Back to games" size="lg" variant="primary" @press="exit" />
+            <x-native.ui.gradient-button label="Back to games" press="exit" />
         </native:column>
     @elseif ($phase === 'ready')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-6">
@@ -58,7 +58,7 @@
                 </native:column>
 
             <native:column class="flex-1 w-full px-4 items-center justify-center gap-3">
-                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">
+                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-lime-400">
                         Find the {{ strtoupper($relation) }}
                     </native:text>
                     <native:text

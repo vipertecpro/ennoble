@@ -13,7 +13,7 @@
 ])
 
 <native:pressable
-    class="w-full rounded-2xl bg-theme-surface shadow-sm p-4"
+    class="w-full rounded-3xl bg-theme-surface border border-lime-400/40 shadow-lg p-4"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"

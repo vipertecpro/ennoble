@@ -2,7 +2,7 @@
 @use('App\Icons\Ios')
 
 <native:column class="h-full w-full bg-theme-background">
-<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your preferences" />
@@ -15,17 +15,18 @@
     @else
     <x-native.dashboard.section-header title="Feedback" />
 
-    <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-4">
-        <native:toggle native:model="soundEnabled" label="Sound" />
-        <native:divider />
-        <native:toggle native:model="hapticsEnabled" label="Haptics" />
-    </native:column>
-    </native:column>
+    <x-native.ui.glow-card accent="lime-400" class="px-5 py-5 gap-4">
+        <native:column class="w-full gap-4" :animate-duration="$motionDuration">
+            <native:toggle native:model="soundEnabled" label="Sound" />
+            <native:divider />
+            <native:toggle native:model="hapticsEnabled" label="Haptics" />
+        </native:column>
+    </x-native.ui.glow-card>
 
     <x-native.dashboard.section-header title="Data" />
 
-    <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm p-4 gap-3" :animate-duration="$motionDuration">
+    <x-native.ui.glow-card accent="red-600" class="p-4 gap-3">
+        <native:column class="w-full gap-3" :animate-duration="$motionDuration">
         @if ($resetArmed)
             <native:text class="text-[15] font-semibold text-theme-primary-text">Reset everything?</native:text>
             <native:text class="text-[13] leading-relaxed text-theme-secondary-text">
@@ -43,7 +44,7 @@
                 a11y-hint="Clears all local progress after a confirmation"
             >
                 <native:row class="w-full items-center gap-4">
-                    <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
+                    <native:column class="items-center justify-center rounded-xl bg-linear-to-br from-red-600/30 to-orange-500/10 border border-red-600/40 p-3">
                         <x-native.ui.icon
                             :ios="Ios::ArrowCounterclockwise"
                             :android="AndroidOutlined::RestartAlt"
@@ -57,7 +58,8 @@
                 </native:row>
             </native:pressable>
         @endif
-    </native:column>
+        </native:column>
+    </x-native.ui.glow-card>
 
     <native:text class="text-[13] leading-relaxed text-center text-theme-muted-text">
         Every preference is stored only on this device.

@@ -29,8 +29,8 @@
     };
 
     $ringBg = match ($feedbackTone) {
-        'wrong', 'timeout' => 'bg-theme-danger',
-        default => 'bg-theme-accent',
+        'wrong', 'timeout' => 'bg-linear-to-br from-red-500 to-red-600 border border-red-400/70',
+        default => 'bg-linear-to-br from-indigo-400 to-cyan-400 border border-cyan-300/60',
     };
 
     $label = match (true) {
@@ -86,13 +86,13 @@
     <native:column class="items-center justify-center">
         <native:column
             native:key="orb-{{ $feedbackSerial }}-{{ $feedbackTone }}"
-            class="w-24 h-24 items-center justify-center rounded-full bg-theme-primary-surface"
+            class="w-24 h-24 items-center justify-center rounded-full bg-theme-primary-surface border border-cyan-400/30 shadow-lg"
             :scale="$reducedMotion ? 1 : $orbScale"
             :animate-duration="$motionDuration"
             animate-easing="ease-out"
             a11y-label="Your light"
         >
-            <native:column class="w-14 h-14 rounded-full bg-theme-accent shadow-lg" />
+            <native:column class="w-14 h-14 rounded-full bg-linear-to-br from-cyan-300 to-indigo-500 border border-cyan-200/60 shadow-lg" />
         </native:column>
     </native:column>
 </native:column>

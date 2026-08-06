@@ -25,6 +25,6 @@
 <native:progress-bar
     :value="$fraction"
     :color="$fill"
-    class="w-full"
+    class="w-full h-2 rounded-full"
     a11y-label="Time remaining this round"
 />

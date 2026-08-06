@@ -12,7 +12,7 @@
             @press="close"
             a11y-label="Close explanation"
             :press-scale="0.9"
-            class="w-9 h-9 items-center justify-center rounded-full bg-theme-surface"
+            class="w-9 h-9 items-center justify-center rounded-full bg-theme-surface border border-lime-400/15"
         >
             <x-native.ui.icon :ios="Ios::Xmark" :android="Android::Close" :size="16" />
         </native:pressable>
@@ -36,11 +36,11 @@
                     :animate-duration="$motionDuration"
                     animate-easing="ease-out"
                 >
-                    <native:column class="w-8 h-8 items-center justify-center rounded-full bg-theme-primary-surface">
-                        <x-native.ui.icon :ios="Ios::Sparkles" :android="Android::AutoAwesome" :size="15" />
+                    <native:column class="w-8 h-8 items-center justify-center rounded-full bg-linear-to-br from-lime-400 to-cyan-400 shadow-sm">
+                        <x-native.ui.icon :ios="Ios::Sparkles" :android="Android::AutoAwesome" :size="15" color="#000000" dark-color="#000000" />
                     </native:column>
 
-                    <native:column class="rounded-2xl bg-theme-surface shadow-sm px-4 py-3 max-w-[80%]">
+                    <native:column class="rounded-2xl bg-theme-surface border border-lime-400/15 shadow-md px-4 py-3 max-w-[80%]">
                         <native:text class="text-[15] leading-relaxed text-theme-primary-text">{{ $step }}</native:text>
                     </native:column>
                 </native:row>
@@ -48,11 +48,11 @@
 
             @if ($typing)
                 <native:row class="w-full items-end gap-2" a11y-label="Assistant is typing">
-                    <native:column class="w-8 h-8 items-center justify-center rounded-full bg-theme-primary-surface">
-                        <x-native.ui.icon :ios="Ios::Sparkles" :android="Android::AutoAwesome" :size="15" />
+                    <native:column class="w-8 h-8 items-center justify-center rounded-full bg-linear-to-br from-lime-400 to-cyan-400 shadow-sm">
+                        <x-native.ui.icon :ios="Ios::Sparkles" :android="Android::AutoAwesome" :size="15" color="#000000" dark-color="#000000" />
                     </native:column>
 
-                    <native:row class="items-center rounded-2xl bg-theme-surface shadow-sm px-4 py-4 gap-2">
+                    <native:row class="items-center rounded-2xl bg-theme-surface border border-lime-400/15 shadow-md px-4 py-4 gap-2">
                         @for ($dot = 0; $dot < 3; $dot++)
                             <native:circle
                                 :width="7"
@@ -80,7 +80,7 @@
             :animate-duration="$motionDuration"
             animate-easing="ease-out"
         >
-            <native:button class="w-full" label="Got it" size="lg" variant="primary" @press="close" />
+            <x-native.ui.gradient-button label="Got it" press="close" />
         </native:column>
     @endunless
 </native:column>

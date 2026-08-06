@@ -11,10 +11,10 @@
     'motionDuration' => 0,
 ])
 
-{{-- The memory grid. During "watch" the current step lights up in the accent;
-     during "recall" a tapped tile flashes accent (correct) or danger (wrong); a
-     completed sequence lights the whole board. Colours come from theme tokens,
-     so the game's scoped violet accent flows through automatically. --}}
+{{-- The memory grid. During "watch" the current step lights up with a glowing
+     lime→teal gradient; during "recall" a tapped tile flashes lime→teal
+     (correct) or red (wrong); a completed sequence lights the whole board. Idle
+     tiles use a theme-surface gradient so they adapt to light and dark mode. --}}
 @php
     $current = ($playbackStep >= 0 && isset($sequence[$playbackStep])) ? (int) $sequence[$playbackStep] : -1;
     $rows = array_chunk(range(0, max(0, $tiles - 1)), 3);
@@ -33,23 +33,23 @@
                     $win = ($feedbackTone === 'correct');
 
                     if ($lit) {
-                        $bg = 'bg-theme-accent';
+                        $bg = 'bg-linear-to-br from-lime-300 to-teal-400 border border-lime-200/70 shadow-lg';
                         $key = 'tile-'.$tile.'-lit-'.$playbackStep;
                         $scale = 1.12;
                     } elseif ($wrong) {
-                        $bg = 'bg-theme-danger';
+                        $bg = 'bg-linear-to-br from-red-500 to-red-600 border border-red-400/70 shadow-lg';
                         $key = 'tile-'.$tile.'-tap-'.$tapSerial;
                         $scale = 1.05;
                     } elseif ($tapGlow) {
-                        $bg = 'bg-theme-accent';
+                        $bg = 'bg-linear-to-br from-lime-400 to-teal-500 border border-lime-300/70 shadow-lg';
                         $key = 'tile-'.$tile.'-tap-'.$tapSerial;
                         $scale = 1.08;
                     } elseif ($win) {
-                        $bg = 'bg-theme-accent';
+                        $bg = 'bg-linear-to-br from-lime-300 to-teal-400 border border-lime-200/70 shadow-lg';
                         $key = 'tile-'.$tile.'-win-'.$feedbackSerial;
                         $scale = 1.04;
                     } else {
-                        $bg = 'bg-theme-surface-elevated';
+                        $bg = 'bg-theme-surface border border-theme-border shadow-sm';
                         $key = 'tile-'.$tile;
                         $scale = 1.0;
                     }
@@ -57,7 +57,7 @@
 
                 <native:pressable
                     native:key="{{ $key }}"
-                    class="flex-1 h-24 rounded-2xl border border-theme-border shadow-sm {{ $bg }}"
+                    class="flex-1 h-24 rounded-2xl {{ $bg }}"
                     :scale="$reducedMotion ? 1 : $scale"
                     :animate-duration="$motionDuration"
                     animate-easing="ease-out"

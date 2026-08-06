@@ -9,10 +9,11 @@
     'reducedMotion' => false,
 ])
 
-{{-- End-of-game score report: a headline score that pops in, three stat tiles,
-     and the play-again / done actions. --}}
+{{-- End-of-game score report: a celebratory gradient hero with the headline
+     score that pops in, three glowing stat tiles, and the play-again / done
+     actions. --}}
 <native:column class="flex-1 w-full px-4 items-center justify-center gap-7">
-    <native:column class="w-full items-center gap-1">
+    <x-native.ui.glow-card accent="lime-400" class="w-full items-center gap-1 p-7">
         <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-accent">
             {{ $isNewBest ? 'New best score' : 'Session complete' }}
         </native:text>
@@ -27,25 +28,34 @@
             {{ number_format($score) }}
         </native:text>
         <native:text class="text-[13] text-theme-secondary-text">points</native:text>
-    </native:column>
+    </x-native.ui.glow-card>
 
     <native:row class="w-full gap-3">
-        <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-surface shadow-sm py-4">
-            <native:text class="text-[18] font-bold text-theme-primary-text">{{ $accuracy === null ? '—' : round($accuracy).'%' }}</native:text>
-            <native:text class="text-[11] text-theme-muted-text">Accuracy</native:text>
-        </native:column>
-        <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-surface shadow-sm py-4">
-            <native:text class="text-[18] font-bold text-theme-primary-text">{{ $correct }}/{{ $total }}</native:text>
-            <native:text class="text-[11] text-theme-muted-text">Correct</native:text>
-        </native:column>
-        <native:column class="flex-1 items-center gap-1 rounded-2xl bg-theme-surface shadow-sm py-4">
-            <native:text class="text-[18] font-bold text-theme-primary-text">×{{ $bestCombo }}</native:text>
-            <native:text class="text-[11] text-theme-muted-text">Best combo</native:text>
-        </native:column>
+        <x-native.ui.stat-badge
+            :value="$accuracy === null ? '—' : round($accuracy).'%'"
+            label="Accuracy"
+            accent="lime-400"
+            accentTo="cyan-500"
+            labelColor="lime-400"
+        />
+        <x-native.ui.stat-badge
+            :value="$correct.'/'.$total"
+            label="Correct"
+            accent="cyan-500"
+            accentTo="lime-400"
+            labelColor="cyan-400"
+        />
+        <x-native.ui.stat-badge
+            :value="'×'.$bestCombo"
+            label="Best combo"
+            accent="amber-400"
+            accentTo="orange-500"
+            labelColor="amber-400"
+        />
     </native:row>
 
     <native:column class="w-full gap-2">
-        <native:button class="w-full" label="Play again" size="lg" variant="primary" @press="playAgain" />
+        <x-native.ui.gradient-button label="Play again" press="playAgain" />
         <native:button class="w-full" label="Done" size="md" variant="ghost" @press="exit" />
     </native:column>
 </native:column>

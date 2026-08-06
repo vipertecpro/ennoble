@@ -2,7 +2,7 @@
 @use('App\Icons\Ios')
 
 <native:column class="h-full w-full bg-theme-background safe-area-top">
-<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your profile" />
@@ -13,9 +13,10 @@
             retry-method="retryProfile"
         />
     @else
-    <native:column class="w-full items-center rounded-2xl bg-theme-primary-surface py-6" :animate-duration="$motionDuration">
+    {{-- Identity hero — vibrant lime → cyan gradient with a glowing border --}}
+    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-400/10 to-cyan-500/20 border border-lime-400/40 shadow-lg py-7" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 items-center gap-4">
-        <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
+        <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated border-2 border-lime-400/50 shadow-lg">
             @if ($monogram !== '')
                 <native:text class="text-[22] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
             @else
@@ -33,42 +34,51 @@
             <native:text class="text-[13] text-theme-muted-text">{{ $memberSince }}</native:text>
         </native:column>
 
-        <native:text class="text-[13] font-semibold text-theme-secondary-text">
-            {{ $goalLabel }} · {{ $paceLabel }}
-        </native:text>
+        <native:column class="items-center rounded-full bg-lime-400/15 border border-lime-400/30 px-4 py-1">
+            <native:text class="text-[13] font-semibold text-theme-secondary-text">
+                {{ $goalLabel }} · {{ $paceLabel }}
+            </native:text>
+        </native:column>
     </native:column>
     </native:column>
 
-    <native:column class="rounded-2xl bg-theme-surface shadow-sm">
-        <x-native.settings.link-row
-            label="My Details"
-            description="Your name, focus, and pace."
-            method="openMyDetails"
-            :ios="Ios::PersonTextRectangle"
-            :android="AndroidOutlined::Badge"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-        <native:divider />
-        <x-native.settings.link-row
-            label="Settings"
-            description="Appearance, feedback, and motion."
-            method="openSettings"
-            :ios="Ios::Gearshape"
-            :android="AndroidOutlined::Settings"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
-        <native:divider />
-        <x-native.settings.link-row
-            label="About Ennoble"
-            description="A private offline games companion."
-            method="openAbout"
-            :ios="Ios::Info"
-            :android="AndroidOutlined::Info"
-            :press-scale="$pressScale"
-            :press-opacity="$pressOpacity"
-        />
+    {{-- Navigation — each row is its own glow-card with an identity accent --}}
+    <native:column class="w-full gap-3">
+        <x-native.ui.glow-card accent="lime-400" class="">
+            <x-native.settings.link-row
+                label="My Details"
+                description="Your name, focus, and pace."
+                method="openMyDetails"
+                :ios="Ios::PersonTextRectangle"
+                :android="AndroidOutlined::Badge"
+                :press-scale="$pressScale"
+                :press-opacity="$pressOpacity"
+            />
+        </x-native.ui.glow-card>
+
+        <x-native.ui.glow-card accent="cyan-500" class="">
+            <x-native.settings.link-row
+                label="Settings"
+                description="Appearance, feedback, and motion."
+                method="openSettings"
+                :ios="Ios::Gearshape"
+                :android="AndroidOutlined::Settings"
+                :press-scale="$pressScale"
+                :press-opacity="$pressOpacity"
+            />
+        </x-native.ui.glow-card>
+
+        <x-native.ui.glow-card accent="amber-400" class="">
+            <x-native.settings.link-row
+                label="About Ennoble"
+                description="A private offline games companion."
+                method="openAbout"
+                :ios="Ios::Info"
+                :android="AndroidOutlined::Info"
+                :press-scale="$pressScale"
+                :press-opacity="$pressOpacity"
+            />
+        </x-native.ui.glow-card>
     </native:column>
     @endif
 </native:column>

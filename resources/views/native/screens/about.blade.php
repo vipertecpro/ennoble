@@ -2,10 +2,10 @@
 @use('App\Icons\Ios')
 
 <native:column class="h-full w-full bg-theme-background">
-<native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
+<native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     <native:column class="items-center gap-4">
-        <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-primary-surface">
+        <native:column class="w-20 h-20 items-center justify-center rounded-3xl bg-linear-to-br from-lime-400/40 to-cyan-500/20 border border-lime-400/50 shadow-lg">
             <x-native.ui.icon
                 :ios="Ios::BrainHeadProfile"
                 :android="AndroidOutlined::Psychology"
@@ -22,27 +22,33 @@
         </native:column>
     </native:column>
 
-    <native:column class="rounded-2xl bg-theme-surface shadow-sm">
-        <x-native.settings.about-principle-row
-            title="Offline by design"
-            description="Every exercise, score, and streak lives entirely on this device. Ennoble works with no connection at all."
-            :ios="Ios::WifiSlash"
-            :android="AndroidOutlined::CloudOff"
-        />
-        <native:divider />
-        <x-native.settings.about-principle-row
-            title="Private by default"
-            description="No account, no tracking, and nothing to sign into. Your training belongs to you alone."
-            :ios="Ios::LockShield"
-            :android="AndroidOutlined::VerifiedUser"
-        />
-        <native:divider />
-        <x-native.settings.about-principle-row
-            title="Evidence over estimates"
-            description="Progress only ever reflects training you actually completed. Nothing is inflated or invented."
-            :ios="Ios::CheckmarkSeal"
-            :android="AndroidOutlined::FactCheck"
-        />
+    <native:column class="w-full gap-3">
+        <x-native.ui.glow-card accent="lime-400" class="">
+            <x-native.settings.about-principle-row
+                title="Offline by design"
+                description="Every exercise, score, and streak lives entirely on this device. Ennoble works with no connection at all."
+                :ios="Ios::WifiSlash"
+                :android="AndroidOutlined::CloudOff"
+            />
+        </x-native.ui.glow-card>
+
+        <x-native.ui.glow-card accent="cyan-500" class="">
+            <x-native.settings.about-principle-row
+                title="Private by default"
+                description="No account, no tracking, and nothing to sign into. Your training belongs to you alone."
+                :ios="Ios::LockShield"
+                :android="AndroidOutlined::VerifiedUser"
+            />
+        </x-native.ui.glow-card>
+
+        <x-native.ui.glow-card accent="amber-400" class="">
+            <x-native.settings.about-principle-row
+                title="Evidence over estimates"
+                description="Progress only ever reflects training you actually completed. Nothing is inflated or invented."
+                :ios="Ios::CheckmarkSeal"
+                :android="AndroidOutlined::FactCheck"
+            />
+        </x-native.ui.glow-card>
     </native:column>
 
     <native:column class="items-center gap-1">

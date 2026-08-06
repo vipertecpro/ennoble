@@ -3,7 +3,7 @@
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4 safe-area">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>
             <native:text class="text-[13] leading-relaxed text-center text-theme-secondary-text">{{ $errorMessage }}</native:text>
-            <native:button class="w-full" label="Back to games" size="lg" variant="primary" @press="exit" />
+            <x-native.ui.gradient-button label="Back to games" press="exit" />
         </native:column>
     @elseif ($phase === 'ready')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-6 safe-area">
@@ -53,7 +53,7 @@
                 </native:column>
 
                 <native:column class="flex-1 w-full px-4 items-center justify-center gap-6">
-                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-muted-text">Solve</native:text>
+                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-lime-400">Solve</native:text>
 
                     <x-native.games.quick-math.equation
                         :expression="$expression"
@@ -88,7 +88,7 @@
                         <native:button label="Explain" size="lg" variant="secondary" @press="openExplain" />
                         <native:spacer />
                         <native:column class="w-[160] gap-2 items-center">
-                            <native:button class="w-full" label="Continue" size="lg" variant="primary" @press="continueRound" />
+                            <x-native.ui.gradient-button label="Continue" press="continueRound" />
                             <native:progress-bar
                                 :value="$continueTotal > 0 ? $continueTicks / $continueTotal : 0"
                                 color="#C5DB55"

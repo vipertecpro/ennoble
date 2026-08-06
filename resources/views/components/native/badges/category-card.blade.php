@@ -15,18 +15,18 @@
 ])
 
 @php
-    [$ios, $android] = match ($category['key']) {
-        'streak' => [Ios::Flame, AndroidOutlined::LocalFireDepartment],
-        'accuracy' => [Ios::Target, AndroidOutlined::GpsFixed],
-        'speed' => [Ios::Bolt, AndroidOutlined::Bolt],
-        'dedication' => [Ios::Flag, AndroidOutlined::Flag],
-        'mastery' => [Ios::Crown, AndroidOutlined::WorkspacePremium],
-        default => [Ios::Rosette, AndroidOutlined::MilitaryTech],
+    [$ios, $android, $accent, $accentTo] = match ($category['key']) {
+        'streak' => [Ios::Flame, AndroidOutlined::LocalFireDepartment, 'orange-500', 'red-600'],
+        'accuracy' => [Ios::Target, AndroidOutlined::GpsFixed, 'lime-400', 'cyan-500'],
+        'speed' => [Ios::Bolt, AndroidOutlined::Bolt, 'amber-400', 'orange-500'],
+        'dedication' => [Ios::Flag, AndroidOutlined::Flag, 'cyan-500', 'lime-400'],
+        'mastery' => [Ios::Crown, AndroidOutlined::WorkspacePremium, 'amber-400', 'yellow-500'],
+        default => [Ios::Rosette, AndroidOutlined::MilitaryTech, 'lime-400', 'cyan-500'],
     };
 @endphp
 
 <native:pressable
-    class="w-full rounded-2xl bg-theme-surface shadow-sm p-4"
+    class="w-full rounded-3xl bg-theme-surface border border-{{ $accent }}/40 shadow-lg p-4"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"
@@ -36,7 +36,7 @@
 >
     <native:column class="w-full gap-3">
         <native:row class="items-center gap-3">
-            <native:column class="items-center justify-center rounded-xl bg-theme-secondary-surface p-3">
+            <native:column class="items-center justify-center rounded-2xl bg-linear-to-br from-{{ $accent }}/30 to-{{ $accentTo }}/10 border border-{{ $accent }}/40 shadow-lg p-3">
                 <x-native.ui.icon :ios="$ios" :android="$android" :size="24" />
             </native:column>
             <native:column class="flex-1 gap-1">
