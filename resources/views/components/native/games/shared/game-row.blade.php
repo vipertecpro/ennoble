@@ -25,7 +25,7 @@
 @endphp
 
 <native:pressable
-    class="w-full rounded-2xl p-3 border bg-theme-surface border-theme-border"
+    class="w-full rounded-2xl p-3 border bg-theme-surface {{ Gradients::hairline() }}"
     :press-scale="0.98"
     a11y-label="Play {{ $game['title'] }}"
     @press="openGame('{{ $game['slug'] }}')"

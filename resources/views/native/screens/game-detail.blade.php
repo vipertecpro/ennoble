@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 @use('App\Icons\Ios')
 @use('App\Icons\AndroidOutlined')
 
@@ -67,7 +68,7 @@
                         <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                             Recent results
                         </native:text>
-                        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-theme-border w-full">
+                        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} w-full">
                             @foreach ($history as $result)
                                 <native:column class="w-full px-4 py-3 gap-1">
                                     <native:row class="w-full items-center justify-between">

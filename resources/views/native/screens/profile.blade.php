@@ -44,7 +44,7 @@
     </native:column>
 
     {{-- Level / XP --}}
-    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border shadow-md px-4 py-4 gap-2.5">
+    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border {{ Gradients::hairline() }} shadow-md px-4 py-4 gap-2.5">
         <native:row class="w-full items-center">
             <native:text class="flex-1 text-[13.5] font-semibold text-theme-primary-text">Level {{ $level }} · {{ $levelTitle }}</native:text>
             <native:text font="numeric" class="text-[12.5] text-theme-secondary-text">{{ $xpLabel }}</native:text>
@@ -62,7 +62,7 @@
     </native:row>
 
     {{-- Navigation — a single grouped card of list rows --}}
-    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border overflow-hidden">
+    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border {{ Gradients::hairline() }} overflow-hidden">
         <x-native.ui.list-row
             :ios="Ios::PersonTextRectangle"
             :android="AndroidOutlined::Badge"

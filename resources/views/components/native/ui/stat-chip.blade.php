@@ -3,6 +3,8 @@
     label. Numeric values are thousands-formatted so a growing count stays
     readable and never overflows the chip.
 --}}
+@use('App\NativeUI\Tokens\Gradients')
+
 @props([
     'value',
     'label',
@@ -15,7 +17,7 @@
     $display = is_numeric($value) ? number_format((int) $value) : (string) $value;
 @endphp
 
-<native:column class="flex-1 items-center gap-1.5 rounded-2xl bg-theme-surface border border-theme-border py-3 px-1.5">
+<native:column class="flex-1 items-center gap-1.5 rounded-2xl bg-theme-surface border {{ Gradients::hairline() }} py-3 px-1.5">
     @if ($ios !== null || $android !== null)
         <native:column class="w-7 h-7 items-center justify-center rounded-lg bg-theme-{{ $token }}/15">
             <native:icon :ios="$ios" :android="$android" :size="15" class="text-theme-{{ $token }}" />

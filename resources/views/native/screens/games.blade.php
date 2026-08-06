@@ -24,7 +24,7 @@
             <native:row class="items-center gap-2 pr-4">
                 @foreach ($categories as $category)
                     <native:pressable
-                        class="rounded-full px-4 py-2 border {{ $selectedCategory === $category['key'] ? 'bg-linear-to-r from-lime-400 to-cyan-400 border-transparent' : 'bg-theme-surface border-theme-border' }}"
+                        class="rounded-full px-4 py-2 border {{ $selectedCategory === $category['key'] ? 'bg-linear-to-r from-lime-400 to-cyan-400 border-transparent' : 'bg-theme-surface '.Gradients::hairline() }}"
                         :press-scale="0.97"
                         a11y-label="{{ $category['label'] }} games"
                         @press="setCategory('{{ $category['key'] }}')"

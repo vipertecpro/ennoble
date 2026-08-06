@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 @props([
     'tiles' => 9,
     'sequence' => [],
@@ -49,7 +50,7 @@
                         $key = 'tile-'.$tile.'-win-'.$feedbackSerial;
                         $scale = 1.04;
                     } else {
-                        $bg = 'bg-theme-surface border border-theme-border shadow-sm';
+                        $bg = 'bg-theme-surface border '.Gradients::hairline().' shadow-sm';
                         $key = 'tile-'.$tile;
                         $scale = 1.0;
                     }

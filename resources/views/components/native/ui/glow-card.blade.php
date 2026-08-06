@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 {{--
     Gradient card wrapper — the base surface of the game-premium direction.
 
@@ -19,7 +20,7 @@
 @php
     $border = $accent
         ? "border border-{$accent}/40"
-        : 'border border-theme-border';
+        : 'border '.Gradients::hairline();
 @endphp
 
 <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg {{ $border }} {{ $class }}">

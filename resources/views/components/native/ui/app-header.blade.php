@@ -1,6 +1,7 @@
 @use('App\Icons\Ios')
 @use('App\Icons\Android')
 @use('App\Icons\AndroidOutlined')
+@use('App\NativeUI\Tokens\Gradients')
 
 {{--
     Primary-screen header — the consistent top strip across Home / Games /
@@ -28,14 +29,14 @@
     </native:column>
 
     @if ($streak !== null)
-        <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border border-theme-border px-3 py-2" a11y-label="Streak {{ $streak }} days">
+        <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border {{ Gradients::hairline() }} px-3 py-2" a11y-label="Streak {{ $streak }} days">
             <native:icon :ios="Ios::FlameFill" :android="Android::LocalFireDepartment" :size="14" class="text-theme-accent-amber" />
             <native:text font="numeric" class="text-[13] text-theme-primary-text">{{ $streak }}</native:text>
         </native:row>
     @endif
 
     @if ($level !== null)
-        <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border border-theme-border px-3 py-2" a11y-label="Level {{ $level }}">
+        <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border {{ Gradients::hairline() }} px-3 py-2" a11y-label="Level {{ $level }}">
             <native:icon :ios="Ios::StarFill" :android="Android::Star" :size="13" class="text-theme-accent" />
             <native:text font="numeric" class="text-[13] text-theme-primary-text">Lv {{ $level }}</native:text>
         </native:row>

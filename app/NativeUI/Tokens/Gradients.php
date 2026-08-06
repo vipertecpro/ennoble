@@ -80,8 +80,21 @@ final class Gradients
      */
     public static function screen(): string
     {
+        // Palette-name stops (EDGE renders these reliably; arbitrary #hex stops
+        // in a gradient do not parse). Pronounced enough to read as depth.
         return System::appearance() === 'dark'
-            ? 'bg-linear-to-b from-[#32323F] via-[#242424] to-[#151517]'
-            : 'bg-linear-to-b from-[#E2E7F3] via-[#F3F5FB] to-[#E7ECF6]';
+            ? 'bg-linear-to-b from-zinc-800 via-neutral-900 to-black'
+            : 'bg-linear-to-b from-slate-200 via-slate-50 to-slate-100';
+    }
+
+    /**
+     * The single, consistent hairline border for utility surfaces (pills,
+     * chips, cards, list containers). A per-mode literal white/black alpha so it
+     * renders as a subtle neutral in both themes — use everywhere instead of
+     * `border-theme-border` so borders stay in sync.
+     */
+    public static function hairline(): string
+    {
+        return System::appearance() === 'dark' ? 'border-white/12' : 'border-black/10';
     }
 }
