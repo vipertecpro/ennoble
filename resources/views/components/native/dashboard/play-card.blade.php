@@ -1,5 +1,6 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
+@use('App\NativeUI\Tokens\Gradients')
 
 {{-- Home hero: the recently-played game as a bold, tappable card with a glossy
      gradient Play CTA (reference "Race Now" energy). The whole card opens the
@@ -15,7 +16,7 @@
 ])
 
 <native:pressable
-    class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border border-lime-400/50 shadow-lg p-5"
+    class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border {{ Gradients::hairline() }} shadow-lg p-5"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"

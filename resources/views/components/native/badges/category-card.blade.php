@@ -1,5 +1,6 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
+@use('App\NativeUI\Tokens\Gradients')
 
 {{--
     One activity category on the Achievements screen: its current measured value,
@@ -26,7 +27,7 @@
 @endphp
 
 <native:pressable
-    class="w-full rounded-3xl bg-theme-surface border border-{{ $accent }}/40 shadow-lg p-4"
+    class="w-full rounded-3xl bg-theme-surface border {{ Gradients::hairline() }} shadow-lg p-4"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"

@@ -15,7 +15,7 @@
         />
     @else
     {{-- Identity hero — vibrant lime → cyan gradient with a glowing border --}}
-    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-400/18 to-transparent border border-lime-400/50 shadow-lg py-7" :animate-duration="$motionDuration">
+    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-400/18 to-transparent border {{ Gradients::hairline() }} shadow-lg py-7" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated border-2 border-lime-400/50 shadow-lg">
             @if ($monogram !== '')
