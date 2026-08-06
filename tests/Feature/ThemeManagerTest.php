@@ -53,7 +53,7 @@ test('changing appearance clears parsed semantic colors before the next native f
     app(ThemeManager::class)->apply(ThemePreference::Dark);
 
     expect(TailwindParser::parse('bg-theme-background'))
-        ->toMatchArray(['bg' => '#000000']);
+        ->toMatchArray(['bg' => '#212121']);
 });
 
 test('system preference preserves distinct light and dark semantic palettes', function () {
@@ -61,7 +61,7 @@ test('system preference preserves distinct light and dark semantic palettes', fu
     $tokens = Theme::all();
 
     expect($tokens['light']['background'])->toBe('#FFFFFF')
-        ->and($tokens['dark']['background'])->toBe('#000000')
+        ->and($tokens['dark']['background'])->toBe('#212121')
         ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
         ->and(Theme::get('color-scheme'))->toBe('system');
 });
