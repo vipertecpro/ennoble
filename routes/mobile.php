@@ -3,6 +3,7 @@
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\AchievementCategory;
 use App\NativeComponents\Screens\Achievements;
+use App\NativeComponents\Screens\FlowGame;
 use App\NativeComponents\Screens\GameDetail;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
@@ -33,6 +34,7 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/play/quick-math/{session}', QuickMathGame::class)->name('native.play.quick-math');
     Route::native('/play/quick-math/{session}/explain', QuickMathExplain::class)->name('native.play.quick-math.explain');
     Route::native('/play/recall/{session}', RecallGame::class)->name('native.play.recall');
+    Route::native('/play/flow/{session}', FlowGame::class)->name('native.play.flow');
     Route::native('/achievements', Achievements::class)->name('native.achievements');
     Route::native('/achievements/{category}', AchievementCategory::class)->name('native.achievements.category');
     Route::native('/profile', Profile::class)->name('native.profile');

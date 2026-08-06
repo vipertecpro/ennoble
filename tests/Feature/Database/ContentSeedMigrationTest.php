@@ -10,14 +10,15 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-test('content migration seeds only the two bundled games and the full badge catalogue', function () {
-    expect(Game::query()->count())->toBe(3)
+test('content migration seeds the bundled games and the full badge catalogue', function () {
+    expect(Game::query()->count())->toBe(4)
         ->and(Game::query()->pluck('type')->all())->toContain(
             GameType::WordMatch,
             GameType::QuickMath,
             GameType::Recall,
+            GameType::Flow,
         )
-        ->and(DB::table('game_levels')->count())->toBe(9)
+        ->and(DB::table('game_levels')->count())->toBe(12)
         ->and(DB::table('achievements')->count())->toBe(175)
         ->and(DB::table('profiles')->count())->toBe(0)
         ->and(DB::table('statistics')->count())->toBe(0);
@@ -36,8 +37,8 @@ test('bundled seeders are idempotent and preserve in-progress data', function ()
 
     $this->seed(DatabaseSeeder::class);
 
-    expect(Game::query()->count())->toBe(3)
-        ->and(DB::table('game_levels')->count())->toBe(9)
+    expect(Game::query()->count())->toBe(4)
+        ->and(DB::table('game_levels')->count())->toBe(12)
         ->and(DB::table('achievements')->count())->toBe(175);
 
     $this->assertModelExists($session);
@@ -90,8 +91,8 @@ test('product migrations upgrade the previous scaffold schema without losing leg
         ]);
 
         expect(DB::table('users')->where('email', 'legacy@example.test')->exists())->toBeTrue()
-            ->and(DB::table('games')->count())->toBe(3)
-            ->and(DB::table('game_levels')->count())->toBe(9)
+            ->and(DB::table('games')->count())->toBe(4)
+            ->and(DB::table('game_levels')->count())->toBe(12)
             ->and(DB::table('achievements')->count())->toBe(175)
             ->and(Schema::connection('upgrade_test')->hasColumn('profiles', 'onboarding_completed_at'))->toBeTrue();
     } finally {

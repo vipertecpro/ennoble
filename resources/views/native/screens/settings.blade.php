@@ -13,15 +13,6 @@
             retry-method="retrySettings"
         />
     @else
-    <x-native.dashboard.section-header title="Appearance" />
-
-    <native:column class="w-full rounded-2xl bg-theme-surface shadow-sm p-4 gap-3" :animate-duration="$motionDuration">
-        <native:button-group :options="['System', 'Light', 'Dark']" native:model="themeIndex" />
-        <native:text class="text-[12] leading-relaxed text-theme-muted-text">
-            System follows your device’s light or dark setting.
-        </native:text>
-    </native:column>
-
     <x-native.dashboard.section-header title="Feedback" />
 
     <native:column class="w-full items-center rounded-2xl bg-theme-surface shadow-sm py-5" :animate-duration="$motionDuration">

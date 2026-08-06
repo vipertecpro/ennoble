@@ -8,10 +8,17 @@ use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Facades\System;
-use Nativephp\NativeUi\Theme;
+use Native\Mobile\UI\Theme;
 
 final class ThemeManager
 {
+    /**
+     * Immutable snapshot of the app's configured theme palette.
+     *
+     * @var array<string, mixed>|null
+     */
+    private static ?array $baseTheme = null;
+
     public function __construct(private readonly ProfileService $profiles) {}
 
     /**
@@ -22,7 +29,13 @@ final class ThemeManager
      */
     public function currentPreference(): ThemePreference
     {
-        return $this->profiles->current()?->setting?->theme_preference ?? ThemePreference::System;
+        // The app follows the device appearance — there is no in-app override.
+        // Forcing Light/Dark only swaps the palette tokens; it can't reach the
+        // native controls' SwiftUI environment colorScheme through the bounded
+        // EDGE chrome, so forced modes left native text mis-coloured. Following
+        // the device keeps every surface and control coherent, straight from
+        // the config's light/dark blocks.
+        return ThemePreference::System;
     }
 
     /**
@@ -123,6 +136,29 @@ final class ThemeManager
     }
 
     /**
+     * The app's own theme palette from `config/native-ui.php`, snapshotted once
+     * and kept immutable for the process.
+     *
+     * `Native\Mobile\UI\Theme::load()` writes the *effective* palette back into
+     * `config('native-ui.theme.light|dark')` on every call (its `syncConfig`).
+     * So after a forced Light/Dark apply, re-reading the live config would feed
+     * that already-collapsed palette back into `tokensFor()` and the next
+     * appearance switch would resolve the wrong colours. Deriving every payload
+     * from this pristine snapshot breaks that feedback loop.
+     *
+     * @return array<string, mixed>
+     */
+    private static function baseTheme(): array
+    {
+        if (self::$baseTheme === null) {
+            $configured = config('native-ui.theme', []);
+            self::$baseTheme = is_array($configured) ? $configured : [];
+        }
+
+        return self::$baseTheme;
+    }
+
+    /**
      * Build the token payload for a preference, including the top-level
      * `color-scheme` key ('light'|'dark'|'system') the native shells use to
      * force the PLATFORM color scheme via preferredColorScheme. Palette slots
@@ -134,7 +170,7 @@ final class ThemeManager
      */
     private function tokensFor(ThemePreference $preference): array
     {
-        $configured = config('native-ui.theme', []);
+        $configured = $this->baseTheme();
 
         if (! is_array($configured)) {
             return [];

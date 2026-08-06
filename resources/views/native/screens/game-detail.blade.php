@@ -87,7 +87,7 @@
             </native:column>
         </native:scroll-view>
 
-        <native:column class="w-full px-4 pt-3 pb-8 bg-theme-background">
+        <native:column class="w-full px-4 pt-3 pb-4 bg-theme-background safe-area-bottom">
             <native:button
                 class="w-full"
                 label="Play"

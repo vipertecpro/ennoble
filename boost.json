@@ -1,8 +1,5 @@
 {
     "agents": [
-        "factory",
-        "opencode",
-        "codex",
         "claude_code"
     ],
     "cloud": false,
@@ -11,13 +8,15 @@
     "nightwatch": false,
     "packages": [
         "nativephp/mobile",
-        "nativephp/native-ui"
+        "nativephp/mobile-ui"
     ],
     "sail": false,
     "skills": [
+        "infer-conventions",
         "laravel-best-practices",
         "pest-testing",
         "nativephp-mobile",
+        "nativephp-v3-to-v4-upgrade",
         "nativephp-webview-to-native"
     ]
 }

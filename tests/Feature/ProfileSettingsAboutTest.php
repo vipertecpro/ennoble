@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\Settings;
+use App\NativeUI\Theme\ThemeManager;
 use Carbon\CarbonImmutable;
 use Native\Mobile\Testing\Native;
 
@@ -99,8 +100,7 @@ test('profile settings and about form a working native flow', function () {
 test('settings render every persisted preference control', function () {
     Native::visit('/settings')
         ->assertScreen(Settings::class)
-        ->assertSee('Appearance')
-        ->assertSee('System')
+        ->assertDontSee('Appearance')
         ->assertSee('Feedback')
         ->assertSee('Sound')
         ->assertSee('Haptics')
@@ -113,24 +113,19 @@ test('settings render every persisted preference control', function () {
         ->assertAccessible();
 });
 
-test('the appearance selector persists the chosen theme', function () {
-    Native::visit('/settings')
-        ->assertScreen(Settings::class)
-        ->assertSee('Appearance')
-        ->assertSet('themeIndex', 0)
-        ->set('themeIndex', 2); // Dark
-
-    expect($this->profile->refresh()->setting->theme_preference)->toBe(ThemePreference::Dark);
-});
-
-test('the saved appearance preference loads back into the selector', function () {
+test('settings expose no in-app appearance override — the app follows the device', function () {
     Setting::query()->whereBelongsTo($this->profile)->update([
-        'theme_preference' => ThemePreference::Light,
+        'theme_preference' => ThemePreference::Dark,
     ]);
 
     Native::visit('/settings')
         ->assertScreen(Settings::class)
-        ->assertSet('themeIndex', 1);
+        ->assertDontSee('Appearance')
+        ->assertMissingElement('button_group');
+
+    // No control persists a forced palette; the app resolves to System.
+    expect(app(ThemeManager::class)->currentPreference())
+        ->toBe(ThemePreference::System);
 });
 
 test('feedback toggles persist atomically', function () {

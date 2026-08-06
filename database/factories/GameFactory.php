@@ -54,4 +54,16 @@ class GameFactory extends Factory
             'skill_keys' => ['focus', 'structure', 'adaptability'],
         ]);
     }
+
+    public function flow(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Flow,
+            'slug' => 'flow',
+            'name' => 'Flow',
+            'description' => 'Ride the current — swipe with each surge of light before it reaches you.',
+            'sort_order' => 4,
+            'skill_keys' => ['speed', 'focus', 'adaptability'],
+        ]);
+    }
 }

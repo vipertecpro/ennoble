@@ -6,7 +6,7 @@
  * Published via `php artisan vendor:publish --tag=native-ui-config`.
  * Edit to customize your app's visual identity in one place.
  *
- * For dynamic per-tenant theming, use Nativephp\NativeUi\Theme::merge([...])
+ * For dynamic per-tenant theming, use Native\Mobile\UI\Theme::merge([...])
  * from a service provider. Runtime merges deep-merge on top of these values.
  *
  * Decision log: /docs/NATIVE-UI-REWRITE-PLAN.md (D — theme layer)
@@ -55,9 +55,9 @@ return [
             'on-primary' => '#FFFFFF',
             'secondary' => '#FFFFFF',
             'on-secondary' => '#1B1B1F',
-            'surface' => '#FFFFFF',
+            'surface' => '#F5F5F2',
             'on-surface' => '#1B1B1F',
-            'background' => '#F5F5F2',
+            'background' => '#FFFFFF',
             'on-background' => '#1B1B1F',
             'surface-variant' => '#F0F0EE',
             'on-surface-variant' => '#55555E',
@@ -68,7 +68,7 @@ return [
             'on-accent' => '#181C06',
 
             // Ennoble semantic presentation tokens.
-            'surface-elevated' => '#FFFFFF',
+            'surface-elevated' => '#F5F5F2',
             'primary-surface' => '#C5DB552E',
             'secondary-surface' => '#F0F0EE',
             'primary-text' => '#1B1B1F',
@@ -99,7 +99,7 @@ return [
             'on-secondary' => '#F5F5F4',
             'surface' => '#17171A',
             'on-surface' => '#F5F5F4',
-            'background' => '#0F0F11',
+            'background' => '#000000',
             'on-background' => '#F5F5F4',
             'surface-variant' => '#1F1F24',
             'on-surface-variant' => '#A4A4AD',

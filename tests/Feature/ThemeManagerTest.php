@@ -12,7 +12,7 @@ use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
-use Nativephp\NativeUi\Theme;
+use Native\Mobile\UI\Theme;
 
 afterEach(function () {
     Theme::load(config('native-ui.theme', []));
@@ -48,25 +48,25 @@ test('changing appearance clears parsed semantic colors before the next native f
     app(ThemeManager::class)->apply(ThemePreference::Light);
 
     expect(TailwindParser::parse('bg-theme-background'))
-        ->toMatchArray(['bg' => '#F5F5F2']);
+        ->toMatchArray(['bg' => '#FFFFFF']);
 
     app(ThemeManager::class)->apply(ThemePreference::Dark);
 
     expect(TailwindParser::parse('bg-theme-background'))
-        ->toMatchArray(['bg' => '#0F0F11']);
+        ->toMatchArray(['bg' => '#000000']);
 });
 
 test('system preference preserves distinct light and dark semantic palettes', function () {
     app(ThemeManager::class)->apply(ThemePreference::System);
     $tokens = Theme::all();
 
-    expect($tokens['light']['background'])->toBe('#F5F5F2')
-        ->and($tokens['dark']['background'])->toBe('#0F0F11')
+    expect($tokens['light']['background'])->toBe('#FFFFFF')
+        ->and($tokens['dark']['background'])->toBe('#000000')
         ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
         ->and(Theme::get('color-scheme'))->toBe('system');
 });
 
-test('a stored explicit appearance is respected and forces the palette', function () {
+test('a stored appearance is ignored so the app follows the device', function () {
     $profile = Profile::factory()->onboarded()->create();
     Setting::factory()->for($profile)->create([
         'theme_preference' => ThemePreference::Dark,
@@ -74,18 +74,18 @@ test('a stored explicit appearance is respected and forces the palette', functio
 
     $manager = app(ThemeManager::class);
 
-    // The saved in-app override wins over the device appearance.
-    expect($manager->currentPreference())->toBe(ThemePreference::Dark)
-        ->and($manager->applyCurrent())->toBe(ThemePreference::Dark);
+    // There is no in-app override: forced Light/Dark could not reach the native
+    // controls' SwiftUI colorScheme through the EDGE chrome, so the app always
+    // follows the device and keeps distinct light/dark palettes from config.
+    expect($manager->currentPreference())->toBe(ThemePreference::System)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::System);
 
-    // Forcing Dark collapses both palette slots to the dark palette and sets the
-    // platform color-scheme so the native chrome follows too.
     $tokens = Theme::all();
-    expect($tokens['light']['background'])->toBe($tokens['dark']['background'])
-        ->and(Theme::get('color-scheme'))->toBe('dark');
+    expect($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
+        ->and(Theme::get('color-scheme'))->toBe('system');
 });
 
-test('saved settings drive both the appearance and reduced motion', function () {
+test('saved settings drive reduced motion while appearance follows the device', function () {
     $profile = app(ProfileService::class)->createOrUpdate(
         displayName: 'Shell Tester',
         trainingGoal: TrainingGoal::Balanced,
@@ -103,8 +103,8 @@ test('saved settings drive both the appearance and reduced motion', function () 
 
     $manager = app(ThemeManager::class);
 
-    expect($manager->currentPreference())->toBe(ThemePreference::Dark)
-        ->and($manager->applyCurrent())->toBe(ThemePreference::Dark)
+    expect($manager->currentPreference())->toBe(ThemePreference::System)
+        ->and($manager->applyCurrent())->toBe(ThemePreference::System)
         ->and($manager->prefersReducedMotion())->toBeTrue()
         ->and($manager->motionDuration(MotionToken::Success))->toBe(0);
 });

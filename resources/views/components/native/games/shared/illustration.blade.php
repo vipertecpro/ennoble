@@ -10,7 +10,7 @@
 
 @php
     // Games with a bundled Lottie animation (resources/animations/<slug>.json).
-    $hasAnimation = in_array($slug, ['word-match', 'quick-math'], true);
+    $hasAnimation = in_array($slug, ['word-match', 'quick-math', 'recall'], true);
 @endphp
 
 @if ($animated && $hasAnimation)
@@ -34,6 +34,7 @@
             'word-match' => [Ios::TextformatAbc, AndroidOutlined::Abc, 'Abstract word matching illustration'],
             'quick-math' => [Ios::NumberSquare, AndroidOutlined::Numbers, 'Abstract quick math illustration'],
             'recall' => [Ios::Grid, AndroidOutlined::GridView, 'Abstract memory recall illustration'],
+            'flow' => [Ios::Waveform, AndroidOutlined::Waves, 'Abstract flowing current illustration'],
             default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports, 'Abstract game illustration'],
         };
     @endphp

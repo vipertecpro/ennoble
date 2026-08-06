@@ -61,6 +61,15 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong tap costs one.',
             ],
         ],
+        'flow' => [
+            'tagline' => 'Ride the current — swipe with each surge of light before it reaches you.',
+            'steps' => [
+                'A current surges in from the top carrying a direction.',
+                'Swipe that way before it reaches your light.',
+                'The earlier you swipe, the more each current scores; streaks multiply it.',
+                'You have three lives — a wrong swipe or a missed current costs one.',
+            ],
+        ],
     ];
 
     public string $screenState = 'content';

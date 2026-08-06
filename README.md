@@ -144,6 +144,4 @@ The following products and design studies informed interaction research only; En
 
 ## NativePHP Mobile v4 status
 
-Ennoble currently uses NativePHP Mobile v4 pre-release branches. The required NativePHP Mobile branch and Native UI package line are temporarily incompatible through Composer, so the repository includes a narrowly scoped mirror at `packages/nativephp/native-ui`.
-
-This is a transparent compatibility layer, not an application fork. Product code stays outside the mirror, and the mirror will be removed when mutually compatible official packages are available.
+Ennoble runs on the published stable SuperNative packages — `nativephp/mobile` (v4) and `nativephp/mobile-ui` (`^0.3`) — resolved straight from Composer. The earlier local compatibility mirror has been removed now that the official core and Native UI packages are mutually installable.

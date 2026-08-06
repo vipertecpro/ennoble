@@ -8,43 +8,27 @@
         "framework"
     ],
     "license": "MIT",
-    "repositories": {
-        "mobile": {
-            "type": "vcs",
-            "url": "https://github.com/nativephp/mobile-air"
-        },
-        "ui": {
-            "type": "path",
-            "url": "packages/nativephp/native-ui",
-            "options": {
-                "versions": {
-                    "nativephp/native-ui": "dev-feat/webview-element"
-                },
-                "symlink": false,
-                "reference": "config"
-            }
-        },
-        "plugins": {
+    "repositories": [
+        {
+            "name": "nativephp-plugins",
             "type": "composer",
             "url": "https://plugins.nativephp.com"
         },
-        "lottie": {
+        {
             "type": "path",
             "url": "plugins/nativephp-lottie",
             "options": {
                 "symlink": true
             }
         }
-    },
+    ],
     "require": {
         "php": "^8.4",
         "ennoble/nativephp-lottie": "@dev",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "nativephp/mobile": "dev-element",
-        "nativephp/mobile-media-player": "^1.0",
-        "nativephp/mobile-vibe": "^1.0",
-        "nativephp/native-ui": "dev-feat/webview-element"
+        "nativephp/mobile": "^4.0",
+        "nativephp/mobile-ui": "^0.3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

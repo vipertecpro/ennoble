@@ -7,17 +7,11 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 ## Foundational Context
 
-This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+This application is a Laravel application running on PHP 8.4. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
 
-- php - 8.4
-- laravel/framework (LARAVEL) - v13
-- laravel/prompts (PROMPTS) - v0
-- laravel/boost (BOOST) - v2
-- laravel/mcp (MCP) - v0
-- laravel/pail (PAIL) - v1
-- laravel/pint (PINT) - v1
-- pestphp/pest (PEST) - v4
-- phpunit/phpunit (PHPUNIT) - v12
+Before relying on a package's API, confirm its installed version:
+- PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
+- JS packages: check `package.json` for the installed versions.
 
 ## Skills Activation
 
@@ -75,6 +69,11 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 2. Use `"quoted phrases"` for exact position matching: `"infinite scroll"` requires adjacent words in order.
 3. Combine words and phrases for mixed queries: `middleware "rate limit"`.
 4. Use multiple queries for OR logic: `queries=["authentication", "middleware"]`.
+
+## Project Rules
+
+- This project keeps committed, area-grouped rules in `.ai/rules` (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule.
+- Record durable rules with `record-rule` so the next agent or teammate inherits them instead of working them out again. Pass a `glob` (e.g. `app/Http/Controllers/**`), a short `title`, and a few-line `note`. Always use `record-rule`, never your native memory or notes tool — native memory is personal and session-scoped; only `.ai/rules` is shared with the team and persists in the repo.
 
 ## Artisan
 
@@ -165,7 +164,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
-=== nativephp/mobile rules ===
+=== nativephp/mobile/core rules ===
 
 ## NativePHP Mobile
 
@@ -188,12 +187,54 @@ elements (`native:column`, `native:text`, `native:button`, …).** This is the w
   `nativephp-webview-to-native` skill).
 - Style EDGE elements with Tailwind utility classes via `class="..."` / `:class="..."` only — never inline
   CSS `style="..."` attributes or ad-hoc styling props.
+- Compose screens from **nested child components**: any `NativeComponent` under `app/NativeComponents` mounts
+  as a tag (`UserCard` → `<native:user-card :user="$u" key="user-{{ $u->id }}" @saved="onSaved" />`) with live
+  props, its own persistent state, and `emit()` events bubbling to `@event` tag bindings / `#[On('event')]`
+  listeners. Prefer extracting a reusable child component over duplicating Blade across screens; give list
+  children a stable domain `key` (never the loop index).
 - Use `native:icon` (SF Symbols on iOS, Material Icons on Android) for iconography — never emoji characters in
   UI text, labels, or buttons, unless the user explicitly asks for emojis. Prefer the typed icon enums
   (`App\Icons\Ios`, `App\Icons\Android`, `App\Icons\AndroidOutlined`) bound via the `:ios` / `:android`
   attributes, e.g. `:ios="Ios::Gearshape" :android="Android::Settings"`, importing each enum into the view with
   Blade's use directive first. The enums are generated, not shipped — if `app/Icons/` doesn't exist yet, run
   `php artisan native-ui:generate-icons` first (safe to run yourself).
+
+### Theme Tokens, Font Aliases, and Layouts — the Design System Trio
+
+Every app's visual identity belongs in `config/native-ui.php` (publish with
+`php artisan vendor:publish --tag=native-ui-config`), not scattered through the markup. When building or
+reviewing screens, enforce all three:
+
+1. **Theme tokens over hardcoded colors.** Define the palette once in the config's `theme` block, then style
+   with `bg-theme-*` / `text-theme-*` / `border-theme-*` classes (`bg-theme-surface`, `text-theme-on-surface`,
+   `border-theme-outline`). Never sprinkle `bg-[#1E2021]`-style arbitrary values for what is really a theme
+   role — they can't be re-skinned and don't get automatic dark-mode pairs. Arbitrary color values are for
+   genuine data-driven color (per-category identity colors, map imagery, chart series), and those belong in
+   one PHP home (an enum or model method), never inline per view. Two capabilities that prevent hex fallbacks:
+   - **The token map is open-ended.** When a design needs a role the shipped set lacks (a success green, an
+     `outline-variant`), add it to both `light` and `dark` blocks — `bg-theme-success` works immediately; no
+     package change required.
+   - **Theme classes take opacity modifiers** just like palette classes: `bg-theme-primary/15` is the correct
+     tonal-fill idiom (applies to the dark companion too) — never approximate with a hardcoded alpha hex.
+2. **Font aliases over file tokens.** Register semantic aliases in the config's `fonts` array
+   (`'headline' => 'ArchivoNarrow-Bold'`, `'mono' => 'JetBrainsMono-Regular'`, `'default' => …` for the
+   app-wide font) and write `font="headline"` in views — never `font="ArchivoNarrow-Bold"`. Swapping a
+   typeface must be a one-line config change.
+3. **Native chrome via composable chrome elements (layouts optional).** Author nav bars, tab bars, fabs, and
+   side navs directly in the screen's Blade — `<native:top-bar>` (+ `top-bar-action`), `<native:bottom-nav>`
+   (+ `bottom-nav-item`), `<native:fab>`, `<native:bottom-bar>`, `<native:side-nav>`. They hoist onto the real
+   NavigationStack/TabView chrome (edge-swipe back, predictive back, large titles, Liquid Glass/Material You),
+   and their attributes are Blade expressions over screen state, so badges/subtitles/icons are reactive. A
+   `NativeLayout` (attached via `Route::native(...)->layout(...)` or `Route::nativeGroup(...)`) is **optional**
+   — reach for one only when many screens share identical chrome (e.g. one tabs layout for a tab section); an
+   inline chrome element on a screen always overrides the layout's bar for that slot. Add the `custom`
+   attribute to a chrome tag only for designs the system bars genuinely can't express — it renders in-tree as
+   an ordinary drawn element. Never hand-roll top bars or bottom navs out of rows and pressables — that
+   forfeits native back gestures, safe-area handling, and Liquid Glass/Material You. Chrome colors take theme
+   tokens (inline: theme classes / `theme()`-fed attributes; builders: `->activeColor(theme('primary'))`) —
+   never pasted hex. Bar icons take the platform enums via `:ios-icon` / `:android-icon` with a plain `icon`
+   string as cross-platform fallback; bar fonts take config aliases (`font="mono"` / `->font('mono')`). Only
+   screens rendered without any chrome (no layout AND no inline bars) may use `safe-area` classes.
 
 ### When a Capability Is Missing
 
@@ -256,34 +297,51 @@ ask: "Which platform do you want to build/test on — iOS or Android?" Never ass
 When the platform is confirmed, give the relevant command(s) above and tell the user to run it in their terminal.
 Do not run it yourself.
 
-=== nativephp/native-ui rules ===
+=== nativephp/mobile-ui/core rules ===
 
-## nativephp/native-ui
+## nativephp/mobile-ui
 
 Native UI components for NativePHP Mobile. Every element renders as a real
 platform primitive — Material3 on Android, SwiftUI on iOS — not a webview
 widget. Elements are declared in Blade with `<native:*>` tags or built
-programmatically with the fluent `Nativephp\NativeUi\Elements\*` API; both
+programmatically with the fluent `Native\Mobile\UI\Elements\*` API; both
 paths serialize to the same wire tree.
 
 ### Core rules
 
 - Visual styling is theme-driven ("Model 3"): buttons, inputs, toggles, and
   other controls take their colors, radii, and typography from the theme
-  (`Nativephp\NativeUi\Theme`). Use semantic props like `variant="primary"`
+  (`Native\Mobile\UI\Theme`). Use semantic props like `variant="primary"`
   instead of per-instance colors — per-instance visual overrides on these
   controls are intentionally ignored.
 - Bind state with `native:model="property"` (works on toggle, checkbox, chip,
   slider, select, radio-group, button-group, tab-row, and the text inputs).
   Use `.live` / `.blur` / `.debounce.Xms` modifiers to control sync frequency.
-- Wire callbacks with event attributes (`@press`, `@change`, `@submit`,
+- Wire callbacks with event attributes (`@tap`, `@change`, `@submit`,
   `@dismiss`) pointing at public methods on the component.
+- `<native:date-picker>` handles dates, times, and both. Set `mode` to
+  `date` (default), `time`, or `datetime`. Values are always wall-clock ISO
+  strings — `2026-07-25`, `14:30`, `2026-07-25T14:30` — never offsets or
+  epoch numbers, so they feed straight into `Carbon::parse()`. `value`,
+  `min`, and `max` also accept any `DateTimeInterface`.
+- On the picker, `timezone` (IANA) names the calendar the user picks in and
+  never rewrites the value; `locale` (BCP-47) is display-only. Use
+  `picker-style` = `compact` (default) / `inline` / `wheel` (NOT `display`,
+  which is flex/layout display). `title`,
+  `confirm-label`, and `cancel-label` are Android-only dialog chrome — pass
+  translated strings. `min`/`max` are NOT supported for `mode="time"` (they
+  throw), and sync-mode modifiers (`native:model.blur`) throw too — a picker
+  always commits on selection.
+- In tests, drive pickers with the `pickDate()` / `pickTime()` /
+  `pickDateTime()` / `clearPicker()` macros and assert with
+  `assertPicker()` / `assertPickerValue()` / `assertPickerEmpty()`.
 
 <code-snippet name="Declaring native elements in Blade" lang="blade">
 <native:column class="gap-4 p-4">
     <native:outlined-text-input label="Email" native:model.blur="email" />
+    <native:date-picker label="Starts" mode="datetime" native:model="startsAt" />
     <native:toggle label="Notifications" native:model="notify" />
-    <native:button variant="primary" @press="save">Save</native:button>
+    <native:button variant="primary" @tap="save">Save</native:button>
 </native:column>
 </code-snippet>
 
@@ -302,6 +360,20 @@ paths serialize to the same wire tree.
   and `bg-theme-*` / `text-theme-*` / `border-theme-*` classes emit both
   modes automatically. This works for Blade-declared AND programmatically
   built elements (`Element->class()`).
+- The theme token map is open-ended: add any semantic role your design
+  needs (`success`, `warning`, `outline-variant`, …) to both `light` and
+  `dark` blocks and the matching `*-theme-*` classes resolve immediately —
+  never fall back to hardcoded hex for a missing role.
+- `success`/`on-success` and `outline-variant` are first-class tokens: the
+  native theme stores parse them (with fallbacks), and `variant="success"`
+  works on `<native:button>` and `<native:badge>` for confirm / "safe to
+  proceed" actions — prefer it over green hex or misusing `primary`.
+- Theme classes accept opacity modifiers like every other color class:
+  `bg-theme-primary/15` is the tonal-fill idiom (alpha applies to the dark
+  companion too).
+- In PHP — layout chrome builders (`->activeColor()`, `->backgroundColor()`),
+  dynamic styling — read tokens with the appearance-aware `theme()` helper
+  (`theme('primary')`) instead of raw `config()` paths or pasted hex.
 - Disabled controls use the `surface-variant` (fill) + `on-surface-variant`
   (label) tokens on both platforms — tune disabled contrast by adjusting
   those two tokens, not per-component.
@@ -334,10 +406,13 @@ paths serialize to the same wire tree.
 - **Downloading fonts.** `php artisan native:font Lobster` (or `"Rock Salt"`,
   multiple families, `--weights=400,700`, `--italic`) downloads Google Fonts
   into `resources/fonts/` with ready-to-use token names — no API key.
-- **App-wide default font.** Set the theme's `font-family` token in
-  `config/native-ui.php` to a bundled token (e.g. `'Inter-Regular'`) to apply
-  it everywhere; per-element `font` attributes and `font-serif`/`font-mono`
-  classes still win. `native:font --default` sets it for you.
+- **Font aliases + app-wide default.** Name fonts semantically in
+  `config/native-ui.php`: `'fonts' => ['default' => 'Inter-Regular',
+  'accent' => 'DynaPuff-Regular']`. Use an alias anywhere a font token works
+  (`font="accent"`, chrome `->font()`, layout `$font`); the `default` alias
+  applies app-wide (superseding the older `font-family` token). Per-element
+  `font` attributes and `font-serif`/`font-mono` classes still win over the
+  default. `native:font --default` sets it for you.
 - **Line height (leading).** `leading-none|tight|snug|normal|relaxed|loose`
   (unitless multipliers of the font size), plus arbitrary `leading-[1.4]`
   (multiplier) and `leading-[24px]` (absolute). Applies to `<native:text>` and
@@ -379,13 +454,13 @@ Android). Both are also available fluently as `->a11yLabel()` / `->a11yHint()`.
   automatically — don't hardcode layouts that break at larger type sizes.
 
 <code-snippet name="Accessible icon-only controls" lang="blade">
-<native:button icon="trash" a11y-label="Delete draft" a11y-hint="Deletes the draft permanently" @press="deleteDraft" />
+<native:button icon="trash" a11y-label="Delete draft" a11y-hint="Deletes the draft permanently" @tap="deleteDraft" />
 <native:icon name="checkmark.seal" a11y-label="Verified" />
 <native:list-item headline="Team meeting" trailingIconButton="ellipsis" trailing-a11y-label="More options" />
 </code-snippet>
 
 <code-snippet name="Fluent a11y API" lang="php">
-use Nativephp\NativeUi\Elements\Button;
+use Native\Mobile\UI\Elements\Button;
 
 Button::make()
     ->icon('plus')

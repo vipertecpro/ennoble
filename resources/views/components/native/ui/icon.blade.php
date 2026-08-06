@@ -1,4 +1,4 @@
-@use('Nativephp\NativeUi\Theme')
+@use('Native\Mobile\UI\Theme')
 
 {{--
     Icon colors must follow the LOADED theme tokens, not the OS appearance.

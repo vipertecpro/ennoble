@@ -51,6 +51,16 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Focus->value, SkillKey::Structure->value, SkillKey::Adaptability->value],
                 'configuration' => ['content_version' => 1],
             ],
+            [
+                'type' => GameType::Flow->value,
+                'slug' => 'flow',
+                'name' => 'Flow',
+                'description' => 'Ride the current — swipe with each surge of light before it reaches you.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 4,
+                'skill_keys' => [SkillKey::Speed->value, SkillKey::Focus->value, SkillKey::Adaptability->value],
+                'configuration' => ['content_version' => 1],
+            ],
         ];
 
         DB::table('games')->upsert(
@@ -66,7 +76,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math', 'recall'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -84,6 +94,11 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 8, 5000, ['tiles' => 6, 'start_length' => 3, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 10, 4000, ['tiles' => 9, 'start_length' => 3, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 12, 3200, ['tiles' => 9, 'start_length' => 4, 'lives' => 3]],
+            ],
+            'flow' => [
+                [Difficulty::Beginner, 'Warm-up', 12, 1400, ['directions' => ['left', 'right'], 'window_ms' => 2400, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 14, 1100, ['directions' => ['left', 'right', 'up'], 'window_ms' => 1900, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 16, 900, ['directions' => ['left', 'right', 'up', 'down'], 'window_ms' => 1500, 'lives' => 3]],
             ],
         ];
 
