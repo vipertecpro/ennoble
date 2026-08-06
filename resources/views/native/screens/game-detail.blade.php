@@ -2,7 +2,7 @@
 @use('App\Icons\Ios')
 @use('App\Icons\AndroidOutlined')
 
-<native:column class="h-full w-full bg-theme-background">
+<native:column class="h-full w-full {{ Gradients::screen() }}">
     @if ($screenState === 'error')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">Game unavailable</native:text>
@@ -36,7 +36,7 @@
                     <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                         How to play
                     </native:text>
-                    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 w-full gap-3 px-4 py-4">
+                    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} w-full gap-3 px-4 py-4">
                         @foreach ($steps as $index => $step)
                             <native:row class="w-full items-start gap-3">
                                 <native:column class="w-6 h-6 items-center justify-center rounded-full bg-linear-to-br from-lime-400 to-cyan-400 shadow-sm">
@@ -55,7 +55,7 @@
                         </native:text>
                         <native:row class="w-full items-center gap-2">
                             @foreach ($skills as $skill)
-                                <native:column class="rounded-full bg-linear-to-r from-lime-400/20 to-cyan-500/10 border border-lime-400/30 px-3 py-1">
+                                <native:column class="rounded-full bg-linear-to-r from-lime-400/20 to-cyan-500/10 border {{ Gradients::hairline() }} px-3 py-1">
                                     <native:text class="text-[12] font-semibold text-theme-primary-text">{{ $skill }}</native:text>
                                 </native:column>
                             @endforeach

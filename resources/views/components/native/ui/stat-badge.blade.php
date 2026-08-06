@@ -15,6 +15,8 @@
     nested-centred-row collapse gotcha.
 --}}
 
+@use('App\NativeUI\Tokens\Gradients')
+
 @props([
     'value',
     'label',
@@ -29,7 +31,7 @@
     $labelColor = $labelColor ?? $accent;
 @endphp
 
-<native:column class="flex-1 items-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/40 via-{{ $accentTo }}/12 to-transparent border border-{{ $accent }}/50 shadow-lg py-5 px-3">
+<native:column class="flex-1 items-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/40 via-{{ $accentTo }}/12 to-transparent border {{ Gradients::hairline() }} shadow-lg py-5 px-3">
     @if (isset($icon))
         <native:column class="w-12 h-12 items-center justify-center">
             {{ $icon }}

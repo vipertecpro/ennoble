@@ -1,4 +1,5 @@
-<native:column class="h-full w-full bg-theme-background">
+@use('App\NativeUI\Tokens\Gradients')
+<native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'error')
@@ -9,7 +10,7 @@
         />
     @else
     {{-- Category summary — vibrant lime→cyan gradient hero --}}
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-500/15 to-transparent border border-lime-400/40 shadow-lg py-6" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-500/15 to-transparent border {{ Gradients::hairline() }} shadow-lg py-6" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-2">
         <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">{{ $earnedCount }} OF {{ $totalCount }} EARNED</native:text>
         <native:text class="text-[18] font-semibold tracking-tight leading-tight text-theme-primary-text">{{ $categoryTagline }}</native:text>

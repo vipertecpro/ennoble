@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 @props([
     'score' => 0,
     'accuracy' => null,
@@ -13,7 +14,7 @@
      score that pops in, three glowing stat tiles, and the play-again / done
      actions. --}}
 <native:column class="flex-1 w-full px-4 items-center justify-center gap-7">
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent shadow-lg border border-lime-400/45 items-center gap-1 p-7">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent shadow-lg border {{ Gradients::hairline() }} items-center gap-1 p-7">
         <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-accent">
             {{ $isNewBest ? 'New best score' : 'Session complete' }}
         </native:text>

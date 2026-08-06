@@ -1,7 +1,8 @@
+@use('App\NativeUI\Tokens\Gradients')
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<native:column class="h-full w-full bg-theme-background">
+<native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     <native:column class="items-center gap-4">
@@ -23,7 +24,7 @@
     </native:column>
 
     <native:column class="w-full gap-3">
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 ">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} ">
             <x-native.settings.about-principle-row
                 title="Offline by design"
                 description="Every exercise, score, and streak lives entirely on this device. Ennoble works with no connection at all."
@@ -32,7 +33,7 @@
             />
         </native:column>
 
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-cyan-500/40 ">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} ">
             <x-native.settings.about-principle-row
                 title="Private by default"
                 description="No account, no tracking, and nothing to sign into. Your training belongs to you alone."
@@ -41,7 +42,7 @@
             />
         </native:column>
 
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-amber-400/40 ">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} ">
             <x-native.settings.about-principle-row
                 title="Evidence over estimates"
                 description="Progress only ever reflects training you actually completed. Nothing is inflated or invented."
