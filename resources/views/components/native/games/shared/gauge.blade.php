@@ -21,7 +21,7 @@
 @php
     $dark = System::appearance() === 'dark';
     $ink = $dark ? '#F4F6F8' : '#1B1B1F';
-    $track = $dark ? '#3C3C41' : '#E7E7E3';
+    $track = $dark ? '#3C3C41' : '#C6CBD4';
 
     $f = max(0.0, min(1.0, (float) $fraction));
     $circ = 276.46; // 2 * pi * 44
