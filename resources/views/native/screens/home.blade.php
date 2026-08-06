@@ -36,6 +36,14 @@
         />
     @endif
 
+    {{-- Neon gauge dials (reference "Speed/Grip" style) — SVG rings in a card --}}
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/30 px-4 py-5" :animate-duration="$motionDuration">
+        <native:row class="w-full justify-around">
+            <x-native.games.shared.gauge :value="(string) $currentStreak" :fraction="min($currentStreak / 30, 1)" color="#F97316" label="Streak" />
+            <x-native.games.shared.gauge :value="(string) $gamesPlayed" :fraction="min($gamesPlayed / 50, 1)" color="#C5DB55" label="Games" />
+        </native:row>
+    </native:column>
+
     {{-- At a glance — vibrant gradient stat badges (first proof of the
          game-premium direction: gradient fills + glowing coloured borders) --}}
     <native:row class="w-full gap-3" :animate-duration="$motionDuration">
