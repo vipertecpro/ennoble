@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 @use('App\NativeComponents\Screens\Onboarding')
@@ -18,7 +19,7 @@
     px-4` column as a DIRECT child of a column/scroll-view is the only correct
     rail pattern.
 --}}
-<native:column class="h-full w-full bg-theme-background {{ $this->appliesManualSafeArea() ? 'safe-area' : '' }}">
+<native:column class="h-full w-full {{ Gradients::screen() }} {{ $this->appliesManualSafeArea() ? 'safe-area' : '' }}">
 
     {{-- Fixed header — progress rail stays put while content scrolls --}}
     <native:column class="w-full px-4 pt-2 pb-3 bg-theme-background">

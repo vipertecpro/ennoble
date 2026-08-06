@@ -1,4 +1,5 @@
-<native:column class="h-full w-full bg-theme-background">
+@use('App\NativeUI\Tokens\Gradients')
+<native:column class="h-full w-full {{ Gradients::screen() }}">
     @if ($screenState === 'error')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4 safe-area">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>

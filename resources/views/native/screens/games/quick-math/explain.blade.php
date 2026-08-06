@@ -1,3 +1,4 @@
+@use('App\NativeUI\Tokens\Gradients')
 @use('App\Icons\Ios')
 @use('App\Icons\Android')
 
@@ -6,7 +7,7 @@
     $typing = $revealedCount < count($steps);
 @endphp
 
-<native:column class="h-full w-full bg-theme-background safe-area">
+<native:column class="h-full w-full {{ Gradients::screen() }} safe-area">
     <native:row class="w-full px-4 pt-3 pb-2 items-center gap-3">
         <native:pressable
             @press="close"
