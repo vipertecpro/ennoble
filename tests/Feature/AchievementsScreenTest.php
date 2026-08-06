@@ -29,7 +29,7 @@ afterEach(function () {
 test('a first-time achievements screen shows the full catalogue total and every category', function () {
     Native::visit('/achievements')
         ->assertScreen(Achievements::class)
-        ->assertSee('BADGES EARNED')
+        ->assertSee('Badges earned')
         ->assertSee('175')
         ->assertSee('Streaks')
         ->assertSee('Accuracy')

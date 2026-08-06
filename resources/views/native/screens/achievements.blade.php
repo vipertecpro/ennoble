@@ -1,7 +1,7 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<native:column class="h-full w-full bg-theme-background safe-area-top">
+<native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-5 mb-12 gap-6">
     @if ($screenState === 'loading')
@@ -20,30 +20,40 @@
         :level="$level"
     />
 
-    {{-- Hero: total badges + tier summary — vibrant lime→cyan gradient --}}
-    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-500/15 to-transparent border border-lime-400/40 shadow-lg py-6" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 gap-5">
-        <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">BADGES EARNED</native:text>
-
-        <native:row class="items-end gap-2">
-            <native:text class="text-[34] font-bold tracking-tight leading-tight text-theme-primary-text">{{ $totalEarned }}</native:text>
-            <native:text class="text-[15] font-semibold text-theme-muted-text mb-1">/ {{ $totalBadges }}</native:text>
-        </native:row>
+    {{-- Hero: total badges + Bronze/Silver/Gold tier gauges. Counts sit dead
+         centre and the dial font auto-scales, so higher counts never overflow. --}}
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent border border-lime-400/45 shadow-lg py-5 px-4 gap-4" :animate-duration="$motionDuration">
+        <native:column class="w-full gap-1">
+            <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">Badges earned</native:text>
+            <native:row class="items-end gap-1.5">
+                <native:text font="numeric" class="text-[34] leading-none text-theme-primary-text">{{ $totalEarned }}</native:text>
+                <native:text class="text-[14] font-semibold text-theme-muted-text">/ {{ $totalBadges }}</native:text>
+            </native:row>
+        </native:column>
 
         <x-native.ui.progress :value="$totalProgress" token="accent" />
 
-
-        <native:row class="items-center justify-between">
+        <native:row class="w-full gap-2">
             @foreach ($tierSummary as $tier)
-                <x-native.badges.tier-pill
-                    :label="$tier['label']"
-                    :earned="$tier['earned']"
-                    :total="$tier['total']"
-                    :color="$tier['color']"
-                />
+                @php
+                    $gaugeColor = match (strtolower($tier['label'])) {
+                        'bronze' => '#D08A5C',
+                        'silver' => '#C3C8D0',
+                        'gold' => '#E7C24B',
+                        default => '#C5DB55',
+                    };
+                @endphp
+                <native:column class="flex-1 items-center">
+                    <x-native.games.shared.gauge
+                        :value="$tier['earned']"
+                        :fraction="$tier['total'] > 0 ? $tier['earned'] / $tier['total'] : 0"
+                        :color="$gaugeColor"
+                        :label="$tier['label']"
+                        size="w-16 h-16"
+                    />
+                </native:column>
             @endforeach
         </native:row>
-    </native:column>
     </native:column>
 
     {{-- Per-category badge cards --}}

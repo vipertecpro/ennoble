@@ -2,7 +2,7 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
-<native:column class="h-full w-full bg-theme-background safe-area-top">
+<native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
 <native:column class="w-full px-4 mt-4 mb-12 gap-6">
     @if ($screenState === 'loading')
