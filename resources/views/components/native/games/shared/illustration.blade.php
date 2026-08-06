@@ -40,15 +40,15 @@
     @endphp
 
     <native:column
-        class="{{ $hero ? 'h-40' : 'w-16 h-16' }} items-center justify-center rounded-2xl bg-theme-primary-surface"
+        class="{{ $hero ? 'h-40' : 'w-24 h-24' }} items-center justify-center rounded-2xl bg-theme-primary-surface"
         :animate-duration="$motionDuration"
         animate-easing="ease-out"
     >
-        <native:column class="{{ $hero ? 'w-24 h-24' : 'w-12 h-12' }} items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
+        <native:column class="{{ $hero ? 'w-24 h-24' : 'w-16 h-16' }} items-center justify-center rounded-full bg-theme-surface-elevated shadow-sm">
             <x-native.ui.icon
                 :ios="$ios"
                 :android="$android"
-                :size="$hero ? 48 : 28"
+                :size="$hero ? 48 : 38"
                 :a11y-label="$label"
             />
         </native:column>

@@ -8,7 +8,7 @@
 {{-- Compact game tile: illustration, title, best score. Two sit side by side
      so several games are visible at a glance; tapping opens the detail. --}}
 <native:pressable
-    class="flex-1 items-center gap-3 rounded-3xl shadow-lg p-4 border {{ Gradients::gameGlass($game['slug']) }} {{ Gradients::gameBorder($game['slug']) }}"
+    class="flex-1 h-44 items-center justify-center gap-3 rounded-3xl shadow-lg p-4 border {{ Gradients::gameGlass($game['slug']) }} {{ Gradients::gameBorder($game['slug']) }}"
     :press-scale="0.98"
     a11y-label="{{ $game['title'] }}"
     a11y-hint="Opens {{ $game['title'] }} details"
