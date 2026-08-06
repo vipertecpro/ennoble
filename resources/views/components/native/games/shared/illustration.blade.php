@@ -10,7 +10,10 @@
 
 @php
     // Games with a bundled Lottie animation (resources/animations/<slug>.json).
-    $hasAnimation = in_array($slug, ['word-match', 'quick-math', 'recall'], true);
+    // Any game with a bundled Lottie (resources/animations/<slug>.json) animates;
+    // games without one fall back to a static icon. Detected by file presence so
+    // adding a new game's JSON "just works".
+    $hasAnimation = is_file(resource_path("animations/{$slug}.json"));
 @endphp
 
 @if ($animated && $hasAnimation)

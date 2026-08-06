@@ -21,6 +21,7 @@
     };
     $best = $game['best_score'] ?? null;
     $line = $meta ?? ($best === null ? 'New · not played yet' : 'Best '.number_format($best));
+    $hasLottie = is_file(resource_path("animations/{$game['slug']}.json"));
 @endphp
 
 <native:pressable
@@ -30,9 +31,15 @@
     @press="openGame('{{ $game['slug'] }}')"
 >
     <native:row class="w-full items-center gap-3">
-        <native:column class="w-12 h-12 items-center justify-center rounded-xl {{ Gradients::gameSolid($game['slug']) }}">
-            <native:icon :ios="$ios" :android="$android" :size="24" class="text-black" />
-        </native:column>
+        @if ($hasLottie)
+            <native:column class="w-12 h-12 items-center justify-center rounded-xl bg-theme-surface-variant">
+                <native:lottie-player source="{{ $game['slug'] }}" loop class="w-9 h-9" alt="{{ $game['title'] }}" />
+            </native:column>
+        @else
+            <native:column class="w-12 h-12 items-center justify-center rounded-xl {{ Gradients::gameSolid($game['slug']) }}">
+                <native:icon :ios="$ios" :android="$android" :size="24" class="text-black" />
+            </native:column>
+        @endif
         <native:column class="flex-1 gap-0.5">
             <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $game['title'] }}</native:text>
             <native:text class="text-[12] text-theme-muted-text">{{ $line }}</native:text>
