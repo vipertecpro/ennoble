@@ -15,7 +15,7 @@
 ])
 
 <native:pressable
-    class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent border border-lime-400/45 shadow-lg p-5"
+    class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border border-lime-400/50 shadow-lg p-5"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"

@@ -64,14 +64,15 @@ return [
             'outline' => '#0C122224',
             'destructive' => '#C53637',
             'on-destructive' => '#FFFFFF',
-            'accent' => '#C5DB55',
-            'on-accent' => '#181C06',
+            'accent' => '#6F8A1E',
+            'on-accent' => '#FFFFFF',
 
-            // Neon ramp — the vibrant accent family (shared across both themes).
-            'accent-cyan' => '#22D3EE',
-            'accent-violet' => '#8B5CF6',
-            'accent-pink' => '#FF3D8B',
-            'accent-amber' => '#FFB020',
+            // Neon ramp — deepened for LIGHT so accent text / icons stay legible on
+            // white (dark mode keeps the bright neon values).
+            'accent-cyan' => '#0E8FA8',
+            'accent-violet' => '#6D28D9',
+            'accent-pink' => '#D61E6E',
+            'accent-amber' => '#B45309',
 
             // Ennoble semantic presentation tokens.
             'surface-elevated' => '#FFFFFF',
@@ -80,8 +81,8 @@ return [
             'primary-text' => '#0E1320',
             'secondary-text' => '#4A5163',
             'muted-text' => '#8A93A6',
-            'divider' => '#0C122214',
-            'border' => '#0C12221F',
+            'divider' => '#0C12221C',
+            'border' => '#0C122233',
             'success' => '#1C985A',
             'warning' => '#B07100',
             'danger' => '#C53637',

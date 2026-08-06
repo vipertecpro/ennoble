@@ -23,9 +23,9 @@
 
     {{-- Hero: total badges + Bronze/Silver/Gold tier gauges. Counts sit dead
          centre and the dial font auto-scales, so higher counts never overflow. --}}
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent border border-lime-400/45 shadow-lg py-5 px-4 gap-4" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border border-lime-400/50 shadow-lg py-5 px-4 gap-4" :animate-duration="$motionDuration">
         <native:column class="w-full gap-1">
-            <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">Badges earned</native:text>
+            <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-accent">Badges earned</native:text>
             <native:row class="items-end gap-1.5">
                 <native:text font="numeric" class="text-[34] leading-none text-theme-primary-text">{{ $totalEarned }}</native:text>
                 <native:text class="text-[14] font-semibold text-theme-muted-text">/ {{ $totalBadges }}</native:text>

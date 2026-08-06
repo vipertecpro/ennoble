@@ -81,7 +81,7 @@ final class Gradients
     public static function screen(): string
     {
         return System::appearance() === 'dark'
-            ? 'bg-linear-to-b from-[#27272F] via-[#212121] to-[#1B1B1B]'
-            : 'bg-linear-to-b from-[#EDF0F8] via-[#FFFFFF] to-[#F6F7FB]';
+            ? 'bg-linear-to-b from-[#32323F] via-[#242424] to-[#151517]'
+            : 'bg-linear-to-b from-[#E2E7F3] via-[#F3F5FB] to-[#E7ECF6]';
     }
 }
