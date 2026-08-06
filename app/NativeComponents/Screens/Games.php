@@ -4,6 +4,7 @@ namespace App\NativeComponents\Screens;
 
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
+use App\Domain\Progression\LevelService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\Difficulty;
@@ -56,6 +57,10 @@ final class Games extends NativeComponent
     public string $searchQuery = '';
 
     public string $selectedCategory = 'all';
+
+    public int $currentStreak = 0;
+
+    public int $level = 1;
 
     /**
      * @var list<array{key: string, label: string}>
@@ -188,6 +193,15 @@ final class Games extends NativeComponent
     /**
      * Retry the complete local catalog after a recoverable failure.
      */
+    public function openSettings(): void
+    {
+        $navigation = $this->navigate('/settings');
+
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
+        }
+    }
+
     public function retryLibrary(): void
     {
         $this->loadLibrary();
@@ -238,6 +252,10 @@ final class Games extends NativeComponent
             $this->pressOpacity = $this->reducedMotion
                 ? 1.0
                 : DesignTokens::OPACITY['pressed'];
+
+            $overview = app(StatisticsService::class)->overview($profile);
+            $this->currentStreak = $overview?->current_streak ?? 0;
+            $this->level = app(LevelService::class)->forProfile($profile)['level'];
 
             $games = Game::query()
                 ->playable()

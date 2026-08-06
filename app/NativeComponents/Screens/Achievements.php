@@ -5,6 +5,7 @@ namespace App\NativeComponents\Screens;
 use App\Domain\Achievements\AchievementService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
+use App\Domain\Progression\LevelService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\AchievementType;
@@ -41,6 +42,8 @@ final class Achievements extends NativeComponent
     public array $categories = [];
 
     public bool $hasEvidence = false;
+
+    public int $level = 1;
 
     public string $streakLabel = '0';
 
@@ -122,6 +125,18 @@ final class Achievements extends NativeComponent
     }
 
     /**
+     * Open Settings from the header's settings button.
+     */
+    public function openSettings(): void
+    {
+        $navigation = $this->navigate('/settings');
+
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
+        }
+    }
+
+    /**
      * Retry the complete screen after a recoverable local failure.
      */
     public function retryAchievements(): void
@@ -178,6 +193,7 @@ final class Achievements extends NativeComponent
 
         $this->hasEvidence = $overview !== null && $overview->sessions_completed > 0;
         $this->streakLabel = (string) ($overview?->current_streak ?? 0);
+        $this->level = app(LevelService::class)->forProfile($profile)['level'];
         $this->accuracyLabel = $overview?->accuracy === null
             ? 'Not measured'
             : round($overview->accuracy).'%';

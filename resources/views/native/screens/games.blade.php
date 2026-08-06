@@ -1,6 +1,6 @@
 <native:column class="h-full w-full bg-theme-background safe-area-top">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-4">
+<native:column class="w-full px-4 mt-4 mb-12 gap-4">
     @if ($libraryState === 'loading')
         <x-native.ui.loading-overlay label="Loading the games library" />
     @elseif ($libraryState === 'error')
@@ -10,7 +10,12 @@
             retry-method="retryLibrary"
         />
     @else
-        <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">Games</native:text>
+        <x-native.ui.app-header
+            :eyebrow="count($playableGames).' games'"
+            title="Games"
+            :streak="$currentStreak"
+            :level="$level"
+        />
 
         @foreach (array_chunk($playableGames, 2) as $gameRow)
             <native:row class="w-full items-stretch gap-3">

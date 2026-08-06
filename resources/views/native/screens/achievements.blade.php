@@ -13,6 +13,13 @@
             retry-method="retryAchievements"
         />
     @else
+    <x-native.ui.app-header
+        eyebrow="Your progress"
+        title="Badges"
+        :streak="$streakLabel"
+        :level="$level"
+    />
+
     {{-- Hero: total badges + tier summary — vibrant lime→cyan gradient --}}
     <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-500/15 to-transparent border border-lime-400/40 shadow-lg py-6" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-5">
@@ -23,10 +30,8 @@
             <native:text class="text-[15] font-semibold text-theme-muted-text mb-1">/ {{ $totalBadges }}</native:text>
         </native:row>
 
-        <native:progress-bar
-            :value="$totalProgress"
-            a11y-label="{{ $totalEarned }} of {{ $totalBadges }} badges earned"
-        />
+        <x-native.ui.progress :value="$totalProgress" token="accent" />
+
 
         <native:row class="items-center justify-between">
             @foreach ($tierSummary as $tier)

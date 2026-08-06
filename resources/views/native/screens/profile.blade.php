@@ -14,11 +14,11 @@
         />
     @else
     {{-- Identity hero — vibrant lime → cyan gradient with a glowing border --}}
-    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-400/10 to-cyan-500/20 border border-lime-400/40 shadow-lg py-7" :animate-duration="$motionDuration">
+    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-400/10 to-transparent border border-lime-400/40 shadow-lg py-7" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 items-center gap-4">
         <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated border-2 border-lime-400/50 shadow-lg">
             @if ($monogram !== '')
-                <native:text class="text-[22] font-bold tracking-tight text-theme-primary-text">{{ $monogram }}</native:text>
+                <native:text font="headline" class="text-[24] text-theme-primary-text">{{ $monogram }}</native:text>
             @else
                 <x-native.ui.icon
                     :ios="Ios::Person"
@@ -30,7 +30,7 @@
         </native:column>
 
         <native:column class="items-center gap-1">
-            <native:text class="text-[18] font-semibold tracking-tight leading-tight text-center text-theme-primary-text">{{ $identityName }}</native:text>
+            <native:text font="headline" class="text-[19] tracking-tight leading-tight text-center text-theme-primary-text">{{ $identityName }}</native:text>
             <native:text class="text-[13] text-theme-muted-text">{{ $memberSince }}</native:text>
         </native:column>
 
@@ -42,43 +42,46 @@
     </native:column>
     </native:column>
 
-    {{-- Navigation — each row is its own glow-card with an identity accent --}}
-    <native:column class="w-full gap-3">
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 ">
-            <x-native.settings.link-row
-                label="My Details"
-                description="Your name, focus, and pace."
-                method="openMyDetails"
-                :ios="Ios::PersonTextRectangle"
-                :android="AndroidOutlined::Badge"
-                :press-scale="$pressScale"
-                :press-opacity="$pressOpacity"
-            />
-        </native:column>
+    {{-- Level / XP --}}
+    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border shadow-md px-4 py-4 gap-2.5">
+        <native:row class="w-full items-center">
+            <native:text class="flex-1 text-[13.5] font-semibold text-theme-primary-text">Level {{ $level }} · {{ $levelTitle }}</native:text>
+            <native:text font="numeric" class="text-[12.5] text-theme-secondary-text">{{ $xpLabel }}</native:text>
+        </native:row>
+        <x-native.ui.progress :value="$levelProgress" token="accent" />
+    </native:column>
 
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-cyan-500/40 ">
-            <x-native.settings.link-row
-                label="Settings"
-                description="Appearance, feedback, and motion."
-                method="openSettings"
-                :ios="Ios::Gearshape"
-                :android="AndroidOutlined::Settings"
-                :press-scale="$pressScale"
-                :press-opacity="$pressOpacity"
-            />
-        </native:column>
-
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-amber-400/40 ">
-            <x-native.settings.link-row
-                label="About Ennoble"
-                description="A private offline games companion."
-                method="openAbout"
-                :ios="Ios::Info"
-                :android="AndroidOutlined::Info"
-                :press-scale="$pressScale"
-                :press-opacity="$pressOpacity"
-            />
-        </native:column>
+    {{-- Navigation — a single grouped card of list rows --}}
+    <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border overflow-hidden">
+        <x-native.ui.list-row
+            :ios="Ios::PersonTextRectangle"
+            :android="AndroidOutlined::Badge"
+            iconSolid="bg-linear-to-br from-lime-400 to-cyan-400"
+            title="My Details"
+            subtitle="Your name, focus, and pace"
+            chevron
+            method="openMyDetails"
+        />
+        <native:divider />
+        <x-native.ui.list-row
+            :ios="Ios::Gearshape"
+            :android="AndroidOutlined::Settings"
+            iconSolid="bg-linear-to-br from-cyan-400 to-sky-500"
+            title="Settings"
+            subtitle="Appearance, feedback, and motion"
+            chevron
+            method="openSettings"
+        />
+        <native:divider />
+        <x-native.ui.list-row
+            :ios="Ios::Info"
+            :android="AndroidOutlined::Info"
+            iconSolid="bg-linear-to-br from-amber-400 to-orange-500"
+            title="About Ennoble"
+            subtitle="A private offline games companion"
+            chevron
+            method="openAbout"
+        />
     </native:column>
     @endif
 </native:column>

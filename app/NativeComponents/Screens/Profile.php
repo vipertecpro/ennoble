@@ -4,6 +4,7 @@ namespace App\NativeComponents\Screens;
 
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
+use App\Domain\Progression\LevelService;
 use App\Domain\Settings\SettingsService;
 use App\Models\Profile as LocalProfile;
 use App\NativeUI\Theme\ThemeManager;
@@ -31,6 +32,14 @@ final class Profile extends NativeComponent
     public string $goalLabel = '';
 
     public string $paceLabel = '';
+
+    public int $level = 1;
+
+    public float $levelProgress = 0.0;
+
+    public string $levelTitle = 'Warming up';
+
+    public string $xpLabel = '';
 
     public bool $reducedMotion = false;
 
@@ -150,6 +159,12 @@ final class Profile extends NativeComponent
             $this->pressOpacity = $this->reducedMotion ? 1.0 : DesignTokens::OPACITY['pressed'];
 
             $this->mapIdentity($profile);
+
+            $progression = app(LevelService::class)->forProfile($profile);
+            $this->level = $progression['level'];
+            $this->levelProgress = $progression['progress'];
+            $this->levelTitle = $progression['title'];
+            $this->xpLabel = $progression['into'].' / '.$progression['span'].' XP';
         } catch (Throwable $exception) {
             report($exception);
 
