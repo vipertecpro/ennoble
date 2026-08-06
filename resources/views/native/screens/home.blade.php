@@ -1,3 +1,4 @@
+@use('App\Icons\Android')
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 
@@ -36,42 +37,23 @@
         />
     @endif
 
-    {{-- Neon gauge dials (reference "Speed/Grip" style) — SVG rings in a card --}}
-    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/30 px-4 py-5" :animate-duration="$motionDuration">
-        <native:row class="w-full justify-around">
-            <x-native.games.shared.gauge :value="(string) $currentStreak" :fraction="min($currentStreak / 30, 1)" color="#F97316" label="Streak" />
-            <x-native.games.shared.gauge :value="(string) $gamesPlayed" :fraction="min($gamesPlayed / 50, 1)" color="#C5DB55" label="Games" />
-        </native:row>
-    </native:column>
-
-    {{-- At a glance — vibrant gradient stat badges (first proof of the
-         game-premium direction: gradient fills + glowing coloured borders) --}}
+    {{-- At a glance — punchy gradient stat badges (counts: streak + games).
+         Gauge DIALS live on the %-based stat screens where a bounded arc reads
+         well; raw counts get these bold badges instead. --}}
     <native:row class="w-full gap-3" :animate-duration="$motionDuration">
         {{-- Day streak — fire gradient --}}
-        <x-native.ui.stat-badge
-            :value="$currentStreak"
-            label="Day streak"
-            accent="orange-500"
-            accentTo="red-600"
-            labelColor="orange-400"
-        >
-            <x-slot:icon>
-                <native:lottie-player source="flame" loop class="flex-1 w-full" alt="Streak flame" />
-            </x-slot:icon>
-        </x-native.ui.stat-badge>
+        <native:column class="flex-1 items-center gap-2 rounded-3xl bg-linear-to-b from-orange-500/40 via-red-600/12 to-transparent border border-orange-500/50 shadow-lg py-5 px-3">
+            <native:lottie-player source="flame" loop class="w-12 h-12" alt="Streak flame" />
+            <native:text class="text-[34] font-bold leading-none text-theme-primary-text">{{ $currentStreak }}</native:text>
+            <native:text class="text-[11] font-semibold uppercase tracking-widest text-orange-400">Day streak</native:text>
+        </native:column>
 
         {{-- Games played — lime → cyan gradient --}}
-        <x-native.ui.stat-badge
-            :value="$gamesPlayed"
-            label="Games played"
-            accent="lime-400"
-            accentTo="cyan-500"
-            labelColor="lime-400"
-        >
-            <x-slot:icon>
-                <native:lottie-player source="gaming" loop class="flex-1 w-full" alt="Games played" />
-            </x-slot:icon>
-        </x-native.ui.stat-badge>
+        <native:column class="flex-1 items-center gap-2 rounded-3xl bg-linear-to-b from-lime-400/40 via-cyan-500/12 to-transparent border border-lime-400/50 shadow-lg py-5 px-3">
+            <native:lottie-player source="gaming" loop class="w-12 h-12" alt="Games played" />
+            <native:text class="text-[34] font-bold leading-none text-theme-primary-text">{{ $gamesPlayed }}</native:text>
+            <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">Games played</native:text>
+        </native:column>
     </native:row>
 
     {{-- Latest badge (the card self-labels "LATEST UNLOCK") --}}

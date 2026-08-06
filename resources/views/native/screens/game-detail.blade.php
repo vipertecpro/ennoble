@@ -13,7 +13,7 @@
     @else
         <native:scroll-view class="flex-1 w-full" :shows-indicators="false">
             <native:column class="w-full px-4 pt-4 pb-6 gap-6">
-                <native:row class="w-full gap-3">
+                <native:row class="w-full items-stretch gap-3">
                     <x-native.ui.stat-badge
                         :value="$bestScore === null ? '—' : number_format($bestScore)"
                         label="Your best"
@@ -27,6 +27,7 @@
                         accent="amber-400"
                         accentTo="orange-500"
                         labelColor="amber-400"
+                        valueSize="text-[20]"
                     />
                 </native:row>
 
