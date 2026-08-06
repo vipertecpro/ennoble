@@ -34,7 +34,7 @@
                     <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                         How to play
                     </native:text>
-                    <x-native.ui.glow-card accent="lime-400" class="w-full gap-3 px-4 py-4">
+                    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 w-full gap-3 px-4 py-4">
                         @foreach ($steps as $index => $step)
                             <native:row class="w-full items-start gap-3">
                                 <native:column class="w-6 h-6 items-center justify-center rounded-full bg-linear-to-br from-lime-400 to-cyan-400 shadow-sm">
@@ -43,7 +43,7 @@
                                 <native:text class="flex-1 text-[13] leading-relaxed text-theme-primary-text">{{ $step }}</native:text>
                             </native:row>
                         @endforeach
-                    </x-native.ui.glow-card>
+                    </native:column>
                 </native:column>
 
                 @if (count($skills) > 0)
@@ -66,7 +66,7 @@
                         <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
                             Recent results
                         </native:text>
-                        <x-native.ui.glow-card class="w-full">
+                        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-theme-border w-full">
                             @foreach ($history as $result)
                                 <native:column class="w-full px-4 py-3 gap-1">
                                     <native:row class="w-full items-center justify-between">
@@ -85,7 +85,7 @@
                                     <native:divider />
                                 @endunless
                             @endforeach
-                        </x-native.ui.glow-card>
+                        </native:column>
                     </native:column>
                 @endif
             </native:column>

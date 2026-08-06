@@ -24,7 +24,7 @@
             eyebrow="{{ $group['earned'] }} OF {{ $group['total'] }} EARNED"
         />
 
-        <x-native.ui.glow-card :accent="'theme-'.$group['color']" class="p-4 gap-4">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-theme-{{ $group['color'] }}/40 p-4 gap-4">
             @foreach (array_chunk($group['badges'], 4) as $row)
                 <native:row class="items-start gap-3">
                     @foreach ($row as $badge)
@@ -46,7 +46,7 @@
                     @endfor
                 </native:row>
             @endforeach
-        </x-native.ui.glow-card>
+        </native:column>
     @endforeach
     @endif
 </native:column>

@@ -10,7 +10,7 @@
             retry-method="retryMyDetails"
         />
     @else
-    <x-native.ui.glow-card accent="lime-400" class="p-5">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 p-5">
     <native:column class="w-full gap-4" :animate-duration="$motionDuration">
         <x-native.onboarding.display-name-input
             :display-name="$displayName"
@@ -39,7 +39,7 @@
             />
         @endif
     </native:column>
-    </x-native.ui.glow-card>
+    </native:column>
     @endif
 </native:column>
 </native:scroll-view>

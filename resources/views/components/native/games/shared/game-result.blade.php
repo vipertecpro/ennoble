@@ -13,7 +13,7 @@
      score that pops in, three glowing stat tiles, and the play-again / done
      actions. --}}
 <native:column class="flex-1 w-full px-4 items-center justify-center gap-7">
-    <x-native.ui.glow-card accent="lime-400" class="w-full items-center gap-1 p-7">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 items-center gap-1 p-7">
         <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-accent">
             {{ $isNewBest ? 'New best score' : 'Session complete' }}
         </native:text>
@@ -28,7 +28,7 @@
             {{ number_format($score) }}
         </native:text>
         <native:text class="text-[13] text-theme-secondary-text">points</native:text>
-    </x-native.ui.glow-card>
+    </native:column>
 
     <native:row class="w-full gap-3">
         <x-native.ui.stat-badge

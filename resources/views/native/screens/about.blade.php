@@ -23,32 +23,32 @@
     </native:column>
 
     <native:column class="w-full gap-3">
-        <x-native.ui.glow-card accent="lime-400" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 ">
             <x-native.settings.about-principle-row
                 title="Offline by design"
                 description="Every exercise, score, and streak lives entirely on this device. Ennoble works with no connection at all."
                 :ios="Ios::WifiSlash"
                 :android="AndroidOutlined::CloudOff"
             />
-        </x-native.ui.glow-card>
+        </native:column>
 
-        <x-native.ui.glow-card accent="cyan-500" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-cyan-500/40 ">
             <x-native.settings.about-principle-row
                 title="Private by default"
                 description="No account, no tracking, and nothing to sign into. Your training belongs to you alone."
                 :ios="Ios::LockShield"
                 :android="AndroidOutlined::VerifiedUser"
             />
-        </x-native.ui.glow-card>
+        </native:column>
 
-        <x-native.ui.glow-card accent="amber-400" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-amber-400/40 ">
             <x-native.settings.about-principle-row
                 title="Evidence over estimates"
                 description="Progress only ever reflects training you actually completed. Nothing is inflated or invented."
                 :ios="Ios::CheckmarkSeal"
                 :android="AndroidOutlined::FactCheck"
             />
-        </x-native.ui.glow-card>
+        </native:column>
     </native:column>
 
     <native:column class="items-center gap-1">

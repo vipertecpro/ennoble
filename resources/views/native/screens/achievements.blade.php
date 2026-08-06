@@ -59,7 +59,7 @@
     {{-- Underlying training stats --}}
     <x-native.dashboard.section-header title="Your stats" />
 
-    <x-native.ui.glow-card class="p-4 gap-3">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-theme-border p-4 gap-3">
         <native:row class="gap-3">
             <x-native.games.shared.stat
                 :ios="Ios::Flame"
@@ -96,7 +96,7 @@
                 :value="$bestLabel"
             />
         </native:row>
-    </x-native.ui.glow-card>
+    </native:column>
     @endif
 </native:column>
 </native:scroll-view>

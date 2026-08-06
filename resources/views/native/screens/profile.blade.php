@@ -44,7 +44,7 @@
 
     {{-- Navigation — each row is its own glow-card with an identity accent --}}
     <native:column class="w-full gap-3">
-        <x-native.ui.glow-card accent="lime-400" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 ">
             <x-native.settings.link-row
                 label="My Details"
                 description="Your name, focus, and pace."
@@ -54,9 +54,9 @@
                 :press-scale="$pressScale"
                 :press-opacity="$pressOpacity"
             />
-        </x-native.ui.glow-card>
+        </native:column>
 
-        <x-native.ui.glow-card accent="cyan-500" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-cyan-500/40 ">
             <x-native.settings.link-row
                 label="Settings"
                 description="Appearance, feedback, and motion."
@@ -66,9 +66,9 @@
                 :press-scale="$pressScale"
                 :press-opacity="$pressOpacity"
             />
-        </x-native.ui.glow-card>
+        </native:column>
 
-        <x-native.ui.glow-card accent="amber-400" class="">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-amber-400/40 ">
             <x-native.settings.link-row
                 label="About Ennoble"
                 description="A private offline games companion."
@@ -78,7 +78,7 @@
                 :press-scale="$pressScale"
                 :press-opacity="$pressOpacity"
             />
-        </x-native.ui.glow-card>
+        </native:column>
     </native:column>
     @endif
 </native:column>
