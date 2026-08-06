@@ -2,6 +2,8 @@
 
 namespace App\NativeUI\Tokens;
 
+use Native\Mobile\Facades\System;
+
 /**
  * Gradient vocabulary — the single home for every gradient recipe.
  *
@@ -69,5 +71,17 @@ final class Gradients
     public static function gameHue(string $slug): string
     {
         return (self::GAME[$slug] ?? self::FALLBACK)[0];
+    }
+
+    /**
+     * The subtle full-screen background gradient (depth, not flat fill). Chosen
+     * by live appearance because theme-token gradient stops bake the light value.
+     * Apply on a screen's root column instead of `bg-theme-background`.
+     */
+    public static function screen(): string
+    {
+        return System::appearance() === 'dark'
+            ? 'bg-linear-to-b from-[#27272F] via-[#212121] to-[#1B1B1B]'
+            : 'bg-linear-to-b from-[#EDF0F8] via-[#FFFFFF] to-[#F6F7FB]';
     }
 }

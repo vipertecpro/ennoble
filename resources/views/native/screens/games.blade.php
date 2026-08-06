@@ -1,4 +1,6 @@
-<native:column class="h-full w-full bg-theme-background">
+@use('App\NativeUI\Tokens\Gradients')
+
+<native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
 <native:column class="w-full px-4 mt-2 mb-12 gap-4">
     @if ($libraryState === 'loading')
