@@ -15,18 +15,15 @@
     @else
     <x-native.dashboard.section-header title="Feedback" />
 
-    <x-native.ui.glow-card accent="lime-400" class="px-5 py-5 gap-4">
-        <native:column class="w-full gap-4" :animate-duration="$motionDuration">
-            <native:toggle native:model="soundEnabled" label="Sound" />
-            <native:divider />
-            <native:toggle native:model="hapticsEnabled" label="Haptics" />
-        </native:column>
-    </x-native.ui.glow-card>
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-lime-400/40 px-5 py-5 gap-4" :animate-duration="$motionDuration">
+        <native:toggle native:model="soundEnabled" label="Sound" />
+        <native:divider />
+        <native:toggle native:model="hapticsEnabled" label="Haptics" />
+    </native:column>
 
     <x-native.dashboard.section-header title="Data" />
 
-    <x-native.ui.glow-card accent="red-600" class="p-4 gap-3">
-        <native:column class="w-full gap-3" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-red-600/40 p-4 gap-3" :animate-duration="$motionDuration">
         @if ($resetArmed)
             <native:text class="text-[15] font-semibold text-theme-primary-text">Reset everything?</native:text>
             <native:text class="text-[13] leading-relaxed text-theme-secondary-text">
@@ -58,8 +55,7 @@
                 </native:row>
             </native:pressable>
         @endif
-        </native:column>
-    </x-native.ui.glow-card>
+    </native:column>
 
     <native:text class="text-[13] leading-relaxed text-center text-theme-muted-text">
         Every preference is stored only on this device.
