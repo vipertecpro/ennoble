@@ -93,7 +93,7 @@ test('the simplified home shows a single recent game, streak glance, and latest 
         ->assertScreen(Home::class)
         ->assertSee('Start playing')
         ->assertSee('Word Match')
-        ->assertDontSee('Quick Math')
+        ->assertSee('Your games')
         ->assertDontSee('Latest badge')
         ->assertSee('No badges yet')
         ->assertDontSee('TODAY’S SESSION')

@@ -51,6 +51,15 @@
         <x-native.ui.progress :value="$levelProgress" token="accent" />
     </native:column>
 
+    {{-- Lifetime stats --}}
+    <x-native.dashboard.section-header title="Lifetime stats" />
+    <native:row class="w-full gap-2.5">
+        <x-native.ui.stat-chip :value="$accuracyLabel" label="Accuracy" token="accent-cyan" :ios="Ios::Target" :android="AndroidOutlined::GpsFixed" />
+        <x-native.ui.stat-chip :value="$speedLabel" label="Speed" token="accent-violet" :ios="Ios::Bolt" :android="AndroidOutlined::Bolt" />
+        <x-native.ui.stat-chip :value="$bestLabel" label="Best" token="accent-amber" :ios="Ios::Crown" :android="AndroidOutlined::WorkspacePremium" />
+        <x-native.ui.stat-chip :value="$gamesLabel" label="Games" token="accent" :ios="Ios::Gamecontroller" :android="AndroidOutlined::SportsEsports" />
+    </native:row>
+
     {{-- Navigation — a single grouped card of list rows --}}
     <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border overflow-hidden">
         <x-native.ui.list-row

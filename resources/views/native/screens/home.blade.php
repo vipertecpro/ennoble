@@ -4,7 +4,7 @@
 
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
-<native:column class="w-full px-4 mt-4 mb-12 gap-6">
+<native:column class="w-full px-4 mt-2 mb-12 gap-5">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your home screen" />
     @elseif ($screenState === 'error')
@@ -14,7 +14,6 @@
             retry-method="retryHome"
         />
     @else
-    {{-- Consistent gamified header: greeting + streak / level pills + settings --}}
     <x-native.ui.app-header
         :eyebrow="$todayLabel"
         :title="$greeting.', '.$displayName"
@@ -22,10 +21,9 @@
         :level="$level"
     />
 
-    {{-- Recently played game (the full catalogue lives on the Games tab) --}}
+    {{-- Hero: continue the recently-played game --}}
     @if ($recentGame !== null)
         <x-native.dashboard.section-header :title="$playSectionTitle" />
-
         <x-native.dashboard.play-card
             :slug="$recentGame['slug']"
             :title="$recentGame['title']"
@@ -36,22 +34,32 @@
         />
     @endif
 
-    {{-- At a glance — glowing stat tiles (streak + games) --}}
-    <native:row class="w-full gap-3" :animate-duration="$motionDuration">
-        <native:column class="flex-1 items-center gap-2 rounded-3xl bg-linear-to-b from-orange-500/40 via-red-600/12 to-transparent border border-orange-500/50 shadow-lg py-5 px-3">
-            <native:lottie-player source="flame" loop class="w-12 h-12" alt="Streak flame" />
-            <native:text font="numeric" class="text-[34] leading-none text-theme-primary-text">{{ $currentStreak }}</native:text>
-            <native:text class="text-[11] font-semibold uppercase tracking-widest text-orange-400">Day streak</native:text>
-        </native:column>
-
-        <native:column class="flex-1 items-center gap-2 rounded-3xl bg-linear-to-b from-lime-400/40 via-cyan-500/12 to-transparent border border-lime-400/50 shadow-lg py-5 px-3">
-            <native:lottie-player source="gaming" loop class="w-12 h-12" alt="Games played" />
-            <native:text font="numeric" class="text-[34] leading-none text-theme-primary-text">{{ $gamesPlayed }}</native:text>
-            <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">Games played</native:text>
-        </native:column>
+    {{-- Compact 3-up stat strip --}}
+    <native:row class="w-full gap-2.5" :animate-duration="$motionDuration">
+        <x-native.ui.stat-chip
+            :value="$currentStreak"
+            label="Streak"
+            token="accent-amber"
+            :ios="Ios::FlameFill"
+            :android="Android::LocalFireDepartment"
+        />
+        <x-native.ui.stat-chip
+            :value="$gamesPlayed"
+            label="Games"
+            token="accent"
+            :ios="Ios::GamecontrollerFill"
+            :android="Android::SportsEsports"
+        />
+        <x-native.ui.stat-chip
+            :value="$accuracyLabel"
+            label="Accuracy"
+            token="accent-cyan"
+            :ios="Ios::Target"
+            :android="AndroidOutlined::GpsFixed"
+        />
     </native:row>
 
-    {{-- Level / XP — the header pill's story, expanded --}}
+    {{-- Level / XP --}}
     <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border shadow-md px-4 py-4 gap-2.5">
         <native:row class="w-full items-center">
             <native:text class="flex-1 text-[13.5] font-semibold text-theme-primary-text">Level {{ $level }} · {{ $levelTitle }}</native:text>
@@ -60,7 +68,19 @@
         <x-native.ui.progress :value="$levelProgress" token="accent" />
     </native:column>
 
-    {{-- Latest badge — a tappable list row into the Badges screen --}}
+    {{-- Your games — horizontal carousel --}}
+    @if (count($games) > 0)
+        <x-native.dashboard.section-header title="Your games" />
+        <native:scroll-view horizontal :shows-indicators="false" class="w-full">
+            <native:row class="items-stretch gap-2.5 pr-4">
+                @foreach ($games as $game)
+                    <x-native.games.shared.game-card :game="$game" />
+                @endforeach
+            </native:row>
+        </native:scroll-view>
+    @endif
+
+    {{-- Latest badge --}}
     <native:column class="w-full rounded-2xl bg-theme-surface-elevated border border-theme-border overflow-hidden">
         <x-native.ui.list-row
             :ios="Ios::Rosette"

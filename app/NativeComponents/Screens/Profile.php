@@ -6,6 +6,7 @@ use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Progression\LevelService;
 use App\Domain\Settings\SettingsService;
+use App\Domain\Statistics\StatisticsService;
 use App\Models\Profile as LocalProfile;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
@@ -40,6 +41,14 @@ final class Profile extends NativeComponent
     public string $levelTitle = 'Warming up';
 
     public string $xpLabel = '';
+
+    public string $accuracyLabel = '—';
+
+    public string $speedLabel = '—';
+
+    public string $bestLabel = '—';
+
+    public string $gamesLabel = '0';
 
     public bool $reducedMotion = false;
 
@@ -165,6 +174,15 @@ final class Profile extends NativeComponent
             $this->levelProgress = $progression['progress'];
             $this->levelTitle = $progression['title'];
             $this->xpLabel = $progression['into'].' / '.$progression['span'].' XP';
+
+            $overview = app(StatisticsService::class)->overview($profile);
+            $this->accuracyLabel = $overview?->accuracy === null ? '—' : round($overview->accuracy).'%';
+            $averageMs = $overview?->average_response_ms;
+            $this->speedLabel = $averageMs === null
+                ? '—'
+                : ($averageMs < 1000 ? $averageMs.'ms' : number_format($averageMs / 1000, 1).'s');
+            $this->bestLabel = ($overview?->best_score ?? 0) > 0 ? number_format($overview->best_score) : '—';
+            $this->gamesLabel = (string) ($overview?->sessions_completed ?? 0);
         } catch (Throwable $exception) {
             report($exception);
 

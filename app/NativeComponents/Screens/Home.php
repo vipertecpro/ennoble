@@ -57,6 +57,13 @@ final class Home extends NativeComponent
 
     public string $xpLabel = '';
 
+    public string $accuracyLabel = '—';
+
+    /**
+     * @var list<array{slug: string, title: string, best_score: int|null}>
+     */
+    public array $games = [];
+
     public ?string $achievementTitle = null;
 
     public ?string $achievementDescription = null;
@@ -119,7 +126,7 @@ final class Home extends NativeComponent
      */
     public function openGame(string $slug): void
     {
-        if ($this->recentGame === null || $this->recentGame['slug'] !== $slug) {
+        if (! collect($this->games)->contains('slug', $slug)) {
             return;
         }
 
@@ -215,6 +222,12 @@ final class Home extends NativeComponent
 
         $previews = app(StatisticsService::class)->gamePreviews($profile);
 
+        $this->games = $games->map(fn (Game $game): array => [
+            'slug' => $game->slug,
+            'title' => $game->name,
+            'best_score' => $previews->get($game->getKey())['best_score'] ?? null,
+        ])->values()->all();
+
         // The most recently played game leads; before any play, the first game does.
         $recent = $games
             ->sortByDesc(function (Game $game) use ($previews): int {
@@ -257,6 +270,7 @@ final class Home extends NativeComponent
         $overview = app(StatisticsService::class)->overview($profile);
         $this->currentStreak = $overview?->current_streak ?? 0;
         $this->gamesPlayed = $overview?->sessions_completed ?? 0;
+        $this->accuracyLabel = $overview?->accuracy === null ? '—' : round($overview->accuracy).'%';
 
         $progression = app(LevelService::class)->forProfile($profile);
         $this->level = $progression['level'];
