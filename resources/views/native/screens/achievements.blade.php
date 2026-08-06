@@ -2,9 +2,9 @@
 @use('App\Icons\Ios')
 @use('App\NativeUI\Tokens\Gradients')
 
-<native:column class="h-full w-full {{ Gradients::screen() }}">
+<native:column class="h-full w-full safe-area-top {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-7 mb-12 gap-6">
+<native:column class="w-full px-4 mt-2 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your achievements" />
     @elseif ($screenState === 'error')
