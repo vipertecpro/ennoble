@@ -4,7 +4,7 @@
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-7 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your profile" />
     @elseif ($screenState === 'error')
@@ -14,33 +14,47 @@
             retry-method="retryProfile"
         />
     @else
-    {{-- Identity hero — vibrant lime → cyan gradient with a glowing border --}}
-    <native:column class="w-full items-center rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-400/18 to-transparent border {{ Gradients::hairline() }} shadow-lg py-7" :animate-duration="$motionDuration">
-    <native:column class="w-full px-4 items-center gap-4">
-        <native:column class="w-20 h-20 items-center justify-center rounded-full bg-theme-surface-elevated border-2 border-lime-400/50 shadow-lg">
-            @if ($monogram !== '')
-                <native:text font="headline" class="text-[24] text-theme-primary-text">{{ $monogram }}</native:text>
-            @else
-                <x-native.ui.icon
-                    :ios="Ios::Person"
-                    :android="AndroidOutlined::Person"
-                    :size="32"
-                    a11y-label="Local profile"
-                />
-            @endif
-        </native:column>
+    {{-- Identity card — the profile's own header: avatar + name/meta on the left,
+         a settings gear on the right, goal + pace as hairline pills below. No
+         separate "Profile" title line — the tab already names the screen. --}}
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-rose-500/26 via-rose-500/15 to-transparent border {{ Gradients::hairline() }} p-4 gap-3.5" :animate-duration="$motionDuration">
+        <native:row class="w-full items-center gap-3.5">
+            <native:column class="w-16 h-16 items-center justify-center rounded-2xl bg-theme-surface-elevated border-2 border-rose-500/50 shadow-md">
+                @if ($monogram !== '')
+                    <native:text font="headline" class="text-[22] text-theme-primary-text">{{ $monogram }}</native:text>
+                @else
+                    <x-native.ui.icon
+                        :ios="Ios::Person"
+                        :android="AndroidOutlined::Person"
+                        :size="28"
+                        a11y-label="Local profile"
+                    />
+                @endif
+            </native:column>
 
-        <native:column class="items-center gap-1">
-            <native:text font="headline" class="text-[19] tracking-tight leading-tight text-center text-theme-primary-text">{{ $identityName }}</native:text>
-            <native:text class="text-[13] text-theme-muted-text">{{ $memberSince }}</native:text>
-        </native:column>
+            <native:column class="flex-1 gap-0.5">
+                <native:text font="headline" class="text-[20] tracking-tight leading-tight text-theme-primary-text">{{ $identityName }}</native:text>
+                <native:text class="text-[13] text-theme-muted-text">{{ $memberSince }}</native:text>
+            </native:column>
 
-        <native:column class="items-center rounded-full bg-lime-400/15 border border-lime-400/30 px-4 py-1">
-            <native:text class="text-[13] font-semibold text-theme-secondary-text">
-                {{ $goalLabel }} · {{ $paceLabel }}
-            </native:text>
-        </native:column>
-    </native:column>
+            <x-native.ui.icon-button
+                :ios="Ios::Gearshape"
+                :android="AndroidOutlined::Settings"
+                method="openSettings"
+                a11y-label="Settings"
+            />
+        </native:row>
+
+        <native:row class="items-center gap-2">
+            <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border {{ Gradients::hairline() }} px-3 py-1.5">
+                <native:icon :ios="Ios::Target" :android="AndroidOutlined::GpsFixed" :size="13" class="text-theme-accent" />
+                <native:text class="text-[13] font-semibold text-theme-secondary-text">{{ $goalLabel }}</native:text>
+            </native:row>
+            <native:row class="items-center gap-1.5 rounded-full bg-theme-surface-elevated border {{ Gradients::hairline() }} px-3 py-1.5">
+                <native:icon :ios="Ios::Bolt" :android="AndroidOutlined::Bolt" :size="13" class="text-theme-accent-cyan" />
+                <native:text class="text-[13] font-semibold text-theme-secondary-text">{{ $paceLabel }}</native:text>
+            </native:row>
+        </native:row>
     </native:column>
 
     {{-- Level / XP --}}
@@ -66,7 +80,7 @@
         <x-native.ui.list-row
             :ios="Ios::PersonTextRectangle"
             :android="AndroidOutlined::Badge"
-            iconSolid="bg-linear-to-br from-lime-400 to-cyan-400"
+            iconSolid="bg-linear-to-br from-rose-500 to-orange-400"
             title="My Details"
             subtitle="Your name, focus, and pace"
             chevron

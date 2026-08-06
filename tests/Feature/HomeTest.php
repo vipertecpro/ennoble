@@ -94,7 +94,7 @@ test('the native tab bar exposes all destinations and tracks the active route', 
         ->assertElement('bottom_nav')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Home')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Games')
-        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Achievements')
+        ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Badges')
         ->assertElement('bottom_nav_item', fn (array $node): bool => data_get($node, 'props.label') === 'Profile')
         ->assertElement(
             'bottom_nav_item',
@@ -104,7 +104,7 @@ test('the native tab bar exposes all destinations and tracks the active route', 
 })->with([
     'home' => ['/', 'Home'],
     'games' => ['/games', 'Games'],
-    'achievements' => ['/achievements', 'Achievements'],
+    'achievements' => ['/achievements', 'Badges'],
     'profile' => ['/profile', 'Profile'],
 ]);
 

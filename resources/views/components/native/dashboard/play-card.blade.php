@@ -16,7 +16,7 @@
 ])
 
 <native:pressable
-    class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border {{ Gradients::hairline() }} shadow-lg p-5"
+    class="w-full rounded-3xl bg-linear-to-br from-rose-500/28 via-rose-500/18 to-transparent {{ Gradients::hairline() }} p-3"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"
@@ -24,8 +24,8 @@
     a11y-hint="Opens the {{ $title }} game"
     @press="openGame('{{ $slug }}')"
 >
-    <native:column class="w-full gap-4">
-        <native:row class="items-center gap-4">
+    <native:column class="w-full gap-2">
+        <native:row class="items-center gap-2">
             <x-native.games.shared.illustration :slug="$slug" :motion-duration="$motionDuration" :animated="true" />
             <native:column class="flex-1 gap-1">
                 <native:text class="text-[19] font-bold tracking-tight text-theme-primary-text">{{ $title }}</native:text>
@@ -35,7 +35,7 @@
 
         {{-- Glossy gradient Play CTA (the whole card is tappable; this is the
              visual call to action). --}}
-        <native:column class="w-full rounded-full bg-linear-to-r from-lime-400 to-cyan-400 shadow-lg py-3 items-center">
+        <native:column class="w-full rounded-full bg-linear-to-r from-rose-500 to-orange-400 shadow-lg py-3 items-center">
             <native:text class="text-[15] font-bold tracking-tight text-black">Play</native:text>
         </native:column>
     </native:column>

@@ -44,7 +44,7 @@
             <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $game['title'] }}</native:text>
             <native:text class="text-[12] text-theme-muted-text">{{ $line }}</native:text>
         </native:column>
-        <native:column class="w-9 h-9 items-center justify-center rounded-xl {{ Gradients::CTA }}">
+        <native:column class="w-9 h-9 items-center justify-center rounded-xl {{ Gradients::cta() }}">
             <native:icon :ios="Ios::PlayFill" :android="AndroidOutlined::PlayArrow" :size="16" class="text-black" />
         </native:column>
     </native:row>

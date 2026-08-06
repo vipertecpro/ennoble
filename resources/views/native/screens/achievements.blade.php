@@ -4,7 +4,7 @@
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-7 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your achievements" />
     @elseif ($screenState === 'error')
@@ -14,16 +14,9 @@
             retry-method="retryAchievements"
         />
     @else
-    <x-native.ui.app-header
-        eyebrow="Your progress"
-        title="Badges"
-        :streak="$streakLabel"
-        :level="$level"
-    />
-
     {{-- Hero: total badges + Bronze/Silver/Gold tier gauges. Counts sit dead
          centre and the dial font auto-scales, so higher counts never overflow. --}}
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/40 via-cyan-500/18 to-transparent border {{ Gradients::hairline() }} shadow-lg py-5 px-4 gap-4" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-rose-500/28 via-rose-500/18 to-transparent border {{ Gradients::hairline() }} py-5 px-4 gap-4" :animate-duration="$motionDuration">
         <native:column class="w-full gap-1">
             <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-accent">Badges earned</native:text>
             <native:row class="items-end gap-1.5">
@@ -34,24 +27,28 @@
 
         <x-native.ui.progress :value="$totalProgress" token="accent" />
 
-        <native:row class="w-full gap-2">
+        {{-- Native tier summary (earned/total + tinted progress). Purely native
+             elements — no WebView — so the screen can't crash the render process
+             on scroll the way multiple SVG-in-WebView dials did. --}}
+        <native:row class="w-full gap-3">
             @foreach ($tierSummary as $tier)
                 @php
-                    $gaugeColor = match (strtolower($tier['label'])) {
-                        'bronze' => '#D08A5C',
-                        'silver' => '#C3C8D0',
-                        'gold' => '#E7C24B',
-                        default => '#C5DB55',
+                    // Tier colours come from the theme tokens in native-ui.php.
+                    $tierToken = match (strtolower($tier['label'])) {
+                        'bronze' => 'badge-bronze',
+                        'silver' => 'badge-silver',
+                        'gold' => 'badge-gold',
+                        default => 'accent',
                     };
+                    $tierFraction = $tier['total'] > 0 ? $tier['earned'] / $tier['total'] : 0;
                 @endphp
-                <native:column class="flex-1 items-center">
-                    <x-native.games.shared.gauge
-                        :value="$tier['earned']"
-                        :fraction="$tier['total'] > 0 ? $tier['earned'] / $tier['total'] : 0"
-                        :color="$gaugeColor"
-                        :label="$tier['label']"
-                        size="w-16 h-16"
-                    />
+                <native:column class="flex-1 items-center gap-2 rounded-2xl bg-theme-surface border {{ Gradients::hairline() }} py-3 px-3">
+                    <native:row class="items-end gap-0.5">
+                        <native:text font="numeric" class="text-[22] leading-none text-theme-primary-text">{{ $tier['earned'] }}</native:text>
+                        <native:text class="text-[11] text-theme-muted-text">/{{ $tier['total'] }}</native:text>
+                    </native:row>
+                    <native:text class="text-[10] font-semibold uppercase tracking-widest text-theme-muted-text">{{ $tier['label'] }}</native:text>
+                    <x-native.ui.progress :value="$tierFraction" :token="$tierToken" />
                 </native:column>
             @endforeach
         </native:row>

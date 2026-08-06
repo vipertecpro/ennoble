@@ -15,8 +15,10 @@
 @props([
     'eyebrow' => null,
     'title' => '',
+    'titleLine2' => null,
     'streak' => null,
     'level' => null,
+    'settings' => true,
     'settingsMethod' => 'openSettings',
 ])
 
@@ -25,7 +27,10 @@
         @if ($eyebrow)
             <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">{{ $eyebrow }}</native:text>
         @endif
-        <native:text font="headline" class="text-[22] tracking-tight text-theme-primary-text">{{ $title }}</native:text>
+        <native:text font="headline" class="text-[22] tracking-tight leading-tight text-theme-primary-text">{{ $title }}</native:text>
+        @if ($titleLine2)
+            <native:text font="headline" class="text-[22] tracking-tight leading-tight text-theme-primary-text">{{ $titleLine2 }}</native:text>
+        @endif
     </native:column>
 
     @if ($streak !== null)
@@ -42,10 +47,12 @@
         </native:row>
     @endif
 
-    <x-native.ui.icon-button
-        :ios="Ios::Gearshape"
-        :android="AndroidOutlined::Settings"
-        :method="$settingsMethod"
-        a11y-label="Settings"
-    />
+    @if ($settings)
+        <x-native.ui.icon-button
+            :ios="Ios::Gearshape"
+            :android="AndroidOutlined::Settings"
+            :method="$settingsMethod"
+            a11y-label="Settings"
+        />
+    @endif
 </native:row>

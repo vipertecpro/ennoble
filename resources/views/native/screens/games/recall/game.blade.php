@@ -51,14 +51,14 @@
                     <native:column class="items-center gap-2">
                         <native:text
                             native:key="recall-label-{{ $phase }}-{{ $feedbackTone }}-{{ $feedbackSerial }}"
-                            class="text-[13] font-semibold uppercase tracking-widest {{ $feedbackTone === 'wrong' ? 'text-theme-danger' : 'text-lime-400' }}"
+                            class="text-[13] font-semibold uppercase tracking-widest {{ $feedbackTone === 'wrong' ? 'text-theme-danger' : 'text-rose-500' }}"
                         >
                             {{ $label }}
                         </native:text>
 
                         <native:row class="items-center gap-1" a11y-label="{{ $enteredCount }} of {{ $length }} tapped">
                             @for ($step = 0; $step < $length; $step++)
-                                <native:column class="w-2 h-2 rounded-full {{ $phase === 'recall' && $step < $enteredCount ? 'bg-lime-400' : 'bg-theme-divider' }}" />
+                                <native:column class="w-2 h-2 rounded-full {{ $phase === 'recall' && $step < $enteredCount ? 'bg-rose-500' : 'bg-theme-divider' }}" />
                             @endfor
                         </native:row>
                     </native:column>

@@ -13,8 +13,8 @@
 @php
     $rows = [[7, 8, 9], [4, 5, 6], [1, 2, 3]];
     $keyBase = 'flex-1 h-16 items-center justify-center rounded-2xl border shadow-sm';
-    $keyFill = 'bg-theme-surface border-lime-400/15';
-    $submitFill = 'bg-linear-to-r from-lime-400 to-cyan-400 border-lime-300/50 shadow-lg';
+    $keyFill = 'bg-theme-surface border-rose-500/15';
+    $submitFill = 'bg-linear-to-r from-rose-500 to-orange-400 border-rose-400/50 shadow-lg';
     $digitInk = 'text-[30] font-bold text-theme-primary-text';
     $pressScale = ($disabled || $reducedMotion) ? 1.0 : 0.9;
     $dim = $disabled ? 'opacity-40' : '';

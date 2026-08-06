@@ -16,7 +16,7 @@
 @php
     $tokens = Theme::all();
     $fill = data_get($tokens, "light.{$token}")
-        ?? data_get($tokens, 'light.accent', '#C5DB55');
+        ?? data_get($tokens, 'light.accent', '#F43F5E');
     $fraction = max(0.0, min(1.0, (float) $value));
 @endphp
 

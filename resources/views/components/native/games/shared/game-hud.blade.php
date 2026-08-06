@@ -40,7 +40,7 @@
         a11y-label="Back to games"
         a11y-hint="Leaves this game"
         :press-scale="0.9"
-        class="w-10 h-10 items-center justify-center rounded-full bg-theme-surface-variant border border-lime-400/25 shadow-lg"
+        class="w-10 h-10 items-center justify-center rounded-full bg-theme-surface-variant border border-rose-500/25 shadow-lg"
     >
         <x-native.ui.icon
             :ios="Ios::ChevronLeft"
@@ -54,7 +54,7 @@
     @if ($combo >= 2)
         <native:column
             native:key="combo-{{ $combo }}"
-            class="rounded-full bg-linear-to-r from-lime-400/30 to-cyan-400/20 border border-lime-400/40 shadow-lg px-2.5 py-1"
+            class="rounded-full bg-linear-to-r from-rose-500/30 to-orange-400/20 border border-rose-500/40 shadow-lg px-2.5 py-1"
             :scale="1.08"
             :animate-duration="$motionDuration"
             animate-easing="ease-out"

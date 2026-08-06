@@ -54,7 +54,7 @@
                 </native:column>
 
                 <native:column class="flex-1 w-full px-4 items-center justify-center gap-6">
-                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-lime-400">Solve</native:text>
+                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-rose-500">Solve</native:text>
 
                     <x-native.games.quick-math.equation
                         :expression="$expression"
@@ -92,7 +92,7 @@
                             <x-native.ui.gradient-button label="Continue" press="continueRound" />
                             <native:progress-bar
                                 :value="$continueTotal > 0 ? $continueTicks / $continueTotal : 0"
-                                color="#C5DB55"
+                                color="{{ theme('accent') }}"
                                 class="w-full"
                                 a11y-label="Auto-continuing"
                             />

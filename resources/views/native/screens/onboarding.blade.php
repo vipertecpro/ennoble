@@ -21,8 +21,10 @@
 --}}
 <native:column class="h-full w-full {{ Gradients::screen() }} {{ $this->appliesManualSafeArea() ? 'safe-area' : '' }}">
 
-    {{-- Fixed header — progress rail stays put while content scrolls --}}
-    <native:column class="w-full px-4 pt-2 pb-3 bg-theme-background">
+    {{-- Fixed header — progress rail stays put while content scrolls. No opaque
+         fill: the screen gradient (root) shows through, matching every other
+         screen; nothing scrolls behind this band, so no cover fill is needed. --}}
+    <native:column class="w-full px-4 pt-2 pb-4">
         <x-native.onboarding.progress
             :current-step="$currentStep"
             :total-steps="Onboarding::TOTAL_STEPS"
@@ -46,25 +48,27 @@
                 :ios="Ios::BrainHeadProfile"
                 :android="AndroidOutlined::Psychology"
                 a11y-label="Ennoble brain training"
+                tone="lime"
                 :animated="true"
                 :motion-duration="$this->motionDuration(MotionToken::Slow)"
             />
 
             <native:column class="w-full items-center gap-2">
-                <native:text class="w-full text-[26] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
+                <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-center text-theme-primary-text">
                     Train a sharper mind.
                 </native:text>
-                <native:text class="w-full text-[15] leading-relaxed text-center text-theme-secondary-text">
+                <native:text class="w-full text-[13] leading-relaxed text-center text-theme-secondary-text">
                     Short, private exercises designed for calm daily progress.
                 </native:text>
             </native:column>
         </native:column>
     @else
-    {{-- Scrollable step content --}}
-    <native:scroll-view class="flex-1 bg-theme-background" :shows-indicators="false">
+    {{-- Scrollable step content — transparent so the root screen gradient shows
+         through, matching the canonical screens. --}}
+    <native:scroll-view class="flex-1" :shows-indicators="false">
     <native:column
         native:key="onboarding-step-{{ $currentStep }}"
-        class="w-full px-4 pt-4 pb-6 gap-6"
+        class="w-full px-4 pt-6 pb-6 gap-6"
         :translate-x="$reducedMotion ? 0 : 8"
         :opacity="$reducedMotion ? 1 : 0.98"
         :animate-duration="$this->motionDuration()"
@@ -76,13 +80,14 @@
                     :ios="Ios::Scope"
                     :android="AndroidOutlined::CenterFocusStrong"
                     a11y-label="Choose a training focus"
+                    tone="cyan"
                     :motion-duration="$this->motionDuration()"
                     compact
                 />
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-theme-primary-text">
                     What should we train first?
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
@@ -90,8 +95,8 @@
                 </native:text>
             </native:column>
 
-            <native:column class="w-full gap-4">
-                <native:radio-group native:model="trainingGoal" label="Training focus">
+            <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} p-5">
+                <native:radio-group native:model="trainingGoal" a11y-label="Training focus">
                     <native:radio value="focus" label="Focus" />
                     <native:radio value="thinking_speed" label="Thinking speed" />
                     <native:radio value="language" label="Communication" />
@@ -105,13 +110,14 @@
                     :ios="Ios::GaugeOpenWithLinesNeedle33percent"
                     :android="AndroidOutlined::Speed"
                     a11y-label="Choose your difficulty"
+                    tone="violet"
                     :motion-duration="$this->motionDuration()"
                     compact
                 />
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-theme-primary-text">
                     Choose your difficulty.
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
@@ -119,8 +125,8 @@
                 </native:text>
             </native:column>
 
-            <native:column class="w-full gap-4">
-                <native:radio-group native:model="difficulty" label="Difficulty">
+            <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} p-5">
+                <native:radio-group native:model="difficulty" a11y-label="Difficulty">
                     <native:radio value="beginner" label="Beginner" />
                     <native:radio value="intermediate" label="Intermediate" />
                     <native:radio value="advanced" label="Advanced" />
@@ -132,13 +138,14 @@
                     :ios="Ios::PersonCropCircle"
                     :android="AndroidOutlined::Person"
                     a11y-label="Local profile"
+                    tone="amber"
                     :motion-duration="$this->motionDuration()"
                     compact
                 />
             </native:column>
 
             <native:column class="w-full gap-2">
-                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-theme-primary-text">
                     What should we call you?
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
@@ -159,7 +166,7 @@
                  viewport, clipping the halo mid-circle. Dropping the decoration
                  lets the whole step sit in view without scrolling. --}}
             <native:column class="w-full gap-2 pt-2">
-                <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-theme-primary-text">
+                <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-theme-primary-text">
                     Make it feel right.
                 </native:text>
                 <native:text class="w-full text-[13] leading-relaxed text-theme-secondary-text">
@@ -170,11 +177,9 @@
             {{-- Sound and haptics grouped under a Cortex ALL-CAPS section
                  label. Appearance is not offered here: the app follows the
                  device's Light/Dark setting so every surface stays coherent. --}}
-            <native:column class="w-full gap-2">
-                <native:text class="w-full text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
-                    Feedback
-                </native:text>
-                <native:column class="w-full gap-3 rounded-2xl bg-theme-surface shadow-sm px-4 py-2">
+            <native:column class="w-full gap-3">
+                <x-native.dashboard.section-header title="Feedback" />
+                <native:column class="w-full gap-4 rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} px-5 py-5">
                     <native:toggle native:model="soundEnabled" label="Sound" />
                     <native:divider />
                     <native:toggle native:model="hapticsEnabled" label="Haptics" />
@@ -186,12 +191,13 @@
                     :ios="Ios::CheckmarkSeal"
                     :android="AndroidOutlined::Verified"
                     a11y-label="Training setup complete"
+                    tone="lime"
                     :animated="true"
                     :motion-duration="$this->motionDuration(MotionToken::Success)"
                 />
 
                 <native:column class="w-full items-center gap-2">
-                    <native:text class="w-full text-[22] font-bold tracking-tight leading-tight text-center text-theme-primary-text">
+                    <native:text font="headline" class="w-full text-[22] tracking-tight leading-tight text-center text-theme-primary-text">
                         Ready for day one.
                     </native:text>
                     <native:text class="w-full text-[13] leading-relaxed text-center text-theme-secondary-text">
@@ -200,7 +206,7 @@
                 </native:column>
             </native:column>
 
-            <native:column class="w-full gap-1 rounded-2xl bg-theme-surface shadow-sm px-4 py-2">
+            <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} px-5 py-1">
                 <x-native.onboarding.summary-row label="Name" :value="$this->displayNameSummary()" />
                 <native:divider />
                 <x-native.onboarding.summary-row label="Focus" :value="$this->trainingGoalLabel()" />
@@ -214,9 +220,9 @@
 
     {{-- Fixed footer — one full-width primary action, a quiet Back beneath it,
          inside the same px-4 screen gutters as the content above. --}}
-    <native:column ref="onboarding-actions" class="w-full px-4 pt-3 pb-8 gap-2 bg-theme-background">
+    <native:column ref="onboarding-actions" class="w-full px-4 pt-3 pb-8 gap-2">
         @if ($errorMessage)
-            <native:column class="w-full rounded-2xl bg-theme-secondary-surface p-4">
+            <native:column class="w-full rounded-2xl bg-red-500/10 border border-red-500/30 p-4">
                 <native:text class="w-full text-[13] font-semibold text-theme-danger">
                     {{ $errorMessage }}
                 </native:text>

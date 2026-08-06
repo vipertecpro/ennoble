@@ -4,9 +4,9 @@
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-4 mb-12 gap-6">
     <native:column class="items-center gap-4">
-        <native:column class="w-20 h-20 items-center justify-center rounded-3xl bg-linear-to-br from-lime-400/40 to-cyan-500/20 border border-lime-400/50 shadow-lg">
+        <native:column class="w-20 h-20 items-center justify-center rounded-3xl bg-linear-to-br from-rose-500/40 to-orange-400/20 border border-rose-500/50 shadow-lg">
             <x-native.ui.icon
                 :ios="Ios::BrainHeadProfile"
                 :android="AndroidOutlined::Psychology"
@@ -52,9 +52,9 @@
         </native:column>
     </native:column>
 
-    <native:column class="items-center gap-1">
-        <native:text class="text-[13] font-semibold text-theme-muted-text">{{ $versionLabel }}</native:text>
-        <native:text class="text-[13] text-theme-muted-text">Crafted for quiet, focused minds.</native:text>
+    <native:column class="w-full items-center gap-1">
+        <native:text class="w-full text-center text-[13] font-semibold text-theme-muted-text">{{ $versionLabel }}</native:text>
+        <native:text class="w-full text-center text-[13] text-theme-muted-text">Crafted for quiet, focused minds.</native:text>
     </native:column>
 </native:column>
 </native:scroll-view>

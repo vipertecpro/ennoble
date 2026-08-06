@@ -18,6 +18,7 @@ use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Carbon\CarbonInterface;
+use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
@@ -35,6 +36,8 @@ final class Home extends NativeComponent
     public string $displayName = 'friend';
 
     public string $todayLabel = '';
+
+    public string $currentTime = '';
 
     public string $greetingMessage = 'Pick a game and take a focused few minutes.';
 
@@ -108,6 +111,15 @@ final class Home extends NativeComponent
     public function onResume(): void
     {
         $this->loadHome();
+    }
+
+    /**
+     * Tick the header's live device clock — updates the shown time every second.
+     */
+    #[Poll(1000)]
+    public function tickClock(): void
+    {
+        $this->currentTime = now()->format('g:i:s');
     }
 
     /**
@@ -190,6 +202,7 @@ final class Home extends NativeComponent
             $this->greeting = $greetings->greeting(now());
             $this->displayName = $greetings->displayName($profile->display_name);
             $this->todayLabel = now()->format('l, M j');
+            $this->currentTime = now()->format('g:i:s');
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0

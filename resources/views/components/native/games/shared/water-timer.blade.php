@@ -58,12 +58,12 @@ html,body{width:100%;height:100%;background:transparent;overflow:hidden}
 <div class="water">
   <div class="surface">
     <div class="wave w1">
-      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 2 35 2 50 10 C65 18 85 18 100 10 V20 H0 Z" fill="#C5DB55" fill-opacity="0.7"/></svg>
-      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 2 35 2 50 10 C65 18 85 18 100 10 V20 H0 Z" fill="#C5DB55" fill-opacity="0.7"/></svg>
+      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 2 35 2 50 10 C65 18 85 18 100 10 V20 H0 Z" fill="#F43F5E" fill-opacity="0.7"/></svg>
+      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 2 35 2 50 10 C65 18 85 18 100 10 V20 H0 Z" fill="#F43F5E" fill-opacity="0.7"/></svg>
     </div>
     <div class="wave w2">
-      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 18 35 18 50 10 C65 2 85 2 100 10 V20 H0 Z" fill="#C5DB55" fill-opacity="0.9"/></svg>
-      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 18 35 18 50 10 C65 2 85 2 100 10 V20 H0 Z" fill="#C5DB55" fill-opacity="0.9"/></svg>
+      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 18 35 18 50 10 C65 2 85 2 100 10 V20 H0 Z" fill="#F43F5E" fill-opacity="0.9"/></svg>
+      <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 C15 18 35 18 50 10 C65 2 85 2 100 10 V20 H0 Z" fill="#F43F5E" fill-opacity="0.9"/></svg>
     </div>
   </div>
 </div>

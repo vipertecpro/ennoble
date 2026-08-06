@@ -40,8 +40,8 @@ test('explicit appearance preferences apply one semantic palette to both rendere
         ->and($tokens['dark']['primary'])->toBe($expectedPrimary)
         ->and(Theme::get('color-scheme'))->toBe($preference->value);
 })->with([
-    'light' => [ThemePreference::Light, '#1B1B1F'],
-    'dark' => [ThemePreference::Dark, '#C5DB55'],
+    'light' => [ThemePreference::Light, '#E11D48'],
+    'dark' => [ThemePreference::Dark, '#F43F5E'],
 ]);
 
 test('changing appearance clears parsed semantic colors before the next native frame', function () {
@@ -53,7 +53,7 @@ test('changing appearance clears parsed semantic colors before the next native f
     app(ThemeManager::class)->apply(ThemePreference::Dark);
 
     expect(TailwindParser::parse('bg-theme-background'))
-        ->toMatchArray(['bg' => '#212121']);
+        ->toMatchArray(['bg' => '#0F172A']);
 });
 
 test('system preference preserves distinct light and dark semantic palettes', function () {
@@ -61,7 +61,7 @@ test('system preference preserves distinct light and dark semantic palettes', fu
     $tokens = Theme::all();
 
     expect($tokens['light']['background'])->toBe('#FFFFFF')
-        ->and($tokens['dark']['background'])->toBe('#212121')
+        ->and($tokens['dark']['background'])->toBe('#0F172A')
         ->and($tokens['light']['background'])->not->toBe($tokens['dark']['background'])
         ->and(Theme::get('color-scheme'))->toBe('system');
 });
@@ -115,49 +115,9 @@ test('design tokens expose the complete reusable foundation', function () {
     expect(DesignTokens::SEMANTIC_COLORS)->toHaveCount(23)
         ->and($theme['light'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
         ->and($theme['dark'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
-        ->and(DesignTokens::TYPOGRAPHY)->toHaveKeys([
-            'display-xl',
-            'display-large',
-            'headline',
-            'title',
-            'section',
-            'body',
-            'body-small',
-            'caption',
-            'button',
-            'badge',
-            'numeric',
-        ])
         ->and(DesignTokens::SPACING)->toHaveKeys(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'])
-        ->and(DesignTokens::LAYOUT_SPACING)->toHaveKeys(['screen-margin', 'section', 'card', 'content', 'compact', 'touch'])
-        ->and(DesignTokens::CORNER_RADII)->toHaveKeys(['small', 'medium', 'large', 'full'])
-        ->and(DesignTokens::ELEVATION)->toHaveKeys(['none', 'low', 'medium', 'high'])
         ->and(DesignTokens::MOTION_DURATION)->toHaveKeys(['fast', 'normal', 'slow', 'spring', 'success', 'error'])
         ->and(DesignTokens::OPACITY)->toHaveKeys(['disabled', 'muted', 'overlay', 'pressed'])
-        ->and(DesignTokens::CARD_VARIANTS)->toHaveKeys([
-            'hero',
-            'game',
-            'metric',
-            'achievement',
-            'coming-soon',
-            'standard',
-        ])
-        ->and(DesignTokens::CARD_CONTENT_VARIANTS)->toHaveKeys([
-            'hero',
-            'game',
-            'metric',
-            'achievement',
-            'coming-soon',
-            'standard',
-        ])
-        ->and(DesignTokens::CARD_INSET_VARIANTS)->toHaveKeys([
-            'hero',
-            'game',
-            'metric',
-            'achievement',
-            'coming-soon',
-            'standard',
-        ])
         ->and(DesignTokens::ICON_SIZE)->toHaveKeys(['small', 'medium', 'large', 'hero'])
         ->and(DesignTokens::SCREEN_PADDING)->toBe(16)
         ->and(DesignTokens::COMPONENT_SPACING)->toBe(16)

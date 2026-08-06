@@ -13,33 +13,29 @@
         </native:column>
     @else
         <native:scroll-view class="flex-1 w-full" :shows-indicators="false">
-            <native:column class="w-full px-4 pt-4 pb-6 gap-6">
+            <native:column class="w-full px-4 mt-4 pb-6 gap-6">
                 <native:row class="w-full items-stretch gap-3">
                     <x-native.ui.stat-badge
                         :value="$bestScore === null ? '—' : number_format($bestScore)"
                         label="Your best"
-                        accent="lime-400"
-                        accentTo="cyan-500"
-                        labelColor="lime-400"
+                        accent="rose-500"
+                        labelColor="rose-500"
                     />
                     <x-native.ui.stat-badge
                         :value="$difficultyLabel"
                         label="Level"
                         accent="amber-400"
-                        accentTo="orange-500"
                         labelColor="amber-400"
                         valueSize="text-[20]"
                     />
                 </native:row>
 
                 <native:column class="w-full gap-3">
-                    <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
-                        How to play
-                    </native:text>
+                    <x-native.dashboard.section-header title="How to play" />
                     <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} w-full gap-3 px-4 py-4">
                         @foreach ($steps as $index => $step)
                             <native:row class="w-full items-start gap-3">
-                                <native:column class="w-6 h-6 items-center justify-center rounded-full bg-linear-to-br from-lime-400 to-cyan-400 shadow-sm">
+                                <native:column class="w-6 h-6 items-center justify-center rounded-full bg-linear-to-br from-rose-500 to-orange-400 shadow-sm">
                                     <native:text class="text-[12] font-bold text-black">{{ $index + 1 }}</native:text>
                                 </native:column>
                                 <native:text class="flex-1 text-[13] leading-relaxed text-theme-primary-text">{{ $step }}</native:text>
@@ -50,12 +46,10 @@
 
                 @if (count($skills) > 0)
                     <native:column class="w-full gap-2">
-                        <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
-                            Trains
-                        </native:text>
+                        <x-native.dashboard.section-header title="Trains" />
                         <native:row class="w-full items-center gap-2">
                             @foreach ($skills as $skill)
-                                <native:column class="rounded-full bg-linear-to-r from-lime-400/20 to-cyan-500/10 border {{ Gradients::hairline() }} px-3 py-1">
+                                <native:column class="rounded-full bg-linear-to-r from-rose-500/20 to-orange-400/10 border {{ Gradients::hairline() }} px-3 py-1">
                                     <native:text class="text-[12] font-semibold text-theme-primary-text">{{ $skill }}</native:text>
                                 </native:column>
                             @endforeach
@@ -65,9 +59,7 @@
 
                 @if (count($history) > 0)
                     <native:column class="w-full gap-2">
-                        <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
-                            Recent results
-                        </native:text>
+                        <x-native.dashboard.section-header title="Recent results" />
                         <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} w-full">
                             @foreach ($history as $result)
                                 <native:column class="w-full px-4 py-3 gap-1">
@@ -93,7 +85,7 @@
             </native:column>
         </native:scroll-view>
 
-        <native:column class="w-full px-4 pt-3 pb-4 bg-theme-background safe-area-bottom">
+        <native:column class="w-full px-4 pt-3 pb-4 safe-area-bottom">
             <x-native.ui.gradient-button label="Play" press="play" />
         </native:column>
     @endif

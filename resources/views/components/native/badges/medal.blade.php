@@ -25,7 +25,7 @@
 @endphp
 
 <native:column
-    class="{{ $disc }} items-center justify-center rounded-full border-2 {{ $unlocked ? 'border-theme-'.$color.' bg-linear-to-br from-theme-'.$color.'/30 to-transparent shadow-lg' : Gradients::hairline().' bg-theme-secondary-surface' }}"
+    class="{{ $disc }} items-center justify-center rounded-full border-2 {{ $unlocked ? 'border-theme-'.$color.' bg-linear-to-br from-theme-'.$color.'/30 to-transparent' : Gradients::hairline().' bg-theme-secondary-surface' }}"
 >
     <x-native.ui.icon
         :ios="$unlocked ? Ios::Medal : Ios::Lock"

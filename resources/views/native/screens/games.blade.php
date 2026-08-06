@@ -2,7 +2,7 @@
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-2 mb-12 gap-4">
+<native:column class="w-full px-4 mt-7 mb-12 gap-4">
     @if ($libraryState === 'loading')
         <x-native.ui.loading-overlay label="Loading the games library" />
     @elseif ($libraryState === 'error')
@@ -12,19 +12,12 @@
             retry-method="retryLibrary"
         />
     @else
-        <x-native.ui.app-header
-            :eyebrow="count($playableGames).' games'"
-            title="Games"
-            :streak="$currentStreak"
-            :level="$level"
-        />
-
         {{-- Category filter chips --}}
         <native:scroll-view horizontal :shows-indicators="false" class="w-full">
             <native:row class="items-center gap-2 pr-4">
                 @foreach ($categories as $category)
                     <native:pressable
-                        class="rounded-full px-4 py-2 border {{ $selectedCategory === $category['key'] ? 'bg-linear-to-r from-lime-400 to-cyan-400 border-transparent' : 'bg-theme-surface '.Gradients::hairline() }}"
+                        class="rounded-full px-4 py-2 border {{ $selectedCategory === $category['key'] ? Gradients::cta().' border-transparent' : 'bg-theme-surface '.Gradients::hairline() }}"
                         :press-scale="0.97"
                         a11y-label="{{ $category['label'] }} games"
                         @press="setCategory('{{ $category['key'] }}')"

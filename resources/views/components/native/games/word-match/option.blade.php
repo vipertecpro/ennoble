@@ -24,12 +24,12 @@
     // A border is always present (only its color changes) so switching states
     // never changes the tile's size (no content shift).
     $surface = 'bg-theme-surface shadow-md';
-    $border = 'border border-lime-400/20';
+    $border = 'border border-rose-500/20';
     $ink = 'text-theme-primary-text';
 
     if ($answered && $isAnswer) {
-        $surface = 'bg-linear-to-r from-lime-400 to-cyan-400 shadow-lg';
-        $border = 'border border-lime-300/60';
+        $surface = 'bg-linear-to-r from-rose-500 to-orange-400 shadow-lg';
+        $border = 'border border-rose-400/60';
         $ink = 'text-black';
     } elseif ($answered && $isSelected) {
         $surface = 'bg-linear-to-b from-red-600/25 to-red-600/10 shadow-md';

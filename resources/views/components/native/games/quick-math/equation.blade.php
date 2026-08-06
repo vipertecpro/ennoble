@@ -22,7 +22,7 @@
     $display = ($wrong && $typed === '') ? '—' : $typed;
 
     if ($correct) {
-        $slotClass = 'bg-linear-to-r from-lime-400 to-cyan-400 rounded-2xl px-5 py-1 shadow-lg';
+        $slotClass = 'bg-linear-to-r from-rose-500 to-orange-400 rounded-2xl px-5 py-1 shadow-lg';
         $ink = 'text-black';
         $underline = 'bg-transparent';
     } elseif ($wrong) {
@@ -32,7 +32,7 @@
     } else {
         $slotClass = 'px-3 py-1';
         $ink = 'text-theme-primary-text';
-        $underline = 'bg-linear-to-r from-lime-400 to-cyan-400';
+        $underline = 'bg-linear-to-r from-rose-500 to-orange-400';
     }
 
     $scale = ($correct && ! $reducedMotion) ? 1.08 : 1.0;

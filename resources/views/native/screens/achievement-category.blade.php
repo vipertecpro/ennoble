@@ -1,7 +1,7 @@
 @use('App\NativeUI\Tokens\Gradients')
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-4 mb-12 gap-6">
     @if ($screenState === 'error')
         <x-native.ui.error-state
             description="This badge category could not be found."
@@ -10,9 +10,9 @@
         />
     @else
     {{-- Category summary — vibrant lime→cyan gradient hero --}}
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/30 via-cyan-500/15 to-transparent border {{ Gradients::hairline() }} shadow-lg py-6" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-rose-500/30 via-rose-500/15 to-transparent border {{ Gradients::hairline() }} py-6" :animate-duration="$motionDuration">
     <native:column class="w-full px-4 gap-2">
-        <native:text class="text-[11] font-semibold uppercase tracking-widest text-lime-400">{{ $earnedCount }} OF {{ $totalCount }} EARNED</native:text>
+        <native:text class="text-[11] font-semibold uppercase tracking-widest text-rose-500">{{ $earnedCount }} OF {{ $totalCount }} EARNED</native:text>
         <native:text class="text-[18] font-semibold tracking-tight leading-tight text-theme-primary-text">{{ $categoryTagline }}</native:text>
         <native:text class="text-[13] leading-relaxed text-theme-secondary-text">Now: {{ $currentLabel }}</native:text>
     </native:column>
@@ -25,7 +25,7 @@
             eyebrow="{{ $group['earned'] }} OF {{ $group['total'] }} EARNED"
         />
 
-        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-theme-{{ $group['color'] }}/40 p-4 gap-4">
+        <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} p-4 gap-4">
             @foreach (array_chunk($group['badges'], 4) as $row)
                 <native:row class="items-start gap-3">
                     @foreach ($row as $badge)

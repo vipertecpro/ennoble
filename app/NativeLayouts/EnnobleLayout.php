@@ -38,9 +38,10 @@ final class EnnobleLayout extends NativeLayout
         $theme = app(ThemeManager::class);
         $preference = $theme->currentPreference();
 
+        // Top bar shares the screen's canvas colour so it merges into the content.
         return TopNavigation::forScreen(
             screen: $screen,
-            backgroundColor: $theme->color('background', $preference),
+            backgroundColor: $theme->color('canvas', $preference),
             textColor: $theme->color('on-background', $preference),
         );
     }
@@ -61,13 +62,13 @@ final class EnnobleLayout extends NativeLayout
         return TabBar::make()
             ->activeColor($theme->color('accent', $preference))
             ->textColor($theme->color('muted-text', $preference))
-            ->backgroundColor($theme->color('background', $preference))
+            ->backgroundColor($theme->color('canvas', $preference))
             ->labelVisibility('labeled')
             ->font('medium')
             ->dark($isDark)
             ->add(Tab::link('Home', '/', ios: Ios::House, android: AndroidOutlined::Home))
             ->add(Tab::link('Games', '/games', ios: Ios::Gamecontroller, android: AndroidOutlined::SportsEsports))
-            ->add(Tab::link('Achievements', '/achievements', ios: Ios::Rosette, android: AndroidOutlined::MilitaryTech))
+            ->add(Tab::link('Badges', '/achievements', ios: Ios::Rosette, android: AndroidOutlined::MilitaryTech))
             ->add(Tab::link('Profile', '/profile', ios: Ios::Person, android: AndroidOutlined::Person));
     }
 

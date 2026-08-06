@@ -11,6 +11,7 @@
     'token' => 'accent',
     'ios' => null,
     'android' => null,
+    'lottie' => null,
 ])
 
 @php
@@ -18,7 +19,9 @@
 @endphp
 
 <native:column class="flex-1 items-center gap-1.5 rounded-2xl bg-theme-surface border {{ Gradients::hairline() }} py-3 px-1.5">
-    @if ($ios !== null || $android !== null)
+    @if ($lottie !== null && is_file(resource_path("animations/{$lottie}.json")))
+        <native:lottie-player source="{{ $lottie }}" loop class="w-8 h-8" alt="{{ $label }}" />
+    @elseif ($ios !== null || $android !== null)
         <native:column class="w-7 h-7 items-center justify-center rounded-lg bg-theme-{{ $token }}/15">
             <native:icon :ios="$ios" :android="$android" :size="15" class="text-theme-{{ $token }}" />
         </native:column>

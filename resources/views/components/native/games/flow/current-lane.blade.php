@@ -86,7 +86,7 @@
     <native:column class="items-center justify-center">
         <native:column
             native:key="orb-{{ $feedbackSerial }}-{{ $feedbackTone }}"
-            class="w-24 h-24 items-center justify-center rounded-full bg-theme-primary-surface border border-cyan-400/30 shadow-lg"
+            class="w-24 h-24 items-center justify-center rounded-full bg-cyan-400/15 border border-cyan-400/30 shadow-lg"
             :scale="$reducedMotion ? 1 : $orbScale"
             :animate-duration="$motionDuration"
             animate-easing="ease-out"

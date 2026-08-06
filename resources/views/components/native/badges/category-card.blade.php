@@ -1,6 +1,7 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
 @use('App\NativeUI\Tokens\Gradients')
+@use('Native\Mobile\Edge\TailwindParser')
 
 {{--
     One activity category on the Achievements screen: its current measured value,
@@ -18,16 +19,20 @@
 @php
     [$ios, $android, $accent, $accentTo] = match ($category['key']) {
         'streak' => [Ios::Flame, AndroidOutlined::LocalFireDepartment, 'orange-500', 'red-600'],
-        'accuracy' => [Ios::Target, AndroidOutlined::GpsFixed, 'lime-400', 'cyan-500'],
+        'accuracy' => [Ios::Target, AndroidOutlined::GpsFixed, 'rose-500', 'cyan-500'],
         'speed' => [Ios::Bolt, AndroidOutlined::Bolt, 'amber-400', 'orange-500'],
-        'dedication' => [Ios::Flag, AndroidOutlined::Flag, 'cyan-500', 'lime-400'],
+        'dedication' => [Ios::Flag, AndroidOutlined::Flag, 'cyan-500', 'rose-500'],
         'mastery' => [Ios::Crown, AndroidOutlined::WorkspacePremium, 'amber-400', 'yellow-500'],
-        default => [Ios::Rosette, AndroidOutlined::MilitaryTech, 'lime-400', 'cyan-500'],
+        default => [Ios::Rosette, AndroidOutlined::MilitaryTech, 'rose-500', 'cyan-500'],
     };
+
+    // Tint the glyph with its category hue (resolved to hex so it renders in
+    // both modes) instead of flat ink — the icon then matches its chip.
+    $iconColor = TailwindParser::resolveColorValue($accent);
 @endphp
 
 <native:pressable
-    class="w-full rounded-3xl bg-theme-surface border {{ Gradients::hairline() }} shadow-lg p-4"
+    class="w-full rounded-3xl bg-theme-surface border {{ Gradients::hairline() }} shadow-sm p-4"
     :press-scale="$pressScale"
     :press-opacity="$pressOpacity"
     :animate-duration="$motionDuration"
@@ -37,8 +42,8 @@
 >
     <native:column class="w-full gap-3">
         <native:row class="items-center gap-3">
-            <native:column class="items-center justify-center rounded-2xl bg-linear-to-br from-{{ $accent }}/30 to-{{ $accentTo }}/10 border border-{{ $accent }}/40 shadow-lg p-3">
-                <x-native.ui.icon :ios="$ios" :android="$android" :size="24" />
+            <native:column class="items-center justify-center rounded-2xl bg-linear-to-br from-{{ $accent }}/25 to-{{ $accentTo }}/10 border border-{{ $accent }}/35 p-3">
+                <x-native.ui.icon :ios="$ios" :android="$android" :size="24" :color="$iconColor" :dark-color="$iconColor" />
             </native:column>
             <native:column class="flex-1 gap-1">
                 <native:text class="text-[15] font-semibold text-theme-primary-text">{{ $category['label'] }}</native:text>

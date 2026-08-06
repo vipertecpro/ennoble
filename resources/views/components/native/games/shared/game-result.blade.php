@@ -14,7 +14,7 @@
      score that pops in, three glowing stat tiles, and the play-again / done
      actions. --}}
 <native:column class="flex-1 w-full px-4 items-center justify-center gap-7">
-    <native:column class="w-full rounded-3xl bg-linear-to-br from-lime-400/25 via-cyan-500/10 to-transparent shadow-lg border {{ Gradients::hairline() }} items-center gap-1 p-7">
+    <native:column class="w-full rounded-3xl bg-linear-to-br from-rose-500/25 via-rose-500/10 to-transparent border {{ Gradients::hairline() }} items-center gap-1 p-7">
         <native:text class="text-[12] font-semibold uppercase tracking-widest text-theme-accent">
             {{ $isNewBest ? 'New best score' : 'Session complete' }}
         </native:text>
@@ -35,15 +35,15 @@
         <x-native.ui.stat-badge
             :value="$accuracy === null ? '—' : round($accuracy).'%'"
             label="Accuracy"
-            accent="lime-400"
+            accent="rose-500"
             accentTo="cyan-500"
-            labelColor="lime-400"
+            labelColor="rose-500"
         />
         <x-native.ui.stat-badge
             :value="$correct.'/'.$total"
             label="Correct"
             accent="cyan-500"
-            accentTo="lime-400"
+            accentTo="rose-500"
             labelColor="cyan-400"
         />
         <x-native.ui.stat-badge

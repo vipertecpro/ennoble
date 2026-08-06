@@ -6,7 +6,7 @@
     dark/light aware because they are theme tokens), rounded-3xl corners and
     shadow for depth. Pass an optional `accent` palette colour to add a glowing
     coloured border that gives the card identity (e.g. accent="orange-500",
-    accent="lime-400", accent="red-600").
+    accent="rose-500", accent="red-600").
 
     Padding defaults to p-4; override with the `class` prop when a card needs a
     different rhythm.

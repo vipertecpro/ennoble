@@ -34,7 +34,7 @@
                     $win = ($feedbackTone === 'correct');
 
                     if ($lit) {
-                        $bg = 'bg-linear-to-br from-lime-300 to-teal-400 border border-lime-200/70 shadow-lg';
+                        $bg = 'bg-linear-to-br from-rose-400 to-teal-400 border border-rose-300/70 shadow-lg';
                         $key = 'tile-'.$tile.'-lit-'.$playbackStep;
                         $scale = 1.12;
                     } elseif ($wrong) {
@@ -42,11 +42,11 @@
                         $key = 'tile-'.$tile.'-tap-'.$tapSerial;
                         $scale = 1.05;
                     } elseif ($tapGlow) {
-                        $bg = 'bg-linear-to-br from-lime-400 to-teal-500 border border-lime-300/70 shadow-lg';
+                        $bg = 'bg-linear-to-br from-rose-500 to-teal-500 border border-rose-400/70 shadow-lg';
                         $key = 'tile-'.$tile.'-tap-'.$tapSerial;
                         $scale = 1.08;
                     } elseif ($win) {
-                        $bg = 'bg-linear-to-br from-lime-300 to-teal-400 border border-lime-200/70 shadow-lg';
+                        $bg = 'bg-linear-to-br from-rose-400 to-teal-400 border border-rose-300/70 shadow-lg';
                         $key = 'tile-'.$tile.'-win-'.$feedbackSerial;
                         $scale = 1.04;
                     } else {

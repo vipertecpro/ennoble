@@ -4,7 +4,7 @@
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
 <native:scroll-view class="h-full flex-1" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-6">
+<native:column class="w-full px-4 mt-4 mb-12 gap-6">
     @if ($screenState === 'loading')
         <x-native.ui.loading-overlay label="Loading your preferences" />
     @elseif ($screenState === 'error')
@@ -16,7 +16,7 @@
     @else
     <x-native.dashboard.section-header title="Feedback" />
 
-    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border {{ Gradients::hairline() }} px-5 py-5 gap-4" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-md border {{ Gradients::hairline() }} p-5 gap-4" :animate-duration="$motionDuration">
         <native:toggle native:model="soundEnabled" label="Sound" />
         <native:divider />
         <native:toggle native:model="hapticsEnabled" label="Haptics" />
@@ -24,7 +24,7 @@
 
     <x-native.dashboard.section-header title="Data" />
 
-    <native:column class="w-full rounded-3xl bg-theme-surface shadow-lg border border-red-600/40 p-4 gap-3" :animate-duration="$motionDuration">
+    <native:column class="w-full rounded-3xl bg-theme-surface shadow-md border border-red-600/40 p-5 gap-3" :animate-duration="$motionDuration">
         @if ($resetArmed)
             <native:text class="text-[15] font-semibold text-theme-primary-text">Reset everything?</native:text>
             <native:text class="text-[13] leading-relaxed text-theme-secondary-text">

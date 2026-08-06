@@ -18,7 +18,7 @@
 ])
 
 <native:pressable
-    class="w-full rounded-full bg-linear-to-r from-lime-400 to-cyan-400 shadow-lg py-4 px-6 {{ $class }}"
+    class="w-full rounded-full bg-linear-to-r from-rose-500 to-orange-400 shadow-lg py-4 px-6 {{ $class }}"
     :press-scale="$pressScale"
     a11y-label="{{ $label }}"
     @if ($press) @press="{{ $press }}" @endif

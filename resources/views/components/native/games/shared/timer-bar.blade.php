@@ -19,7 +19,7 @@
     $fraction = max(0.0, min(1.0, ((int) $secondsRemaining) / $per));
 
     $stage = $fraction > 0.5 ? 'accent' : ($fraction > 0.2 ? 'warning' : 'danger');
-    $fill = data_get($tokens, "light.{$stage}", '#C5DB55');
+    $fill = data_get($tokens, "light.{$stage}", '#F43F5E');
 @endphp
 
 <native:progress-bar

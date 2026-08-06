@@ -41,109 +41,111 @@ return [
     'theme' => [
 
         /*
-        | Cortex palette — calm zinc foundations, one signature lime.
-        | Lime `#C5DB55` = oklch(0.85 0.16 118); it is shared by both themes
-        | and always carries dark ink text (`#181C06`). Status hues sit at
-        | matched lightness/chroma in oklch — only hue varies.
-        | On light, Primary controls are ink; lime stays reserved for the
-        | accent CTA of the moment (one per screen).
+        | Palette — cool slate foundations with a warm coral/rose accent.
+        | Dark is a deep slate/navy (slate-900 ground, slate-800 surfaces);
+        | light is its clean counterpart (white ground, slate-100 surfaces,
+        | slate inks). The signature accent is rose, with a rose→orange CTA
+        | gradient. All values are Tailwind palette classes (names, named
+        | colors, and /opacity modifiers) — no raw hex.
         */
 
         'light' => [
             // Native control tokens.
-            'primary' => '#1B1B1F',
-            'on-primary' => '#FFFFFF',
-            'secondary' => '#FFFFFF',
-            'on-secondary' => '#1B1B1F',
-            'surface' => '#F2F4F9',
-            'on-surface' => '#0E1320',
-            'background' => '#FFFFFF',
-            'on-background' => '#0E1320',
-            'surface-variant' => '#E9ECF3',
-            'on-surface-variant' => '#4A5163',
-            'outline' => '#0C122224',
-            'destructive' => '#C53637',
-            'on-destructive' => '#FFFFFF',
-            'accent' => '#6F8A1E',
-            'on-accent' => '#FFFFFF',
+            'primary' => 'rose-600',
+            'on-primary' => 'white',
+            'secondary' => 'white',
+            'on-secondary' => 'slate-900',
+            'surface' => 'slate-100',
+            'on-surface' => 'slate-900',
+            'background' => 'white',
+            'canvas' => 'white',
+            'on-background' => 'slate-900',
+            'surface-variant' => 'slate-200',
+            'on-surface-variant' => 'slate-600',
+            'outline' => 'slate-900/15',
+            'destructive' => 'red-600',
+            'on-destructive' => 'white',
+            'accent' => 'rose-600',
+            'on-accent' => 'white',
 
             // Neon ramp — deepened for LIGHT so accent text / icons stay legible on
             // white (dark mode keeps the bright neon values).
-            'accent-cyan' => '#0E8FA8',
-            'accent-violet' => '#6D28D9',
-            'accent-pink' => '#D61E6E',
-            'accent-amber' => '#B45309',
+            'accent-cyan' => 'cyan-600',
+            'accent-violet' => 'violet-700',
+            'accent-pink' => 'pink-600',
+            'accent-amber' => 'amber-700',
 
             // Ennoble semantic presentation tokens.
-            'surface-elevated' => '#FFFFFF',
-            'primary-surface' => '#C5DB552E',
-            'secondary-surface' => '#EEF1F7',
-            'primary-text' => '#0E1320',
-            'secondary-text' => '#4A5163',
-            'muted-text' => '#8A93A6',
-            'divider' => '#0C12221C',
-            'border' => '#0C122233',
-            'success' => '#1C985A',
-            'warning' => '#B07100',
-            'danger' => '#C53637',
-            'overlay' => '#0F0F1173',
-            'pressed' => '#0000000D',
-            'selected' => '#C5DB5540',
-            'disabled' => '#1B1B1F4D',
-            'focus-ring' => '#657D0A80',
+            'surface-elevated' => 'slate-100',
+            'primary-surface' => 'rose-500/15',
+            'secondary-surface' => 'slate-100',
+            'primary-text' => 'slate-900',
+            'secondary-text' => 'slate-600',
+            'muted-text' => 'slate-400',
+            'divider' => 'slate-900/6',
+            'border' => 'slate-900/20',
+            'success' => 'emerald-600',
+            'warning' => 'amber-700',
+            'danger' => 'red-600',
+            'overlay' => 'slate-950/50',
+            'pressed' => 'black/5',
+            'selected' => 'rose-500/25',
+            'disabled' => 'slate-900/30',
+            'focus-ring' => 'rose-600/50',
 
             // Badge tier medals (Bronze / Silver / Gold).
-            'badge-bronze' => '#B06C38',
-            'badge-silver' => '#8A8F99',
-            'badge-gold' => '#C79A25',
+            'badge-bronze' => 'amber-700',
+            'badge-silver' => 'slate-400',
+            'badge-gold' => 'yellow-600',
         ],
 
         'dark' => [
             // Native control tokens.
-            'primary' => '#C5DB55',
-            'on-primary' => '#181C06',
-            'secondary' => '#2A2A2C',
-            'on-secondary' => '#F4F6F8',
-            'surface' => '#2A2A2C',
-            'on-surface' => '#F4F6F8',
-            'background' => '#212121',
-            'on-background' => '#F4F6F8',
-            'surface-variant' => '#3C3C41',
-            'on-surface-variant' => '#B4B8C0',
-            'outline' => '#FFFFFF24',
-            'destructive' => '#F2716A',
-            'on-destructive' => '#1B0A08',
-            'accent' => '#C5DB55',
-            'on-accent' => '#181C06',
+            'primary' => 'rose-500',
+            'on-primary' => 'white',
+            'secondary' => 'slate-800',
+            'on-secondary' => 'slate-100',
+            'surface' => 'slate-800',
+            'on-surface' => 'slate-100',
+            'background' => 'slate-900',
+            'canvas' => 'slate-900',
+            'on-background' => 'slate-100',
+            'surface-variant' => 'slate-700',
+            'on-surface-variant' => 'slate-400',
+            'outline' => 'white/15',
+            'destructive' => 'red-400',
+            'on-destructive' => 'red-950',
+            'accent' => 'rose-500',
+            'on-accent' => 'white',
 
             // Neon ramp — the vibrant accent family (shared across both themes).
-            'accent-cyan' => '#22D3EE',
-            'accent-violet' => '#8B5CF6',
-            'accent-pink' => '#FF3D8B',
-            'accent-amber' => '#FFB020',
+            'accent-cyan' => 'cyan-400',
+            'accent-violet' => 'violet-500',
+            'accent-pink' => 'pink-500',
+            'accent-amber' => 'amber-400',
 
             // Ennoble semantic presentation tokens.
-            'surface-elevated' => '#323236',
-            'primary-surface' => '#C5DB5524',
-            'secondary-surface' => '#262628',
-            'primary-text' => '#F4F6F8',
-            'secondary-text' => '#B4B8C0',
-            'muted-text' => '#82868F',
-            'divider' => '#FFFFFF14',
-            'border' => '#FFFFFF1F',
-            'success' => '#63D18F',
-            'warning' => '#EBA941',
-            'danger' => '#F2716A',
-            'overlay' => '#00000099',
-            'pressed' => '#FFFFFF12',
-            'selected' => '#C5DB5533',
-            'disabled' => '#F5F5F452',
-            'focus-ring' => '#C5DB558C',
+            'surface-elevated' => 'slate-800',
+            'primary-surface' => 'rose-500/15',
+            'secondary-surface' => 'slate-800',
+            'primary-text' => 'slate-100',
+            'secondary-text' => 'slate-400',
+            'muted-text' => 'slate-500',
+            'divider' => 'white/6',
+            'border' => 'white/15',
+            'success' => 'emerald-400',
+            'warning' => 'amber-400',
+            'danger' => 'red-400',
+            'overlay' => 'black/60',
+            'pressed' => 'white/10',
+            'selected' => 'rose-500/20',
+            'disabled' => 'slate-100/30',
+            'focus-ring' => 'rose-400/55',
 
             // Badge tier medals (Bronze / Silver / Gold).
-            'badge-bronze' => '#D08A5C',
-            'badge-silver' => '#C3C8D0',
-            'badge-gold' => '#E7C24B',
+            'badge-bronze' => 'orange-400',
+            'badge-silver' => 'slate-300',
+            'badge-gold' => 'amber-300',
         ],
 
         // Corner radii (points / dp) — Cortex: controls M(12) · cards L(16) · sheets XL(24).
@@ -182,6 +184,54 @@ return [
         'headline' => 'SpaceGrotesk-Bold',
         'display' => 'SpaceGrotesk-Bold',
         'numeric' => 'SpaceGrotesk-Medium',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gradients
+    |--------------------------------------------------------------------------
+    |
+    | The single source of truth for every gradient / accent hue in the app —
+    | read by App\NativeUI\Tokens\Gradients. EDGE gradient STOPS must be Tailwind
+    | palette names (from-lime-400): arbitrary #hex stops do not parse, and
+    | theme-token stops bake the light value into both modes, so hues are authored
+    | here as palette names rather than in the theme (hex) block above.
+    |
+    | - screen / hairline: a full class string per appearance (light | dark).
+    | - cta: the primary action fill (one class string, appearance-independent).
+    | - games / onboarding_tones: [from, to] hue pairs, expanded into glass /
+    |   border / solid recipes in code.
+    |
+    */
+    'gradients' => [
+        'screen' => [
+            'light' => 'bg-linear-to-b from-slate-200 via-slate-100 to-slate-200',
+            'dark' => 'bg-linear-to-b from-slate-800 via-slate-900 to-slate-900',
+        ],
+
+        'hairline' => [
+            'light' => 'border-black/10',
+            'dark' => 'border-white/12',
+        ],
+
+        'cta' => 'bg-linear-to-r from-rose-500 to-orange-400',
+
+        'fallback' => ['blue-400', 'cyan-500'],
+
+        'games' => [
+            'word-match' => ['blue-400', 'emerald-500'],
+            'quick-math' => ['cyan-400', 'sky-500'],
+            'recall' => ['violet-500', 'fuchsia-500'],
+            'flow' => ['indigo-500', 'cyan-400'],
+        ],
+
+        'onboarding_tones' => [
+            'lime' => ['rose-500', 'orange-400'],
+            'cyan' => ['cyan-400', 'sky-500'],
+            'violet' => ['violet-500', 'fuchsia-500'],
+            'amber' => ['amber-400', 'orange-500'],
+            'pink' => ['pink-400', 'rose-500'],
+        ],
     ],
 
 ];

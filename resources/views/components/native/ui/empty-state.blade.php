@@ -14,7 +14,7 @@
     :gap="DesignTokens::COMPONENT_SPACING"
     :padding="[DesignTokens::SPACING['2xl'], DesignTokens::SCREEN_PADDING]"
 >
-    <native:column class="w-16 h-16 items-center justify-center rounded-2xl bg-theme-primary-surface">
+    <native:column class="w-16 h-16 items-center justify-center rounded-2xl bg-rose-500/15">
         <x-native.ui.icon
             :ios="$ios"
             :android="$android"

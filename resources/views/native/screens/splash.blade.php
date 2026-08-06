@@ -3,9 +3,9 @@
 
 <native:column class="h-full w-full bg-theme-background">
 <native:scroll-view class="h-full flex-1 bg-theme-background" :shows-indicators="false">
-<native:column class="w-full px-4 mt-5 mb-12 gap-5 safe-area">
+<native:column class="w-full px-4 mt-7 mb-12 gap-5 safe-area">
     <native:column class="items-center justify-center gap-5">
-        <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-theme-primary-surface">
+        <native:column class="w-20 h-20 items-center justify-center rounded-2xl bg-rose-500/15">
             <x-native.ui.icon
                 :ios="Ios::Brain"
                 :android="AndroidOutlined::Psychology"

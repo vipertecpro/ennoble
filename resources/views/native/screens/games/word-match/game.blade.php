@@ -59,7 +59,7 @@
                 </native:column>
 
             <native:column class="flex-1 w-full px-4 items-center justify-center gap-3">
-                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-lime-400">
+                    <native:text class="text-[12] font-semibold uppercase tracking-widest text-rose-500">
                         Find the {{ strtoupper($relation) }}
                     </native:text>
                     <native:text

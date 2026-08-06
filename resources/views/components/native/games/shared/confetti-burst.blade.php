@@ -1,7 +1,7 @@
 @props([
     'serial' => 0,
     'reducedMotion' => false,
-    'accent' => '#C5DB55',
+    'accent' => '#F43F5E',
 ])
 
 {{--

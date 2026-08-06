@@ -3,17 +3,20 @@
 namespace App\NativeUI\Tokens;
 
 /**
- * Cortex design tokens — the single source of truth for Ennoble's visual
- * language. Calm zinc foundations, one signature lime accent, typography
- * as hierarchy, 4pt spacing grid, elevation over borders.
+ * Non-color design constants — spacing, motion, icon sizes, touch targets.
  *
- * Color values live in config/native-ui.php (semantic tokens, both themes).
- * Everything else — type scale, spacing, radii, elevation, motion — lives
- * here. Screens consume tokens; they never invent values.
+ * Colors and typography are NOT here: they live in config/native-ui.php (the
+ * theme tokens, consumed via `bg-theme-*` / `text-theme-*` classes and the
+ * `theme()` helper) and inline Tailwind classes, per the NativePHP theming
+ * model. This class only holds the numeric constants the framework's theme
+ * config does not cover.
  */
 final class DesignTokens
 {
     /**
+     * The semantic color-token keys every theme block must define — used to
+     * validate config/native-ui.php stays complete.
+     *
      * @var list<string>
      */
     public const SEMANTIC_COLORS = [
@@ -43,29 +46,7 @@ final class DesignTokens
     ];
 
     /**
-     * Cortex type scale — SF Pro (system), display sizes with tight
-     * tracking. Sizes in points: 44/34/28/22/17/15/13/12.
-     *
-     * @var array<string, string>
-     */
-    public const TYPOGRAPHY = [
-        'display-xl' => 'text-[44] font-bold tracking-tight leading-tight',
-        'display-large' => 'text-[34] font-bold tracking-tight leading-tight',
-        'headline' => 'text-[28] font-bold tracking-tight leading-tight',
-        'title' => 'text-[22] font-semibold tracking-tight leading-tight',
-        'section' => 'text-[17] font-semibold leading-tight',
-        'body' => 'text-[17] font-normal leading-normal',
-        'body-small' => 'text-[15] font-normal leading-normal',
-        'caption' => 'text-[13] font-normal leading-normal',
-        'label' => 'text-[12] font-semibold tracking-widest uppercase',
-        'button' => 'text-[17] font-semibold leading-normal',
-        'badge' => 'text-[12] font-semibold leading-normal',
-        'numeric' => 'text-[28] font-bold tracking-tight leading-tight',
-    ];
-
-    /**
      * 4pt base grid — XS 4 · SM 8 · MD 12 · LG 16 · XL 24 · 2XL 32 · 3XL 48.
-     * No arbitrary values.
      *
      * @var array<string, int>
      */
@@ -80,50 +61,7 @@ final class DesignTokens
     ];
 
     /**
-     * Screen gutter LG (16) · card padding LG–XL · section gaps 2XL.
-     *
-     * @var array<string, int>
-     */
-    public const LAYOUT_SPACING = [
-        'screen-margin' => 16,
-        'section' => 32,
-        'card' => 20,
-        'content' => 16,
-        'compact' => 12,
-        'touch' => 12,
-    ];
-
-    /**
-     * Cortex radii — S 8 · M 12 (controls) · L 16 (cards) · XL 24 (sheets) · Full.
-     *
-     * @var array<string, int>
-     */
-    public const CORNER_RADII = [
-        'small' => 8,
-        'medium' => 12,
-        'large' => 16,
-        'xl' => 24,
-        'full' => 9999,
-    ];
-
-    /**
-     * Elevation over borders — Flat (inline) · Raised (cards at rest) ·
-     * Floating (active card) · Overlay (dialogs).
-     *
-     * @var array<string, int>
-     */
-    public const ELEVATION = [
-        'none' => 0,
-        'low' => 1,
-        'medium' => 8,
-        'high' => 16,
-    ];
-
-    /**
-     * Motion communicates, never decorates — quick 150 (presses, toggles) ·
-     * standard 250 (navigation, reveals) · celebrate 400 (success only;
-     * overshoot allowed only here) · error 300 (shake, no red flood).
-     * All collapse to 0 under Reduced Motion via ThemeManager.
+     * Motion durations (ms) — collapse to 0 under Reduced Motion via ThemeManager.
      *
      * @var array<string, int>
      */
@@ -147,48 +85,6 @@ final class DesignTokens
     ];
 
     /**
-     * Card family — radius L (16), Raised elevation, no borders (elevation
-     * over borders; hairlines only inside lists). Coming-soon placeholders
-     * keep an outline so absence reads as absence.
-     *
-     * @var array<string, string>
-     */
-    public const CARD_VARIANTS = [
-        'hero' => 'rounded-2xl bg-theme-surface-elevated shadow-sm',
-        'game' => 'rounded-2xl bg-theme-surface shadow-sm',
-        'metric' => 'flex-1 rounded-2xl bg-theme-surface shadow-sm',
-        'achievement' => 'rounded-2xl bg-theme-surface shadow-sm',
-        'coming-soon' => 'rounded-2xl border border-theme-border bg-theme-secondary-surface',
-        'standard' => 'rounded-2xl bg-theme-surface shadow-sm',
-    ];
-
-    /**
-     * @var array<string, string>
-     */
-    public const CARD_CONTENT_VARIANTS = [
-        'hero' => 'gap-5',
-        'game' => 'gap-4',
-        'metric' => 'gap-2',
-        'achievement' => 'gap-4',
-        'coming-soon' => 'gap-4',
-        'standard' => 'gap-4',
-    ];
-
-    /**
-     * Card insets as Tailwind spacing steps (×4pt): hero 20, rest 16.
-     *
-     * @var array<string, string>
-     */
-    public const CARD_INSET_VARIANTS = [
-        'hero' => '5',
-        'game' => '4',
-        'metric' => '4',
-        'achievement' => '4',
-        'coming-soon' => '4',
-        'standard' => '4',
-    ];
-
-    /**
      * @var array<string, int>
      */
     public const ICON_SIZE = [
@@ -198,16 +94,11 @@ final class DesignTokens
         'hero' => 48,
     ];
 
-    public const SCREEN_PADDING = self::LAYOUT_SPACING['screen-margin'];
+    public const SCREEN_PADDING = 16;
 
-    public const COMPONENT_SPACING = self::LAYOUT_SPACING['content'];
+    public const COMPONENT_SPACING = 16;
 
     public const MINIMUM_TOUCH_TARGET = 44;
-
-    /**
-     * Buttons — one family: 50pt height, radius Full, Button type style.
-     */
-    public const BUTTON_HEIGHT = 50;
 
     /**
      * Resolve a reusable motion duration.

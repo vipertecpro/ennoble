@@ -43,7 +43,7 @@
     @endphp
 
     <native:column
-        class="{{ $hero ? 'h-40' : 'w-24 h-24' }} items-center justify-center rounded-2xl bg-theme-primary-surface"
+        class="{{ $hero ? 'h-40' : 'w-24 h-24' }} items-center justify-center rounded-2xl bg-rose-500/15"
         :animate-duration="$motionDuration"
         animate-easing="ease-out"
     >

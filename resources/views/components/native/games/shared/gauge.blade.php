@@ -1,4 +1,5 @@
 @use('Native\Mobile\Facades\System')
+@use('Native\Mobile\Edge\TailwindParser')
 
 {{--
     Neon circular gauge dial (reference "Speed/Grip" style). Native shapes can't
@@ -13,15 +14,18 @@
 @props([
     'value' => '0',
     'fraction' => 1.0,
-    'color' => '#C5DB55',
+    'color' => 'rose-500',
     'label' => null,
     'size' => 'w-20 h-20',
 ])
 
 @php
     $dark = System::appearance() === 'dark';
-    $ink = $dark ? '#F4F6F8' : '#1B1B1F';
-    $track = $dark ? '#3C3C41' : '#C6CBD4';
+    $ink = $dark ? '#F1F5F9' : '#0F172A';   // slate-100 / slate-900
+    $track = $dark ? '#334155' : '#CBD5E1'; // slate-700 / slate-300
+    // The arc color arrives as a Tailwind palette name (badge tokens) or hex;
+    // SVG needs a real value, so resolve it here.
+    $color = TailwindParser::resolveColorValue($color);
 
     $f = max(0.0, min(1.0, (float) $fraction));
     $circ = 276.46; // 2 * pi * 44
