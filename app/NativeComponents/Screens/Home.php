@@ -5,6 +5,7 @@ namespace App\NativeComponents\Screens;
 use App\Domain\Achievements\AchievementService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
+use App\Domain\Progression\LevelService;
 use App\Domain\Settings\SettingsService;
 use App\Domain\Statistics\StatisticsService;
 use App\Enums\GameType;
@@ -47,6 +48,14 @@ final class Home extends NativeComponent
     public int $currentStreak = 0;
 
     public int $gamesPlayed = 0;
+
+    public int $level = 1;
+
+    public float $levelProgress = 0.0;
+
+    public string $levelTitle = 'Warming up';
+
+    public string $xpLabel = '';
 
     public ?string $achievementTitle = null;
 
@@ -129,6 +138,18 @@ final class Home extends NativeComponent
     public function openAchievements(): void
     {
         $navigation = $this->navigate('/achievements');
+
+        if ($this->reducedMotion) {
+            $navigation->transition(Transition::None);
+        }
+    }
+
+    /**
+     * Open Settings from the header's settings button.
+     */
+    public function openSettings(): void
+    {
+        $navigation = $this->navigate('/settings');
 
         if ($this->reducedMotion) {
             $navigation->transition(Transition::None);
@@ -236,6 +257,12 @@ final class Home extends NativeComponent
         $overview = app(StatisticsService::class)->overview($profile);
         $this->currentStreak = $overview?->current_streak ?? 0;
         $this->gamesPlayed = $overview?->sessions_completed ?? 0;
+
+        $progression = app(LevelService::class)->forProfile($profile);
+        $this->level = $progression['level'];
+        $this->levelProgress = $progression['progress'];
+        $this->levelTitle = $progression['title'];
+        $this->xpLabel = $progression['into'].' / '.$progression['span'].' XP';
 
         $unlock = app(AchievementService::class)->latestUnlock($profile);
         $this->achievementTitle = $unlock?->achievement->name;

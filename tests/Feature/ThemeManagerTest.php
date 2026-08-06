@@ -112,7 +112,7 @@ test('saved settings drive reduced motion while appearance follows the device', 
 test('design tokens expose the complete reusable foundation', function () {
     $theme = config('native-ui.theme');
 
-    expect(DesignTokens::SEMANTIC_COLORS)->toHaveCount(19)
+    expect(DesignTokens::SEMANTIC_COLORS)->toHaveCount(23)
         ->and($theme['light'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
         ->and($theme['dark'])->toHaveKeys(DesignTokens::SEMANTIC_COLORS)
         ->and(DesignTokens::TYPOGRAPHY)->toHaveKeys([

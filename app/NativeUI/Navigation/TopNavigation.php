@@ -18,7 +18,8 @@ final class TopNavigation
         $navigation = NavBar::make()
             ->title($screen->navTitle())
             ->displayMode('inline')
-            ->scrollBehavior('pinned');
+            ->scrollBehavior('pinned')
+            ->font('headline');
 
         if ($backgroundColor !== null) {
             $navigation->backgroundColor($backgroundColor);

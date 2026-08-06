@@ -55,27 +55,33 @@ return [
             'on-primary' => '#FFFFFF',
             'secondary' => '#FFFFFF',
             'on-secondary' => '#1B1B1F',
-            'surface' => '#F5F5F2',
-            'on-surface' => '#1B1B1F',
+            'surface' => '#F2F4F9',
+            'on-surface' => '#0E1320',
             'background' => '#FFFFFF',
-            'on-background' => '#1B1B1F',
-            'surface-variant' => '#F0F0EE',
-            'on-surface-variant' => '#55555E',
-            'outline' => '#0000001F',
+            'on-background' => '#0E1320',
+            'surface-variant' => '#E9ECF3',
+            'on-surface-variant' => '#4A5163',
+            'outline' => '#0C122224',
             'destructive' => '#C53637',
             'on-destructive' => '#FFFFFF',
             'accent' => '#C5DB55',
             'on-accent' => '#181C06',
 
+            // Neon ramp — the vibrant accent family (shared across both themes).
+            'accent-cyan' => '#22D3EE',
+            'accent-violet' => '#8B5CF6',
+            'accent-pink' => '#FF3D8B',
+            'accent-amber' => '#FFB020',
+
             // Ennoble semantic presentation tokens.
-            'surface-elevated' => '#F5F5F2',
+            'surface-elevated' => '#FFFFFF',
             'primary-surface' => '#C5DB552E',
-            'secondary-surface' => '#F0F0EE',
-            'primary-text' => '#1B1B1F',
-            'secondary-text' => '#55555E',
-            'muted-text' => '#90909A',
-            'divider' => '#0000000F',
-            'border' => '#00000014',
+            'secondary-surface' => '#EEF1F7',
+            'primary-text' => '#0E1320',
+            'secondary-text' => '#4A5163',
+            'muted-text' => '#8A93A6',
+            'divider' => '#0C122214',
+            'border' => '#0C12221F',
             'success' => '#1C985A',
             'warning' => '#B07100',
             'danger' => '#C53637',
@@ -95,29 +101,35 @@ return [
             // Native control tokens.
             'primary' => '#C5DB55',
             'on-primary' => '#181C06',
-            'secondary' => '#1F1F24',
-            'on-secondary' => '#F5F5F4',
-            'surface' => '#17171A',
-            'on-surface' => '#F5F5F4',
+            'secondary' => '#161A26',
+            'on-secondary' => '#F5F7FA',
+            'surface' => '#0F111A',
+            'on-surface' => '#F5F7FA',
             'background' => '#000000',
-            'on-background' => '#F5F5F4',
-            'surface-variant' => '#1F1F24',
-            'on-surface-variant' => '#A4A4AD',
+            'on-background' => '#F5F7FA',
+            'surface-variant' => '#1E2330',
+            'on-surface-variant' => '#A6ADBD',
             'outline' => '#FFFFFF24',
             'destructive' => '#F2716A',
             'on-destructive' => '#1B0A08',
             'accent' => '#C5DB55',
             'on-accent' => '#181C06',
 
+            // Neon ramp — the vibrant accent family (shared across both themes).
+            'accent-cyan' => '#22D3EE',
+            'accent-violet' => '#8B5CF6',
+            'accent-pink' => '#FF3D8B',
+            'accent-amber' => '#FFB020',
+
             // Ennoble semantic presentation tokens.
-            'surface-elevated' => '#1F1F24',
+            'surface-elevated' => '#161A26',
             'primary-surface' => '#C5DB5524',
-            'secondary-surface' => '#1C1C21',
-            'primary-text' => '#F5F5F4',
-            'secondary-text' => '#A4A4AD',
-            'muted-text' => '#6B6B74',
-            'divider' => '#FFFFFF0F',
-            'border' => '#FFFFFF17',
+            'secondary-surface' => '#14171F',
+            'primary-text' => '#F5F7FA',
+            'secondary-text' => '#A6ADBD',
+            'muted-text' => '#6C7486',
+            'divider' => '#FFFFFF14',
+            'border' => '#FFFFFF1F',
             'success' => '#63D18F',
             'warning' => '#EBA941',
             'danger' => '#F2716A',
@@ -145,12 +157,30 @@ return [
         'font-lg' => 17,
         'font-xl' => 22,
 
-        // 'System' resolves to the platform default (San Francisco on iOS, Roboto on Android).
-        // Set a bundled font token to apply it app-wide — a file from your app's
-        // resources/fonts/ minus the extension (e.g. 'Inter-Regular'). Download one
-        // with `php artisan native:font Inter`. Per-element `font` attributes and
-        // font-serif / font-mono classes still win over this default.
-        'font-family' => 'System',
+        // App-wide default now comes from the `fonts.default` alias below (Inter).
+        // Kept for back-compat; the alias supersedes it.
+        'font-family' => 'Inter-Regular',
+    ],
+
+    /*
+    |---------------------------------------------------------------------------
+    | Fonts — semantic aliases
+    |---------------------------------------------------------------------------
+    |
+    | Bundled from resources/fonts/ (via `php artisan native:font`). Reference an
+    | alias anywhere a font token works: `font="headline"` in Blade,
+    | `->font('headline')` on chrome builders, `$font` on a layout. The `default`
+    | alias applies app-wide, superseding the theme `font-family`.
+    | Space Grotesk = display / headline / numerics; Inter = body / UI.
+    |
+    */
+    'fonts' => [
+        'default' => 'Inter-Regular',
+        'medium' => 'Inter-SemiBold',
+        'bold' => 'Inter-Bold',
+        'headline' => 'SpaceGrotesk-Bold',
+        'display' => 'SpaceGrotesk-Bold',
+        'numeric' => 'SpaceGrotesk-Medium',
     ],
 
 ];

@@ -95,7 +95,7 @@ test('the simplified home shows a single recent game, streak glance, and latest 
         ->assertSee('Word Match')
         ->assertDontSee('Quick Math')
         ->assertDontSee('Latest badge')
-        ->assertSee('No achievements yet')
+        ->assertSee('No badges yet')
         ->assertDontSee('TODAY’S SESSION')
         ->assertDontSee('Your rhythm')
         ->assertAccessible();

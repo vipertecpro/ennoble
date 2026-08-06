@@ -53,7 +53,7 @@ test('the home screen shows a single recent game card and the streak glance', fu
         ->assertSee('Games played')
         ->assertDontSee('Best score')
         ->assertDontSee('Latest badge')
-        ->assertSee('No achievements yet')
+        ->assertSee('No badges yet')
         ->assertAccessible();
 });
 

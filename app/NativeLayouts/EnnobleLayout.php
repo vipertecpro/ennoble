@@ -59,10 +59,11 @@ final class EnnobleLayout extends NativeLayout
         $isDark = $theme->appearance($preference) === 'dark';
 
         return TabBar::make()
-            ->activeColor($theme->color('primary', $preference))
-            ->textColor($theme->color('on-surface-variant', $preference))
+            ->activeColor($theme->color('accent', $preference))
+            ->textColor($theme->color('muted-text', $preference))
             ->backgroundColor($theme->color('background', $preference))
             ->labelVisibility('labeled')
+            ->font('medium')
             ->dark($isDark)
             ->add(Tab::link('Home', '/', ios: Ios::House, android: AndroidOutlined::Home))
             ->add(Tab::link('Games', '/games', ios: Ios::Gamecontroller, android: AndroidOutlined::SportsEsports))
