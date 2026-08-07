@@ -107,11 +107,6 @@ final class StackGame extends NativeComponent
 
     public int $pieceRotation = 0;
 
-    /** The piece set aside, and whether it has already been swapped this turn. */
-    public ?string $holdPiece = null;
-
-    public bool $holdLocked = false;
-
     /**
      * The next three pieces. Held as state rather than read from the sequence
      * in the view, so the preview cannot drift from what actually spawns.
@@ -301,35 +296,6 @@ final class StackGame extends NativeComponent
         $this->lockPiece();
     }
 
-    /**
-     * Set the current piece aside, bringing back whatever was there.
-     *
-     * Locked until the next piece spawns. Without that, holding repeatedly
-     * cycles through the queue for free and the choice costs nothing.
-     */
-    public function hold(): void
-    {
-        if ($this->phase !== 'playing' || $this->holdLocked) {
-            return;
-        }
-
-        $swapped = $this->holdPiece;
-        $this->holdPiece = $this->piece;
-
-        if ($swapped === null) {
-            $this->spawn($this->pieceIndex + 1 < $this->totalPieces ? $this->pieceIndex + 1 : $this->pieceIndex);
-        } else {
-            $this->piece = $swapped;
-            $this->pieceRotation = 0;
-            $this->pieceColumn = (int) floor((self::COLUMNS - 4) / 2);
-            $this->pieceRow = -1;
-            $this->pieceStartedAtMs = $this->nowMs();
-        }
-
-        $this->holdLocked = true;
-        app(HapticService::class)->trigger(HapticFeedback::Selection);
-    }
-
     /** One row down, by the player's choice rather than by gravity. */
     public function softDrop(): void
     {
@@ -488,7 +454,6 @@ final class StackGame extends NativeComponent
     {
         $this->pieceIndex = $index;
         $this->piece = $this->sequence[$index];
-        $this->holdLocked = false;
         $this->nextPieces = array_values(array_slice($this->sequence, $index + 1, 3));
         $this->pieceRotation = 0;
         $this->pieceColumn = (int) floor((self::COLUMNS - 4) / 2);
@@ -534,7 +499,7 @@ final class StackGame extends NativeComponent
         }
 
         foreach ($this->board()->filledCells() as $cell) {
-            $scene = $scene->add($this->cube(
+            $scene = $scene->add($this->cell(
                 'c:'.$cell['row'].':'.$cell['column'],
                 $cell['column'],
                 $cell['row'],
@@ -554,7 +519,7 @@ final class StackGame extends NativeComponent
                 continue;
             }
 
-            $scene = $scene->add($this->cube(
+            $scene = $scene->add($this->cell(
                 'p:'.$index,
                 $this->pieceColumn + $cellColumn,
                 $row,
@@ -581,9 +546,9 @@ final class StackGame extends NativeComponent
         $height = self::ROWS * self::CELL;
 
         $nodes = [
-            Node::shape('grid:panel', Shapes::BOX)
+            Node::shape('grid:panel', Shapes::PLANE)
                 ->at(0.0, 0.0, -0.75)
-                ->size($width, $height, 0.4)
+                ->size($width, $height, 1.0)
                 ->material(Material::solid(theme('grid-surface'))),
         ];
 
@@ -599,9 +564,9 @@ final class StackGame extends NativeComponent
         // not read as shadow, it reads as grey dirt.
         foreach ([[0.22, 1.2], [0.15, 2.2], [0.09, 3.4], [0.04, 4.8]] as $band => [$opacity, $depth]) {
             foreach ([1, -1] as $edge) {
-                $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::BOX)
+                $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::PLANE)
                     ->at(0.0, $edge * (($height - $depth) / 2), -0.4)
-                    ->size($width, $depth, 0.1)
+                    ->size($width, $depth, 1.0)
                     ->material(Material::solid(theme('grid-fade')))
                     ->opacity($opacity);
             }
@@ -609,25 +574,35 @@ final class StackGame extends NativeComponent
 
         // Interior boundaries only — the outer edge is the panel's own.
         for ($column = 1; $column < self::COLUMNS; $column++) {
-            $nodes[] = Node::shape('grid:v'.$column, Shapes::BOX)
+            $nodes[] = Node::shape('grid:v'.$column, Shapes::PLANE)
                 ->at(($column - self::COLUMNS / 2) * self::CELL, 0.0, -0.5)
-                ->size(0.04, $height, 0.1)
+                ->size(0.04, $height, 1.0)
                 ->material(Material::solid(theme('grid-line')));
         }
 
         for ($row = 1; $row < self::ROWS; $row++) {
-            $nodes[] = Node::shape('grid:h'.$row, Shapes::BOX)
+            $nodes[] = Node::shape('grid:h'.$row, Shapes::PLANE)
                 ->at(0.0, (self::ROWS / 2 - $row) * self::CELL, -0.5)
-                ->size($width, 0.04, 0.1)
+                ->size($width, 0.04, 1.0)
                 ->material(Material::solid(theme('grid-line')));
         }
 
         return $nodes;
     }
 
-    private function cube(string $id, int $column, int $row, string $color): Node
+    /**
+     * One cell, as a flat quad facing the camera.
+     *
+     * A PLANE, not a BOX. A box has side faces, and even with no shadows and
+     * no key light the camera's remaining perspective reveals them toward the
+     * edges of the board — which is exactly the "still looks 3D" that a
+     * falling-block game must not have. A plane has one face and one normal,
+     * so under a single ambient light it renders as one solid colour, edge to
+     * edge, the same as any 2D game.
+     */
+    private function cell(string $id, int $column, int $row, string $color): Node
     {
-        return Node::shape($id, Shapes::BOX)
+        return Node::shape($id, Shapes::PLANE)
             ->at(
                 ($column - (self::COLUMNS - 1) / 2) * self::CELL,
                 ((self::ROWS - 1) / 2 - $row) * self::CELL,

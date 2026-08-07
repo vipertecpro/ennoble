@@ -296,32 +296,6 @@ test('the next queue shows what actually spawns', function () {
     expect($screen->get('piece'))->toBe($expected);
 });
 
-test('hold swaps the piece and cannot be used twice on one turn', function () {
-    // Unlimited holding cycles the queue for free, and the choice costs
-    // nothing.
-    $session = startStack($this->profile);
-
-    $screen = Native::visit('/play/stack/'.$session->getKey());
-    stackPlaying($screen);
-
-    $first = $screen->get('piece');
-    $screen->call('hold');
-
-    expect($screen->get('holdPiece'))->toBe($first)
-        ->and($screen->get('holdLocked'))->toBeTrue()
-        ->and($screen->get('piece'))->not->toBe($first);
-
-    $second = $screen->get('piece');
-    $screen->call('hold');
-
-    expect($screen->get('piece'))->toBe($second, 'A second hold on the same turn must be ignored.');
-
-    // The lock lifts when the next piece spawns.
-    $screen->call('hardDrop');
-
-    expect($screen->get('holdLocked'))->toBeFalse();
-});
-
 test('the level rises with lines cleared and quickens the drop', function () {
     $session = startStack($this->profile);
 

@@ -97,23 +97,6 @@
                 </native:column>
 
                 <native:column class="w-20 h-full gap-2">
-                    {{-- HOLD parks the current piece and gives back whatever
-                         was parked — stash the awkward one, keep building,
-                         take it back when it fits. One swap per piece, or it
-                         is just a free reroll. --}}
-                    <native:pressable
-                        @press="hold"
-                        a11y-label="Hold this piece"
-                        a11y-hint="Parks the current piece to use later; one swap per piece"
-                        :press-scale="0.96"
-                        class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}"
-                    >
-                        <native:text class="text-[8] font-semibold uppercase tracking-widest {{ $holdLocked ? 'text-theme-muted-text' : 'text-theme-accent' }}">Hold</native:text>
-                        <native:column class="h-6 items-center justify-center">
-                            <x-native.games.stack.piece-preview :piece="$holdPiece" :cell="7" />
-                        </native:column>
-                    </native:pressable>
-
                     <native:column class="w-20 items-center gap-2 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
                         <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Next</native:text>
                         @foreach ($nextPieces as $upcoming)
