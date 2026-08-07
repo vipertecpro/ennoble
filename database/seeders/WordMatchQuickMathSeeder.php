@@ -71,16 +71,6 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Adaptability->value],
                 'configuration' => ['content_version' => 1],
             ],
-            [
-                'type' => GameType::Leap->value,
-                'slug' => 'leap',
-                'name' => 'Leap',
-                'description' => 'Obstacles keep coming — tap to jump, and keep your timing as the pace climbs.',
-                'status' => GameStatus::Playable->value,
-                'sort_order' => 6,
-                'skill_keys' => [SkillKey::Speed->value, SkillKey::Focus->value, SkillKey::Adaptability->value],
-                'configuration' => ['content_version' => 1],
-            ],
         ];
 
         DB::table('games')->upsert(
@@ -96,7 +86,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal', 'leap'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -119,11 +109,6 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 12, 1400, ['directions' => ['left', 'right'], 'window_ms' => 2400, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 14, 1100, ['directions' => ['left', 'right', 'up'], 'window_ms' => 1900, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 16, 900, ['directions' => ['left', 'right', 'up', 'down'], 'window_ms' => 1500, 'lives' => 3]],
-            ],
-            'leap' => [
-                [Difficulty::Beginner, 'Warm-up', 16, 2600, ['travel_ms' => 2800, 'min_travel_ms' => 2100, 'max_height' => 2, 'lives' => 3]],
-                [Difficulty::Intermediate, 'Steady', 22, 2200, ['travel_ms' => 2500, 'min_travel_ms' => 1750, 'max_height' => 2, 'lives' => 3]],
-                [Difficulty::Advanced, 'Sharp', 28, 1900, ['travel_ms' => 2300, 'min_travel_ms' => 1450, 'max_height' => 3, 'lives' => 3]],
             ],
             'signal' => [
                 [Difficulty::Beginner, 'Warm-up', 10, 3500, ['colors' => ['red', 'blue', 'green'], 'rules' => ['ink'], 'options_count' => 3, 'seconds_per_round' => 6, 'lives' => 3]],

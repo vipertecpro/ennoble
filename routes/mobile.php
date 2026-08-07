@@ -7,7 +7,6 @@ use App\NativeComponents\Screens\FlowGame;
 use App\NativeComponents\Screens\GameDetail;
 use App\NativeComponents\Screens\Games;
 use App\NativeComponents\Screens\Home;
-use App\NativeComponents\Screens\LeapGame;
 use App\NativeComponents\Screens\MyDetails;
 use App\NativeComponents\Screens\Onboarding;
 use App\NativeComponents\Screens\Profile;
@@ -39,7 +38,6 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/play/recall/{session}', RecallGame::class)->name('native.play.recall');
     Route::native('/play/flow/{session}', FlowGame::class)->name('native.play.flow');
     Route::native('/play/signal/{session}', SignalGame::class)->name('native.play.signal');
-    Route::native('/play/leap/{session}', LeapGame::class)->name('native.play.leap');
     Route::native('/achievements', Achievements::class)->name('native.achievements');
     Route::native('/achievements/{category}', AchievementCategory::class)->name('native.achievements.category');
     Route::native('/profile', Profile::class)->name('native.profile');

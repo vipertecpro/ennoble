@@ -6,7 +6,6 @@ use App\Domain\Achievements\AchievementService;
 use App\Domain\Games\Contracts\GameScoringService;
 use App\Domain\Games\Contracts\ScoringResult;
 use App\Domain\Games\Flow\FlowScoringService;
-use App\Domain\Games\Leap\LeapScoringService;
 use App\Domain\Games\QuickMath\QuickMathScoringService;
 use App\Domain\Games\Recall\RecallScoringService;
 use App\Domain\Games\Signal\SignalScoringService;
@@ -35,7 +34,6 @@ final class GameSessionService
         private readonly RecallScoringService $recallScoringService,
         private readonly FlowScoringService $flowScoringService,
         private readonly SignalScoringService $signalScoringService,
-        private readonly LeapScoringService $leapScoringService,
         private readonly ProgressService $progressService,
         private readonly StatisticsService $statisticsService,
         private readonly AchievementService $achievementService,
@@ -259,7 +257,6 @@ final class GameSessionService
             GameType::Recall => $this->recallScoringService,
             GameType::Flow => $this->flowScoringService,
             GameType::Signal => $this->signalScoringService,
-            GameType::Leap => $this->leapScoringService,
         };
     }
 

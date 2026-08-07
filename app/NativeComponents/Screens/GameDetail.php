@@ -79,15 +79,6 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong tap or a time-out costs one.',
             ],
         ],
-        'leap' => [
-            'tagline' => 'Obstacles keep coming — tap to jump, and keep your timing as the pace climbs.',
-            'steps' => [
-                'Obstacles slide in from the right toward your runner.',
-                'Tap anywhere to jump. There is one action and no clock.',
-                'Everything speeds up as the run goes on — clearing a fast obstacle pays more.',
-                'You have three lives — a collision costs one.',
-            ],
-        ],
     ];
 
     public string $screenState = 'content';
