@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.filament.utils.Utils
+import com.nativephp.mobile.ui.nativerender.NativeElementBridge
 import com.nativephp.mobile.ui.nativerender.NativeUINode
 
 /**
@@ -36,6 +37,21 @@ object Scene3dRenderer {
 
         DisposableEffect(host) {
             onDispose { host.destroy() }
+        }
+
+        // Re-bound whenever the callback id changes. The lambda closes over
+        // node.id, so it must not be captured once and kept — a recomposition
+        // that renumbers the element would otherwise report taps against a
+        // stale id and PHP would route them to nothing.
+        val tapCallback = p.getCallbackId("on_node_tap")
+        DisposableEffect(host, tapCallback, node.id) {
+            host.onNodeTap = if (tapCallback != 0) {
+                { picked -> NativeElementBridge.sendTextChangeEvent(tapCallback, node.id, picked.id) }
+            } else {
+                null
+            }
+
+            onDispose { host.onNodeTap = null }
         }
 
         // Parse only when the payload actually changed. PHP re-sends the whole

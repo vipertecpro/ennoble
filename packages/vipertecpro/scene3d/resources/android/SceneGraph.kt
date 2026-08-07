@@ -39,6 +39,14 @@ internal class SceneGraph(
     /** glTF bytes are cached: several nodes usually share one primitive. */
     private val assetBytes = mutableMapOf<String, ByteBuffer?>()
 
+    /**
+     * Renderable entity -> node id, for picking. Filament's pick returns the
+     * entity it hit and knows nothing about scene3d, so this is the only way
+     * back to the id PHP named. Built on load rather than searched on tap: a
+     * tap should not walk every asset's entity list.
+     */
+    private val entityToNode = mutableMapOf<Int, String>()
+
     fun sync(nodes: List<SceneNode>) {
         val seen = HashSet<String>(nodes.size)
 
@@ -163,6 +171,9 @@ internal class SceneGraph(
         asset.releaseSourceData()
 
         scene.addEntities(asset.entities)
+        for (renderable in asset.renderableEntities) {
+            entityToNode[renderable] = node.id
+        }
 
         val entry = Entry(asset, node.revision, node)
         applyTransform(entry, node.x, node.y, node.z)
@@ -265,7 +276,14 @@ internal class SceneGraph(
     }.onFailure { Log.e(TAG, "Asset [$path] is not bundled — is the copy_assets hook running?", it) }
         .getOrNull()
 
+    /** The node a picked renderable belongs to, or null if it is not ours. */
+    fun nodeFor(renderable: Int): SceneNode? =
+        entityToNode[renderable]?.let { entries[it]?.node }
+
     private fun release(entry: Entry) {
+        for (renderable in entry.asset.renderableEntities) {
+            entityToNode.remove(renderable)
+        }
         scene.removeEntities(entry.asset.entities)
         assetLoader.destroyAsset(entry.asset)
     }

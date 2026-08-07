@@ -12,7 +12,15 @@
         The box is metal, so it can only show what the environment gives it — black means there is no indirect light. The sphere is emissive and lights itself.
     </native:text>
 
-    <native:scene-3d class="w-full h-[320px] rounded-2xl" :scene="$scene" />
+    <native:scene-3d class="w-full h-[320px] rounded-2xl" :scene="$scene" @tap="strike" />
+
+    <native:text class="text-[13] font-semibold text-theme-primary-text">
+        @if ($tapCount === 0)
+            Tap a shape — nothing picked yet
+        @else
+            Picked "{{ $lastTapped }}" ({{ $tapCount }})
+        @endif
+    </native:text>
 
     <native:button variant="primary" @tap="toggleSphere">
         {{ $showSphere ? 'Remove sphere' : 'Add sphere' }}

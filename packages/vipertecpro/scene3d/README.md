@@ -20,7 +20,7 @@ $scene = Scene::make()
 ```
 
 ```blade
-<native:scene-3d class="flex-1 w-full rounded-3xl" :scene="$scene" @nodeTap="strike" />
+<native:scene-3d class="flex-1 w-full rounded-3xl" :scene="$scene" @tap="strike" />
 ```
 
 ## Why Filament on both platforms

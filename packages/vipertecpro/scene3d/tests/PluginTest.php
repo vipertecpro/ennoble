@@ -1,5 +1,6 @@
 <?php
 
+use Vipertecpro\Scene3d\Edge\Scene3dElement;
 use Vipertecpro\Scene3d\Scene\Shapes;
 
 /**
@@ -129,4 +130,17 @@ it('bundles the primitives the renderer resolves shapes to', function () {
         expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.glb"))
             ->toBeTrue("No bundled mesh for shape [{$shape}].");
     }
+});
+
+it('reads the tap handler off the key the compiler actually delivers', function () {
+    // Hard-won: `@tap` is rewritten twice before it reaches an element, and a
+    // custom `@nodeTap` is silently discarded entirely. Nothing errors when
+    // this is wrong — the viewport simply never reports a tap — so it is
+    // pinned here rather than rediscovered.
+    $element = new Scene3dElement;
+    $element->applyAttributes(['scene' => '{}', '_press' => 'strike']);
+
+    $reflection = new ReflectionProperty($element, 'nodeTapMethod');
+
+    expect($reflection->getValue($element))->toBe('strike');
 });

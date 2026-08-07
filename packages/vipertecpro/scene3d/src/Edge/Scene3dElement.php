@@ -6,7 +6,7 @@ use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
 /**
- * A real 3D viewport, rendered by SceneKit on iOS and SceneView on Android.
+ * A real 3D viewport, rendered by Filament.
  *
  * WHY THE SCENE TRAVELS AS JSON. The EDGE wire props expose only scalars and
  * string lists — there is no object or float-array getter on the native side —
@@ -48,8 +48,19 @@ class Scene3dElement extends Element
             }
         }
 
-        if (isset($attrs['_nodeTap'])) {
-            $this->onNodeTap($attrs['_nodeTap']);
+        // The attribute is `@tap`, and it arrives here as `_press`.
+        //
+        // Two rewrites are involved and both matter. The tag precompiler
+        // rewrites only a FIXED list of known event names, so a custom
+        // `@nodeTap` is treated as a child-component binding, becomes
+        // `_event-nodeTap`, and is then stripped from plain elements — it
+        // reaches the element as nothing at all, with no error anywhere. Of
+        // the names that do survive, `@tap` is then normalised onto the press
+        // channel, so `_press` is the key that actually arrives.
+        $handler = $attrs['_press'] ?? $attrs['_tap'] ?? null;
+
+        if ($handler !== null) {
+            $this->onNodeTap($handler);
         }
     }
 

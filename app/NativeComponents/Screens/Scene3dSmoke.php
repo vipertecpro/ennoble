@@ -31,6 +31,11 @@ final class Scene3dSmoke extends NativeComponent
     /** Toggles a second node, which is the only way to see the diff working. */
     public bool $showSphere = false;
 
+    /** Last node id reported by a tap, so picking is visible without a debugger. */
+    public string $lastTapped = '';
+
+    public int $tapCount = 0;
+
     private function scene(): Scene
     {
         $scene = Scene::make()
@@ -40,7 +45,8 @@ final class Scene3dSmoke extends NativeComponent
                 Node::shape('box', Shapes::BOX)
                     ->at(0, 0, 0)
                     ->material(Material::metal('#22D3EE'))
-                    ->spin('y', 4.0),
+                    ->spin('y', 4.0)
+                    ->tappable(),
             );
 
         if ($this->showSphere) {
@@ -48,7 +54,8 @@ final class Scene3dSmoke extends NativeComponent
                 Node::shape('sphere', Shapes::SPHERE)
                     ->at(2.2, 0, 0)
                     ->scale(0.8)
-                    ->material(Material::glowing('#FACC15')),
+                    ->material(Material::glowing('#FACC15'))
+                    ->tappable(),
             );
         }
 
@@ -64,6 +71,17 @@ final class Scene3dSmoke extends NativeComponent
     public function toggleSphere(): void
     {
         $this->showSphere = ! $this->showSphere;
+    }
+
+    /**
+     * Picking round-trip: Filament reports the entity under the finger, the
+     * renderer maps it back to the id PHP named, and it arrives here. Naming
+     * the node proves the mapping, not merely that something was touched.
+     */
+    public function strike(string $nodeId): void
+    {
+        $this->lastTapped = $nodeId;
+        $this->tapCount++;
     }
 
     public function render(): Element

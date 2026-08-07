@@ -1,6 +1,10 @@
 package com.vipertecpro.plugins.scene3d.ui
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.Choreographer
 import android.view.SurfaceView
 import com.google.android.filament.Camera
@@ -61,6 +65,11 @@ internal class FilamentHost(context: Context) {
     private val graph = SceneGraph(engine, scene, assetLoader, resourceLoader, context)
     private val lightEntities = mutableListOf<Int>()
 
+    /** Set by the renderer when the element declares @nodeTap. */
+    var onNodeTap: ((SceneNode) -> Unit)? = null
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     private var environment: Environment.Built? = null
     private var chrome: SceneChrome? = null
     private var destroyed = false
@@ -86,7 +95,27 @@ internal class FilamentHost(context: Context) {
         }
     }
 
+    /**
+     * A tap is detected with GestureDetector rather than by hand: it already
+     * applies the platform's touch slop and tap timeout, so a small drag or a
+     * long press does not register as a tap on a 3D object.
+     */
+    private val tapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean = true
+
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            pick(e.x.toInt(), e.y.toInt())
+            return true
+        }
+    })
+
     init {
+        surfaceView.setOnTouchListener { v, event ->
+            val handled = tapDetector.onTouchEvent(event)
+            if (event.actionMasked == MotionEvent.ACTION_UP) v.performClick()
+            handled
+        }
+
         view.scene = scene
         view.camera = camera
         // A skybox is what makes `background` actually clear to a colour;
@@ -204,6 +233,29 @@ internal class FilamentHost(context: Context) {
             builder.build(engine, entity)
             scene.addEntity(entity)
             lightEntities += entity
+        }
+    }
+
+    /**
+     * Ask Filament what was under the finger, and report the node it belongs
+     * to. Asynchronous by nature: the answer comes from a GPU readback, so it
+     * arrives a frame or two later, on the handler given here.
+     */
+    private fun pick(x: Int, y: Int) {
+        if (destroyed) return
+        val listener = onNodeTap ?: return
+
+        // Filament's picking origin is the BOTTOM-left of the viewport while
+        // Android's touch origin is the top-left. Without the flip, taps hit
+        // the vertical mirror of what was aimed at — which looks like nothing
+        // at all near the middle and like a bug everywhere else.
+        val flippedY = view.viewport.height - y
+
+        view.pick(x, flippedY, mainHandler) { result ->
+            if (destroyed) return@pick
+            graph.nodeFor(result.renderable)?.let { node ->
+                if (node.tappable) listener(node)
+            }
         }
     }
 
