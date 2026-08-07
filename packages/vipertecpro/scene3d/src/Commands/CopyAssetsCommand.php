@@ -2,64 +2,53 @@
 
 namespace Vipertecpro\Scene3d\Commands;
 
-use Native\Mobile\Plugins\Commands\NativePluginHookCommand;
+use Illuminate\Console\Command;
 
 /**
- * Copy assets hook command for Scene3d plugin.
+ * Copies the built-in primitive meshes into the native projects at build time.
  *
- * This hook runs during the copy_assets phase of the build process.
- * Use it to copy ML models, binary files, or other assets that need
- * to be in specific locations in the native project.
+ * Both platforms receive the SAME files under the same relative path
+ * (`primitives/<shape>.gltf`), which is the whole point of choosing glTF: the
+ * renderers can resolve a shape identically instead of each carrying its own
+ * asset conventions.
  *
- * @see NativePluginHookCommand
+ * A user's own models are NOT handled here — those live in the app and are
+ * referenced by the path given to `Node::model()`.
  */
-class CopyAssetsCommand extends NativePluginHookCommand
+class CopyAssetsCommand extends Command
 {
     protected $signature = 'nativephp:scene3d:copy-assets';
 
-    protected $description = 'Copy assets for Scene3d plugin';
+    protected $description = 'Copy scene3d primitive meshes into the native projects';
 
     public function handle(): int
     {
-        // Example: Copy different files based on platform
-        if ($this->isAndroid()) {
-            $this->copyAndroidAssets();
+        $source = dirname(__DIR__, 2).'/resources/primitives';
+
+        if (! is_dir($source)) {
+            $this->error("Primitives are missing from [{$source}]. Run nativephp:scene3d:primitives.");
+
+            return self::FAILURE;
         }
 
-        if ($this->isIos()) {
-            $this->copyIosAssets();
+        $copied = 0;
+
+        foreach (glob($source.'/*.gltf') ?: [] as $file) {
+            $name = basename($file);
+
+            if (method_exists($this, 'copyToAndroidAssets')) {
+                $this->copyToAndroidAssets($file, "primitives/{$name}");
+            }
+
+            if (method_exists($this, 'copyToIosBundle')) {
+                $this->copyToIosBundle($file, "primitives/{$name}");
+            }
+
+            $copied++;
         }
+
+        $this->info("Copied {$copied} scene3d primitives.");
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Copy assets for Android build
-     */
-    protected function copyAndroidAssets(): void
-    {
-        // Example: Copy a TensorFlow Lite model to Android assets
-        // $this->copyToAndroidAssets('model.tflite', 'model.tflite');
-
-        // Example: Download a model if not present locally
-        // $modelPath = $this->pluginPath() . '/resources/model.tflite';
-        // $this->downloadIfMissing(
-        //     'https://example.com/model.tflite',
-        //     $modelPath
-        // );
-        // $this->copyToAndroidAssets('model.tflite', 'model.tflite');
-
-        $this->info('Android assets copied for Scene3d');
-    }
-
-    /**
-     * Copy assets for iOS build
-     */
-    protected function copyIosAssets(): void
-    {
-        // Example: Copy a Core ML model to iOS bundle
-        // $this->copyToIosBundle('model.mlmodelc', 'model.mlmodelc');
-
-        $this->info('iOS assets copied for Scene3d');
     }
 }

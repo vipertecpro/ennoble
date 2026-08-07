@@ -1,0 +1,199 @@
+package com.vipertecpro.plugins.scene3d.ui
+
+import android.content.Context
+import com.google.android.filament.Engine
+import com.google.android.filament.Scene
+import com.google.android.filament.gltfio.AssetLoader
+import com.google.android.filament.gltfio.FilamentAsset
+import com.google.android.filament.gltfio.ResourceLoader
+import java.nio.ByteBuffer
+
+/**
+ * Holds the loaded assets and reconciles them against each incoming scene.
+ *
+ * THE DIFF IS THE WHOLE POINT. PHP re-sends the entire scene whenever any part
+ * of it changes, so rebuilding would reload every glTF and restart every
+ * animation on every tick — the exact stutter this architecture exists to
+ * avoid. Nodes are matched by id, and a node whose `revision` is unchanged is
+ * skipped without even reading its transform.
+ */
+internal class SceneGraph(
+    private val engine: Engine,
+    private val scene: Scene,
+    private val assetLoader: AssetLoader,
+    private val resourceLoader: ResourceLoader,
+    private val context: Context,
+) {
+    private class Entry(
+        val asset: FilamentAsset,
+        var revision: Int,
+        var node: SceneNode,
+        /** Where the node was when a `move` began, so it can be interpolated from there. */
+        var moveFrom: FloatArray? = null,
+        var moveStartedAt: Float = -1f,
+    )
+
+    private val entries = mutableMapOf<String, Entry>()
+
+    /** glTF bytes are cached: several nodes usually share one primitive. */
+    private val assetBytes = mutableMapOf<String, ByteBuffer?>()
+
+    fun sync(nodes: List<SceneNode>) {
+        val seen = HashSet<String>(nodes.size)
+
+        for (node in nodes) {
+            seen += node.id
+            val existing = entries[node.id]
+
+            if (existing == null) {
+                load(node)?.let { entries[node.id] = it }
+                continue
+            }
+
+            // Changing what a node IS cannot be patched — the geometry differs
+            // — so it is reloaded. Everything else is an in-place update.
+            if (existing.node.assetPath != node.assetPath) {
+                release(existing)
+                entries.remove(node.id)
+                load(node)?.let { entries[node.id] = it }
+                continue
+            }
+
+            if (existing.revision == node.revision) continue
+
+            existing.revision = node.revision
+            val hadMove = existing.node.moveTo
+            existing.node = node
+
+            // A newly-declared move starts from wherever the node is now.
+            if (node.moveTo != null && !node.moveTo.contentEquals(hadMove)) {
+                existing.moveFrom = floatArrayOf(node.x, node.y, node.z)
+                existing.moveStartedAt = -1f
+            }
+
+            applyTransform(existing, node.x, node.y, node.z)
+            applyClip(existing)
+        }
+
+        val gone = entries.keys.filter { it !in seen }
+        for (id in gone) {
+            entries.remove(id)?.let { release(it) }
+        }
+    }
+
+    /**
+     * Advance render-thread animations. Called every frame with seconds since
+     * the host started, so `spin` and `move` never depend on PHP's cadence.
+     */
+    fun advance(seconds: Float) {
+        for (entry in entries.values) {
+            val node = entry.node
+            var x = node.x
+            var y = node.y
+            var z = node.z
+            var spinAngle = 0f
+
+            node.moveTo?.let { target ->
+                if (entry.moveStartedAt < 0f) entry.moveStartedAt = seconds
+                val from = entry.moveFrom ?: floatArrayOf(node.x, node.y, node.z)
+                val t = if (node.moveSeconds <= 0f) 1f else (seconds - entry.moveStartedAt) / node.moveSeconds
+
+                x = Transforms.lerp(from[0], target[0], t)
+                y = Transforms.lerp(from[1], target[1], t)
+                z = Transforms.lerp(from[2], target[2], t)
+            }
+
+            if (node.spinAxis != null && node.spinSeconds > 0f) {
+                spinAngle = (seconds / node.spinSeconds) * 360f % 360f
+            }
+
+            if (node.moveTo == null && spinAngle == 0f) continue
+
+            val rx = node.rotX + if (node.spinAxis == "x") spinAngle else 0f
+            val ry = node.rotY + if (node.spinAxis == "y") spinAngle else 0f
+            val rz = node.rotZ + if (node.spinAxis == "z") spinAngle else 0f
+
+            setTransform(entry.asset, x, y, z, node.scale, rx, ry, rz)
+
+            entry.asset.instance.animator?.let { animator ->
+                if (node.clip != null) {
+                    animator.updateBoneMatrices()
+                }
+            }
+        }
+    }
+
+    private fun load(node: SceneNode): Entry? {
+        val buffer = assetBytes.getOrPut(node.assetPath) { readAsset(node.assetPath) } ?: return null
+
+        // rewind: the same buffer is handed to the loader for every node that
+        // shares this asset, and a spent buffer loads as an empty model.
+        buffer.rewind()
+
+        val asset = assetLoader.createAsset(buffer) ?: return null
+        resourceLoader.loadResources(asset)
+        // Source data is only needed while resources resolve; holding it keeps
+        // the whole glTF in memory for the life of the asset.
+        asset.releaseSourceData()
+
+        scene.addEntities(asset.entities)
+
+        val entry = Entry(asset, node.revision, node)
+        applyTransform(entry, node.x, node.y, node.z)
+        applyClip(entry)
+
+        return entry
+    }
+
+    private fun applyClip(entry: Entry) {
+        val name = entry.node.clip ?: return
+        val animator = entry.asset.instance.animator ?: return
+
+        for (i in 0 until animator.animationCount) {
+            if (animator.getAnimationName(i) == name) {
+                animator.applyAnimation(i, 0f)
+                animator.updateBoneMatrices()
+                return
+            }
+        }
+    }
+
+    private fun applyTransform(entry: Entry, x: Float, y: Float, z: Float) {
+        val n = entry.node
+        setTransform(entry.asset, x, y, z, n.scale, n.rotX, n.rotY, n.rotZ)
+    }
+
+    private fun setTransform(
+        asset: FilamentAsset,
+        x: Float, y: Float, z: Float,
+        scale: Float,
+        rx: Float, ry: Float, rz: Float,
+    ) {
+        val tm = engine.transformManager
+        val instance = tm.getInstance(asset.root)
+        if (instance == 0) return
+
+        tm.setTransform(instance, Transforms.trs(x, y, z, scale, rx, ry, rz))
+    }
+
+    private fun readAsset(path: String): ByteBuffer? = runCatching {
+        context.assets.open(path).use { stream ->
+            val bytes = stream.readBytes()
+            ByteBuffer.allocateDirect(bytes.size).apply {
+                put(bytes)
+                rewind()
+            }
+        }
+    }.getOrNull()
+
+    private fun release(entry: Entry) {
+        scene.removeEntities(entry.asset.entities)
+        assetLoader.destroyAsset(entry.asset)
+    }
+
+    fun destroy() {
+        entries.values.forEach { release(it) }
+        entries.clear()
+        assetBytes.clear()
+    }
+}

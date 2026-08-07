@@ -65,3 +65,36 @@ it('targets platform versions Filament actually supports', function () {
     expect($this->manifest['android']['min_version'])->toBeGreaterThanOrEqual(24)
         ->and((float) $this->manifest['ios']['min_version'])->toBeGreaterThanOrEqual(13.0);
 });
+
+it('has a Kotlin renderer whose package and object match the manifest', function () {
+    // Nothing else checks this. The manifest names a fully-qualified Kotlin
+    // object, and if the file is renamed or its package changes, the build
+    // fails on a device with an unhelpful error rather than here.
+    $declared = $this->manifest['components'][0]['android_renderer'];
+    $object = substr($declared, strrpos($declared, '.') + 1);
+    $package = substr($declared, 0, strrpos($declared, '.'));
+
+    $file = $this->pluginPath."/resources/android/{$object}.kt";
+
+    expect(file_exists($file))->toBeTrue("Manifest names [{$declared}] but {$object}.kt does not exist.");
+
+    $source = file_get_contents($file);
+
+    expect($source)->toContain("package {$package}")
+        ->and($source)->toContain("object {$object}")
+        // The renderer contract: a Composable Render(node, modifier).
+        ->and($source)->toContain('fun Render(node: NativeUINode, modifier: Modifier)');
+});
+
+it('bundles the primitives the renderer resolves shapes to', function () {
+    // SceneNode.assetPath falls back to "primitives/<shape>.gltf"; a shape
+    // without a bundled mesh renders as nothing at all, silently.
+    $declared = $this->manifest['assets']['android'];
+
+    expect($declared)->toContain('resources/primitives');
+
+    foreach (\Vipertecpro\Scene3d\Scene\Shapes::ALL as $shape) {
+        expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.gltf"))
+            ->toBeTrue("No bundled mesh for shape [{$shape}].");
+    }
+});

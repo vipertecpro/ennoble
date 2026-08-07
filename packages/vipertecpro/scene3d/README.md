@@ -70,12 +70,15 @@ available.
 |---|---|
 | Scene API (`Scene`, `Node`, `Material`, `Camera`, `Light`) | Done — 14 tests |
 | EDGE element, Blade tag, manifest wiring | Done — 5 integrity tests |
-| Android renderer (Filament + gltfio) | **Not started** |
+| Built-in primitives (generated glTF) | Done — 12 tests, validated as glTF 2.0 |
+| Android renderer (Filament + gltfio) | Written — **never compiled** |
 | iOS renderer (Filament via CocoaPods) | **Not started** |
+| Picking (`tappable()` → node id) | Modelled in PHP, **not wired natively** |
 | Showcase games | Not started |
 
-The PHP half is complete and tested. Neither renderer exists yet — the earlier
-SceneKit sketch was discarded when Filament was chosen for both platforms.
+The PHP half is complete and tested. The Android renderer is written but has
+never been through a Kotlin compiler — expect build fixes on first
+`native:run`, particularly around Filament's lifecycle and the version pin.
 
 ### Verify before the first build
 
