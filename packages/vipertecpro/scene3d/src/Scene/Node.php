@@ -13,10 +13,16 @@ use InvalidArgumentException;
  * a different object, or regenerating ids each frame, forces a rebuild and
  * throws all of that away — which is exactly how a 3D scene ends up stuttering.
  *
- * `revision` is how the native side avoids deep-comparing every node. Any
- * mutation bumps it, so the renderer skips untouched nodes in O(1) instead of
- * walking their whole descriptor. With a few hundred nodes that is the
- * difference between a free diff and a measurable one.
+ * `r` on the wire is how the native side avoids deep-comparing every node: it
+ * skips any node whose `r` is unchanged. It is therefore a CONTENT HASH of
+ * everything else in the payload, and nothing else will do.
+ *
+ * It used to be a mutation counter, and that was a serious bug. A counter
+ * records how many builder calls were made, not what they set — so a node
+ * rebuilt each frame the same WAY but with a different position and colour
+ * carried an identical counter, and the renderer skipped the update. Pieces
+ * never moved, characters never jumped, and none of it was visible from PHP,
+ * because the wire looked correct apart from that one number.
  */
 final class Node
 {
@@ -135,7 +141,6 @@ final class Node
     {
         $payload = [
             'id' => $this->id,
-            'r' => $this->revision,
         ];
 
         if ($this->kind === 'model') {
@@ -170,7 +175,18 @@ final class Node
             $payload['tap'] = 1;
         }
 
-        return $payload;
+        // Derived from everything above, so it changes exactly when the node
+        // does. Masked to a positive 32-bit int because the renderer reads it
+        // with optInt and a full crc32 overflows a signed Int.
+        return ['id' => $this->id, 'r' => $this->contentRevision($payload), ...$payload];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function contentRevision(array $payload): int
+    {
+        return crc32(json_encode($payload, JSON_THROW_ON_ERROR)) & 0x7FFFFFFF;
     }
 
     /**

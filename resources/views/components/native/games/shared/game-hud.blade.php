@@ -10,6 +10,10 @@
     'round' => 0,
     'total' => 0,
     'motionDuration' => 0,
+    // Some games have no lives to show. Stack, for instance, sweeps the board
+    // instead of ending a run, so a row of hearts describes nothing the player
+    // is tracking.
+    'showLives' => true,
 ])
 
 {{-- Shared in-game top bar. A clear Back control (leaves the game from any
@@ -77,6 +81,7 @@
     <native:spacer class="flex-1" />
 
     <native:column class="items-end gap-1">
+        @if ($showLives)
         <native:row class="items-center gap-2" a11y-label="{{ $lives }} of {{ $maxLives }} lives remaining">
             @for ($life = 1; $life <= $maxLives; $life++)
                 @php $isFull = $life <= $lives; @endphp
@@ -91,6 +96,7 @@
                 </native:column>
             @endfor
         </native:row>
+        @endif
 
         @if ($total > 0)
             <native:text class="text-[10] font-semibold uppercase tracking-widest text-theme-muted-text">

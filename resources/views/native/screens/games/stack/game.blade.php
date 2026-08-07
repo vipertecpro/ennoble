@@ -66,6 +66,7 @@
                     :round="$pieceIndex + 1"
                     :total="$totalPieces"
                     :motion-duration="$feedbackMotionDuration"
+                    :show-lives="false"
                 />
             </native:column>
 

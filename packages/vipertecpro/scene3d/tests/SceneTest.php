@@ -33,16 +33,34 @@ test('adding a node with an existing id replaces it rather than duplicating', fu
         ->and($scene->node('hero')->shape)->toBe('sphere');
 });
 
-test('every mutation bumps the revision the renderer diffs on', function () {
-    $node = Node::shape('a', 'box');
-    $moved = $node->at(1, 2, 3);
-    $coloured = $moved->color('#FF0000');
+test('the revision changes when the node changes, and only then', function () {
+    // THE bug this replaced: the revision used to count builder calls rather
+    // than describe content, so a node rebuilt the same WAY with a different
+    // position and colour carried an identical revision — and the renderer,
+    // which skips any node whose revision is unchanged, threw the update away.
+    // Nothing moved on screen and nothing looked wrong from PHP.
+    $build = fn (float $x, string $color): array => Node::shape('a', 'box')
+        ->at($x, 0, 0)
+        ->color($color)
+        ->toArray();
 
-    // The revision is what lets the renderer skip untouched nodes in O(1)
-    // instead of deep-comparing every descriptor each frame.
-    expect($node->revision)->toBe(1)
-        ->and($moved->revision)->toBe(2)
-        ->and($coloured->revision)->toBe(3);
+    expect($build(0, '#FF0000')['r'])->not->toBe($build(3, '#FF0000')['r'], 'A moved node must not keep its revision.')
+        ->and($build(0, '#FF0000')['r'])->not->toBe($build(0, '#00FF00')['r'], 'A recoloured node must not keep its revision.');
+
+    // Unchanged content must still match, or every node would be re-applied
+    // on every render and running animations would restart.
+    expect($build(0, '#FF0000')['r'])->toBe($build(0, '#FF0000')['r']);
+});
+
+test('the revision survives the renderer reading it as a signed int', function () {
+    // Kotlin reads `r` with optInt; a full crc32 overflows a signed Int and
+    // would come back negative or clamped, silently breaking the diff.
+    foreach ([['a', 0.0], ['long-node-id-here', -12.5], ['z', 9999.0]] as [$id, $x]) {
+        $r = Node::shape($id, 'box')->at($x, 0, 0)->toArray()['r'];
+
+        expect($r)->toBeGreaterThanOrEqual(0)
+            ->and($r)->toBeLessThanOrEqual(2147483647);
+    }
 });
 
 test('defaults are omitted from the wire rather than sent as zeroes', function () {
@@ -50,7 +68,8 @@ test('defaults are omitted from the wire rather than sent as zeroes', function (
 
     // A scene of hundreds of nodes is encoded on every render that touches it;
     // absent bytes are the cheapest optimisation available.
-    expect($wire)->toBe(['id' => 'a', 'r' => 1, 'g' => 'box'])
+    expect($wire)->toHaveKeys(['id', 'r', 'g'])
+        ->and($wire['g'])->toBe('box')
         ->and($wire)->not->toHaveKeys(['x', 'y', 'z', 's', 'o']);
 });
 
