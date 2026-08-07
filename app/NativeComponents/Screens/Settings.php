@@ -144,6 +144,14 @@ final class Settings extends NativeComponent
     }
 
     /**
+     * TEMPORARY: opens the scene3d plugin smoke test. Remove with the screen.
+     */
+    public function openScene3dSmoke(): void
+    {
+        $this->navigate('/dev/scene-3d');
+    }
+
+    /**
      * Retry loading persisted preferences after a recoverable failure.
      */
     public function retrySettings(): void

@@ -13,6 +13,7 @@ use App\NativeComponents\Screens\Profile;
 use App\NativeComponents\Screens\QuickMathExplain;
 use App\NativeComponents\Screens\QuickMathGame;
 use App\NativeComponents\Screens\RecallGame;
+use App\NativeComponents\Screens\Scene3dSmoke;
 use App\NativeComponents\Screens\Settings;
 use App\NativeComponents\Screens\SignalGame;
 use App\NativeComponents\Screens\Splash;
@@ -45,4 +46,9 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/my-details', MyDetails::class)->name('native.my-details');
     Route::native('/settings', Settings::class)->name('native.settings');
     Route::native('/about', About::class)->name('native.about');
+
+    // Development smoke test for the scene3d plugin. Remove this line, the
+    // screen, its view, and the Settings entry point once the renderer is
+    // trusted — it is not a product screen.
+    Route::native('/dev/scene-3d', Scene3dSmoke::class)->name('native.dev.scene-3d');
 });

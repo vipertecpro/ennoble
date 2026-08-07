@@ -58,6 +58,20 @@
         @endif
     </native:column>
 
+    {{-- TEMPORARY: entry point for the scene3d plugin smoke test.
+         Remove this block with the screen, its view, and its route. --}}
+    <native:pressable @press="openScene3dSmoke" :press-scale="0.99" a11y-label="Open the Scene3D smoke test">
+        <native:row class="w-full items-center gap-4">
+            <native:column class="items-center justify-center rounded-xl bg-theme-primary/15 border border-theme-primary/40 p-3">
+                <x-native.ui.icon :ios="Ios::Cube" :android="AndroidOutlined::ViewInAr" :size="24" />
+            </native:column>
+            <native:column class="flex-1 gap-1">
+                <native:text class="text-[15] font-semibold text-theme-primary-text">Scene3D smoke test</native:text>
+                <native:text class="text-[13] leading-relaxed text-theme-secondary-text">Development only. Verifies the 3D renderer.</native:text>
+            </native:column>
+        </native:row>
+    </native:pressable>
+
     <native:text class="text-[13] leading-relaxed text-center text-theme-muted-text">
         Every preference is stored only on this device.
     </native:text>

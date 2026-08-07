@@ -5,6 +5,7 @@ namespace App\Providers;
 use Ennoble\Lottie\LottieServiceProvider;
 use Illuminate\Support\ServiceProvider;
 use Native\Mobile\UI\NativeUIServiceProvider;
+use Vipertecpro\Scene3d\Scene3dServiceProvider;
 
 class NativeServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,8 @@ class NativeServiceProvider extends ServiceProvider
         return [
             NativeUIServiceProvider::class,
             LottieServiceProvider::class,
+            Scene3dServiceProvider::class,
+
         ];
     }
 }
