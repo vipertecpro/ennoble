@@ -1,5 +1,6 @@
 import SwiftUI
 import SceneKit
+import UIKit
 
 /// `<native:scene-3d>` on iOS.
 ///
@@ -146,7 +147,13 @@ final class Scene3dCoordinator: NSObject {
                 scnLight.type = .directional
                 scnLight.castsShadow = true
                 scnLight.shadowMode = .deferred
-                scnLight.shadowRadius = 4
+                // SceneKit's default shadow is near-opaque black, which on a
+                // flat-shaded scene reads as a solid slab stuck to the object
+                // rather than as a shadow. Soft and translucent is the whole
+                // difference between depth and a smear.
+                scnLight.shadowRadius = 12
+                scnLight.shadowColor = UIColor(white: 0, alpha: 0.28)
+                scnLight.shadowSampleCount = 16
                 // A directional shadow map covers orthographicScale units.
                 // The default is 1, which for a board sixteen cells tall
                 // shadows almost nothing and stipples what it does reach.

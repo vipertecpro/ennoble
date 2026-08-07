@@ -514,7 +514,10 @@ final class StackGame extends NativeComponent
             ->background(theme('grid-surface'))
             // Straight on, so the board reads as a grid rather than a
             // perspective view of one. Far enough back for all 16 rows.
-            ->camera((new Camera)->at(0.0, 0.0, 15.5)->lookAt(0.0, 0.0, 0.0));
+            // Framed so the 16-row board nearly fills the viewport. Further
+            // back left a wide dead margin that made the playfield look like a
+            // small object in a large box rather than the screen's subject.
+            ->camera((new Camera)->at(0.0, 0.0, 12.2)->lookAt(0.0, 0.0, 0.0));
 
         if ($this->screenState !== 'content' || $this->cells === []) {
             return $scene;
