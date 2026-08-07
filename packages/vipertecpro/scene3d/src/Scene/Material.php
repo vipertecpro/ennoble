@@ -40,11 +40,25 @@ final class Material
      */
     public function toArray(): array
     {
-        return array_filter([
-            'c' => $this->color,
-            'me' => $this->metallic,
-            'ro' => $this->roughness === 0.5 ? 0.0 : $this->roughness,
-            'em' => $this->emissive,
-        ], static fn (mixed $value): bool => $value !== 0.0 && $value !== '');
+        // Omit only values that ARE the default — never values that merely
+        // equal zero. Filtering falsy values instead made a roughness of 0.0
+        // (a mirror) encode identically to an absent one, so the renderer read
+        // it back as the 0.5 default and the surface silently stopped being
+        // reflective.
+        $wire = ['c' => $this->color];
+
+        if ($this->metallic !== 0.0) {
+            $wire['me'] = $this->metallic;
+        }
+
+        if ($this->roughness !== 0.5) {
+            $wire['ro'] = $this->roughness;
+        }
+
+        if ($this->emissive !== 0.0) {
+            $wire['em'] = $this->emissive;
+        }
+
+        return $wire;
     }
 }

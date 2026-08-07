@@ -73,6 +73,7 @@ internal class SceneGraph(
             }
 
             applyTransform(existing, node.x, node.y, node.z)
+            applyMaterial(existing)
             applyClip(existing)
         }
 
@@ -165,9 +166,57 @@ internal class SceneGraph(
 
         val entry = Entry(asset, node.revision, node)
         applyTransform(entry, node.x, node.y, node.z)
+        applyMaterial(entry)
         applyClip(entry)
 
         return entry
+    }
+
+    /**
+     * Push the node's material onto every material instance the asset owns.
+     *
+     * The bundled primitives ship a neutral white material precisely so this
+     * can tint them; without it every shape renders the same unlit-looking
+     * white and the whole Material API does nothing.
+     *
+     * Each parameter is guarded by hasParameter: gltfio picks an ubershader
+     * variant per asset, so a given instance may genuinely not have, say,
+     * emissiveFactor, and setting an absent parameter is a native-side error
+     * rather than a no-op. Colours are converted to linear because
+     * baseColorFactor is a linear value — passing sRGB straight through is the
+     * classic "everything looks washed out" bug.
+     */
+    private fun applyMaterial(entry: Entry) {
+        val node = entry.node
+        val rgba = Transforms.linearColor(node.color ?: return)
+
+        for (instance in entry.asset.instance.materialInstances) {
+            val material = instance.material
+
+            if (material.hasParameter("baseColorFactor")) {
+                instance.setParameter("baseColorFactor", rgba[0], rgba[1], rgba[2], rgba[3] * node.opacity)
+            }
+
+            if (material.hasParameter("metallicFactor")) {
+                instance.setParameter("metallicFactor", node.metallic)
+            }
+
+            if (material.hasParameter("roughnessFactor")) {
+                instance.setParameter("roughnessFactor", node.roughness)
+            }
+
+            // glTF's emissiveFactor is a colour, not a scalar: the node's
+            // strength scales its own colour so a glowing object glows in the
+            // hue it already is.
+            if (node.emissive > 0f && material.hasParameter("emissiveFactor")) {
+                instance.setParameter(
+                    "emissiveFactor",
+                    rgba[0] * node.emissive,
+                    rgba[1] * node.emissive,
+                    rgba[2] * node.emissive,
+                )
+            }
+        }
     }
 
     private fun applyClip(entry: Entry) {

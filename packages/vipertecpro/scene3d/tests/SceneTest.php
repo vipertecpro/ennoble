@@ -132,3 +132,22 @@ test('the encoded scene is valid, versioned json', function () {
     expect($decoded['v'])->toBe(Scene::WIRE_VERSION)
         ->and($decoded['n'][0]['mat']['c'])->toBe('#38BDF8');
 });
+
+it('distinguishes a zero roughness from an omitted one', function () {
+    // The wire omits defaults to stay small, but "falsy" and "default" are not
+    // the same thing: a mirror finish is roughness 0.0, and filtering falsy
+    // values sent it as absent, which the renderer reads back as the 0.5
+    // default. The surface silently stopped being reflective.
+    $mirror = new Material(color: '#FFFFFF', roughness: 0.0);
+
+    expect($mirror->toArray())->toHaveKey('ro')
+        ->and($mirror->toArray()['ro'])->toBe(0.0);
+
+    // The actual default still goes unsent.
+    expect((new Material(color: '#FFFFFF'))->toArray())->not->toHaveKey('ro');
+
+    // Metallic and emissive default to zero, so zero IS absent for them.
+    expect((new Material(color: '#FFFFFF'))->toArray())
+        ->not->toHaveKey('me')
+        ->not->toHaveKey('em');
+});

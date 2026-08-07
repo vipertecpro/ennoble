@@ -20,6 +20,9 @@ internal data class SceneNode(
     val scale: Float,
     val rotX: Float, val rotY: Float, val rotZ: Float,
     val color: String?,
+    val metallic: Float,
+    val roughness: Float,
+    val emissive: Float,
     val opacity: Float,
     val spinAxis: String?, val spinSeconds: Float,
     val moveTo: FloatArray?, val moveSeconds: Float,
@@ -51,6 +54,12 @@ internal data class SceneNode(
                 rotY = json.optDouble("ry", 0.0).toFloat(),
                 rotZ = json.optDouble("rz", 0.0).toFloat(),
                 color = json.optJSONObject("mat")?.optString("c")?.ifBlank { null },
+                metallic = json.optJSONObject("mat")?.optDouble("me", 0.0)?.toFloat() ?: 0f,
+                // 0.5, NOT 0: PHP omits roughness only when it is the default,
+                // and the default is a half-rough dielectric. Reading absent as
+                // 0 would make every untouched surface a mirror.
+                roughness = json.optJSONObject("mat")?.optDouble("ro", 0.5)?.toFloat() ?: 0.5f,
+                emissive = json.optJSONObject("mat")?.optDouble("em", 0.0)?.toFloat() ?: 0f,
                 opacity = json.optDouble("o", 1.0).toFloat(),
                 spinAxis = spin?.optString("a") ?: null,
                 spinSeconds = spin?.optDouble("s", 4.0)?.toFloat() ?: 4f,

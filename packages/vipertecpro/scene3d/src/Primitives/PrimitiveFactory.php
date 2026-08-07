@@ -23,7 +23,7 @@ final class PrimitiveFactory
 {
     public function make(string $shape): Mesh
     {
-        return match ($shape) {
+        $mesh = match ($shape) {
             Shapes::BOX => $this->box(),
             Shapes::PLANE => $this->plane(),
             Shapes::SPHERE => $this->sphere(),
@@ -33,6 +33,60 @@ final class PrimitiveFactory
             Shapes::CAPSULE => $this->capsule(),
             default => throw new InvalidArgumentException("No primitive builder for [{$shape}]."),
         };
+
+        return $this->faceOutward($mesh);
+    }
+
+    /**
+     * Make every triangle wind counter-clockwise when seen from outside.
+     *
+     * glTF defines the front face as counter-clockwise, and a renderer culls
+     * back faces by default. A shape whose loops run the other way is drawn
+     * inside-out: you see its interior, lit from behind, so it renders as a
+     * flat black silhouette. The sphere, capsule and torus were fully
+     * inverted this way and the cylinder and cone half — their caps disagreed
+     * with their walls — which is exactly the kind of per-loop mistake that is
+     * invisible in the generator and obvious on a screen.
+     *
+     * Winding is corrected against the VERTEX NORMALS rather than each loop
+     * being fixed by hand: the normals are authored analytically and are
+     * independently verified to point outward, so they are the more trustworthy
+     * of the two. This also means a new primitive cannot get it wrong.
+     */
+    private function faceOutward(Mesh $mesh): Mesh
+    {
+        $positions = $mesh->positions;
+        $normals = $mesh->normals;
+        $indices = $mesh->indices;
+
+        for ($i = 0; $i < count($indices); $i += 3) {
+            [$a, $b, $c] = [$indices[$i], $indices[$i + 1], $indices[$i + 2]];
+
+            // Geometric normal of the triangle, by the right-hand rule.
+            $ux = $positions[$b * 3] - $positions[$a * 3];
+            $uy = $positions[$b * 3 + 1] - $positions[$a * 3 + 1];
+            $uz = $positions[$b * 3 + 2] - $positions[$a * 3 + 2];
+            $vx = $positions[$c * 3] - $positions[$a * 3];
+            $vy = $positions[$c * 3 + 1] - $positions[$a * 3 + 1];
+            $vz = $positions[$c * 3 + 2] - $positions[$a * 3 + 2];
+
+            $fx = $uy * $vz - $uz * $vy;
+            $fy = $uz * $vx - $ux * $vz;
+            $fz = $ux * $vy - $uy * $vx;
+
+            $nx = ($normals[$a * 3] + $normals[$b * 3] + $normals[$c * 3]) / 3;
+            $ny = ($normals[$a * 3 + 1] + $normals[$b * 3 + 1] + $normals[$c * 3 + 1]) / 3;
+            $nz = ($normals[$a * 3 + 2] + $normals[$b * 3 + 2] + $normals[$c * 3 + 2]) / 3;
+
+            // A degenerate triangle has no meaningful facing; leave it alone.
+            if ($fx * $nx + $fy * $ny + $fz * $nz >= 0.0) {
+                continue;
+            }
+
+            [$indices[$i + 1], $indices[$i + 2]] = [$c, $b];
+        }
+
+        return new Mesh($positions, $normals, $indices);
     }
 
     /**

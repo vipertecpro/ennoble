@@ -174,3 +174,40 @@ test('the GLB container is byte-correct, since a bad one crashes the renderer na
             ->and($document['buffers'][0]['byteLength'])->toBeLessThanOrEqual(strlen($chunks['BIN']));
     }
 });
+
+test('every triangle faces outward, or the shape renders as a black silhouette', function () {
+    // glTF's front face is counter-clockwise and renderers cull back faces, so
+    // an inverted loop shows a shape's interior — lit from behind, drawn flat
+    // black. It is invisible in the generator and unmistakable on a device.
+    $factory = new PrimitiveFactory;
+
+    foreach (Shapes::ALL as $shape) {
+        $mesh = $factory->make($shape);
+        $inverted = 0;
+
+        for ($i = 0; $i < count($mesh->indices); $i += 3) {
+            [$a, $b, $c] = [$mesh->indices[$i], $mesh->indices[$i + 1], $mesh->indices[$i + 2]];
+
+            $ux = $mesh->positions[$b * 3] - $mesh->positions[$a * 3];
+            $uy = $mesh->positions[$b * 3 + 1] - $mesh->positions[$a * 3 + 1];
+            $uz = $mesh->positions[$b * 3 + 2] - $mesh->positions[$a * 3 + 2];
+            $vx = $mesh->positions[$c * 3] - $mesh->positions[$a * 3];
+            $vy = $mesh->positions[$c * 3 + 1] - $mesh->positions[$a * 3 + 1];
+            $vz = $mesh->positions[$c * 3 + 2] - $mesh->positions[$a * 3 + 2];
+
+            $fx = $uy * $vz - $uz * $vy;
+            $fy = $uz * $vx - $ux * $vz;
+            $fz = $ux * $vy - $uy * $vx;
+
+            $nx = ($mesh->normals[$a * 3] + $mesh->normals[$b * 3] + $mesh->normals[$c * 3]) / 3;
+            $ny = ($mesh->normals[$a * 3 + 1] + $mesh->normals[$b * 3 + 1] + $mesh->normals[$c * 3 + 1]) / 3;
+            $nz = ($mesh->normals[$a * 3 + 2] + $mesh->normals[$b * 3 + 2] + $mesh->normals[$c * 3 + 2]) / 3;
+
+            if ($fx * $nx + $fy * $ny + $fz * $nz < 0.0) {
+                $inverted++;
+            }
+        }
+
+        expect($inverted)->toBe(0, "[{$shape}] has {$inverted} inside-out triangles.");
+    }
+});
