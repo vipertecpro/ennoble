@@ -144,3 +144,27 @@ it('reads the tap handler off the key the compiler actually delivers', function 
 
     expect($reflection->getValue($element))->toBe('strike');
 });
+
+it('has a Swift renderer whose type name matches the manifest', function () {
+    // Same guard as the Kotlin one: the manifest names a Swift type, nothing
+    // checks it, and a rename fails at BUILD time on a device rather than here.
+    $declared = $this->manifest['components'][0]['ios_renderer'];
+    $file = $this->pluginPath."/resources/ios/{$declared}.swift";
+
+    expect(file_exists($file))->toBeTrue("Manifest names [{$declared}] but {$declared}.swift does not exist.");
+
+    $source = file_get_contents($file);
+
+    expect($source)->toContain("struct {$declared}: View")
+        // The renderer contract on iOS: a View with a `node` property.
+        ->and($source)->toContain('let node: NativeUINode');
+});
+
+it('adds no iOS dependency, because SceneKit ships with the system', function () {
+    // Deliberate divergence from Android, which needs Filament for its glTF
+    // loader. Putting a Filament pod into an app that already builds, to gain
+    // a model loader nothing uses yet, is a bad trade — so iOS renders the
+    // primitives with SceneKit's own geometry and declares nothing.
+    expect($this->manifest['ios']['dependencies']['pods'])->toBe([])
+        ->and($this->manifest['ios']['dependencies']['swift_packages'])->toBe([]);
+});

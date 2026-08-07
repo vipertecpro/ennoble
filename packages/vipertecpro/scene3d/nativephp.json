@@ -24,7 +24,8 @@
     "repository": "",
     "funding": [],
     "platforms": [
-        "android"
+        "android",
+        "ios"
     ],
     "screenshots": [],
     "bridge_functions": [],
@@ -53,10 +54,20 @@
             "element": "Vipertecpro\\Scene3d\\Edge\\Scene3dElement",
             "blade": "Vipertecpro\\Scene3d\\Components\\Scene3d",
             "android_renderer": "com.vipertecpro.plugins.scene3d.ui.Scene3dRenderer",
-            "self_closing": true
+            "self_closing": true,
+            "ios_renderer": "Scene3dRenderer"
         }
     ],
     "hooks": {
         "copy_assets": "nativephp:scene3d:copy-assets"
+    },
+    "ios": {
+        "min_version": "15.0",
+        "permissions": [],
+        "repositories": [],
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
     }
 }

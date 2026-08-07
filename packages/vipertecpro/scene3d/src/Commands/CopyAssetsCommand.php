@@ -28,6 +28,15 @@ class CopyAssetsCommand extends NativePluginHookCommand
 
     public function handle(): int
     {
+        // iOS builds its primitives from SceneKit's own geometry, so there is
+        // nothing to copy there. Returning success rather than failing keeps
+        // the hook honest: it did everything that needed doing.
+        if ($this->isIos()) {
+            $this->info('scene3d: iOS uses built-in geometry, no meshes to copy.');
+
+            return self::SUCCESS;
+        }
+
         $source = $this->pluginPath().'/resources/primitives';
 
         if (! is_dir($source)) {
@@ -52,11 +61,7 @@ class CopyAssetsCommand extends NativePluginHookCommand
 
             // Paths are relative to the plugin's resources/ directory — the
             // helpers prepend pluginPath() themselves.
-            $ok = match (true) {
-                $this->isAndroid() => $this->copyToAndroidAssets("primitives/{$name}", "primitives/{$name}"),
-                $this->isIos() => $this->copyToIosBundle("primitives/{$name}", "primitives/{$name}"),
-                default => false,
-            };
+            $ok = $this->copyToAndroidAssets("primitives/{$name}", "primitives/{$name}");
 
             $ok ? $copied++ : $failed[] = $name;
         }

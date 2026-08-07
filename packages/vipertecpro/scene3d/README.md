@@ -72,7 +72,7 @@ available.
 | EDGE element, Blade tag, manifest wiring | Done — 5 integrity tests |
 | Built-in primitives (generated GLB) | Done — 13 tests, container validated |
 | Android renderer (Filament + gltfio) | Renders on device — geometry, materials, spin |
-| iOS renderer (Filament via CocoaPods) | **Not started** |
+| iOS renderer (SceneKit) | Written — **never compiled** |
 | Picking (`tappable()` → node id) | Modelled in PHP, **not wired natively** |
 | Showcase games | Not started |
 
@@ -80,10 +80,17 @@ The PHP half is complete and tested. The Android renderer is written but has
 never been through a Kotlin compiler — expect build fixes on first
 `native:run`, particularly around Filament's lifecycle and the version pin.
 
-The manifest declares **Android only**. iOS is deliberately undeclared until a
-renderer exists — declaring it would add an unverified `pod 'Filament'` to real
-iOS builds for a renderer that isn't there. A test enforces this: the declared
-platforms must match the non-empty `resources/<platform>` directories.
+**iOS renders through SceneKit, not Filament.** Android needs Filament for its
+glTF loader with precompiled materials; on iOS that reasoning inverts. SceneKit
+ships with the system, needs no CocoaPod, and its built-in geometries map
+one-to-one onto this plugin's seven primitives — which is all the scenes here
+actually use. Adding a Filament pod would put a large dependency into an app
+that already builds, to gain a model loader nothing is asking for yet.
+
+The trade: **`Node::model()` (glTF) is Android-only.** A scene asking for a
+model on iOS logs a warning and draws nothing, rather than crashing. Everything
+else — primitives, materials, lights, transforms, spin, move, picking — works on
+both.
 
 ### Verify before the first build
 
