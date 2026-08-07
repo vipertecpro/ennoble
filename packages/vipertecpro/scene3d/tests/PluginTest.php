@@ -102,13 +102,29 @@ it('has a Kotlin renderer whose package and object match the manifest', function
         ->and($source)->toContain('fun Render(node: NativeUINode, modifier: Modifier)');
 });
 
+it('declares the copy_assets hook that actually bundles the meshes', function () {
+    // This was the bug the first Android build shipped with: the manifest
+    // carried an `assets` key, which nothing reads, and no `copy_assets` hook,
+    // which is what the build's PluginHookRunner invokes. Everything compiled
+    // and zero meshes reached the device — a blank viewport with no error.
+    $hook = $this->manifest['hooks']['copy_assets'] ?? null;
+
+    expect($hook)->not->toBeNull('No copy_assets hook: primitives will never be bundled.');
+
+    // Asserted against the source rather than an instance: the command's base
+    // class lives in nativephp/mobile, which the plugin's own suite does not
+    // boot. The two facts that matter are both visible statically.
+    $source = file_get_contents($this->pluginPath.'/src/Commands/CopyAssetsCommand.php');
+
+    expect($source)->toContain("protected \$signature = '{$hook}'")
+        // The base class is what supplies isAndroid()/copyToAndroidAssets();
+        // extending Illuminate's Command instead makes every copy a silent no-op.
+        ->and($source)->toContain('extends NativePluginHookCommand');
+});
+
 it('bundles the primitives the renderer resolves shapes to', function () {
     // SceneNode.assetPath falls back to "primitives/<shape>.gltf"; a shape
     // without a bundled mesh renders as nothing at all, silently.
-    $declared = $this->manifest['assets']['android'];
-
-    expect($declared)->toContain('resources/primitives');
-
     foreach (Shapes::ALL as $shape) {
         expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.gltf"))
             ->toBeTrue("No bundled mesh for shape [{$shape}].");

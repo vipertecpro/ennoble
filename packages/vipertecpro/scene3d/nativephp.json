@@ -44,11 +44,6 @@
         "receivers": [],
         "providers": []
     },
-    "assets": {
-        "android": [
-            "resources/primitives"
-        ]
-    },
     "secrets": [],
     "events": [],
     "service_provider": "Vipertecpro\\Scene3d\\Scene3dServiceProvider",
@@ -60,5 +55,8 @@
             "android_renderer": "com.vipertecpro.plugins.scene3d.ui.Scene3dRenderer",
             "self_closing": true
         }
-    ]
+    ],
+    "hooks": {
+        "copy_assets": "nativephp:scene3d:copy-assets"
+    }
 }
