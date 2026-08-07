@@ -117,15 +117,26 @@ final class Scene3dCoordinator: NSObject {
         cameraNode.look(at: chrome.target, up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
         cameraNode.camera?.fieldOfView = chrome.fieldOfView
 
+        // Without an environment, SceneKit's physically-based materials have
+        // only direct light to work with and render far darker than intended.
+        // The background doubles as the environment, exactly as it does on
+        // Android — so the scene picks up the app's own colour as ambient.
+        scene.lightingEnvironment.contents = chrome.background
+        scene.lightingEnvironment.intensity = 1.0
+
         lightNodes.forEach { $0.removeFromParentNode() }
         lightNodes = chrome.lights.map { light in
             let scnLight = SCNLight()
             scnLight.color = light.color
             scnLight.intensity = light.intensity / 40
 
+            let node = SCNNode()
+
             switch light.type {
             case "point":
                 scnLight.type = .omni
+                // For a point light x/y/z IS a position.
+                node.position = SCNVector3(light.x, light.y, light.z)
             case "ambient":
                 // SceneKit HAS a real ambient light, so the fill is a genuine
                 // ambient here rather than the opposite-facing directional
@@ -136,20 +147,42 @@ final class Scene3dCoordinator: NSObject {
                 scnLight.castsShadow = true
                 scnLight.shadowMode = .deferred
                 scnLight.shadowRadius = 4
+                // A directional shadow map covers orthographicScale units.
+                // The default is 1, which for a board sixteen cells tall
+                // shadows almost nothing and stipples what it does reach.
+                scnLight.orthographicScale = 24
+                scnLight.zFar = 200
+                aim(node, along: light)
             }
 
-            let node = SCNNode()
             node.light = scnLight
-            node.position = SCNVector3(light.x, light.y, light.z)
-
-            if scnLight.type == .directional {
-                node.look(at: SCNVector3(0, 0, 0), up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
-            }
-
             scene.rootNode.addChildNode(node)
 
             return node
         }
+    }
+
+    /// Point a directional light along its direction vector.
+    ///
+    /// For a directional light x/y/z is a DIRECTION, not a position — the same
+    /// vector Android hands to Filament's `direction()`. SceneKit has no
+    /// direction property: a light shines along its node's -Z axis. So the node
+    /// sits at the origin and looks AT the direction, which puts -Z on it.
+    ///
+    /// Treating the vector as a position and aiming back at the origin — the
+    /// obvious reading — points the light the exact opposite way, and every
+    /// surface facing the camera goes black.
+    private func aim(_ node: SCNNode, along light: Scene3dLight) {
+        let direction = SCNVector3(light.x, light.y, light.z)
+
+        // `look(at:)` degenerates when the direction is parallel to up, which a
+        // straight-down key light is.
+        let up: SCNVector3 = abs(light.x) < 0.001 && abs(light.z) < 0.001
+            ? SCNVector3(0, 0, 1)
+            : SCNVector3(0, 1, 0)
+
+        node.position = SCNVector3Zero
+        node.look(at: direction, up: up, localFront: SCNVector3(0, 0, -1))
     }
 
     private func sync(_ nodes: [Scene3dNode]) {
@@ -242,8 +275,10 @@ final class Scene3dCoordinator: NSObject {
                     : UIColor.black
             }
 
-            material.metalness.contents = node.metallic
-            material.roughness.contents = node.roughness
+            // NSNumber explicitly: `contents` is Any?, and handing it a raw
+            // CGFloat leans on bridging to mean "a scalar" rather than saying so.
+            material.metalness.contents = NSNumber(value: Double(node.metallic))
+            material.roughness.contents = NSNumber(value: Double(node.roughness))
         }
 
         // Actions are replaced wholesale rather than added to: this method

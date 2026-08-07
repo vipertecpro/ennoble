@@ -85,7 +85,7 @@ final class GameDetail extends NativeComponent
                 'Blocks fall one row at a time. Move, rotate, and drop them with the buttons.',
                 'Fill a whole row and it clears; clearing several at once is worth far more.',
                 'A placement scores as clean only if it buries no empty cell beneath it.',
-                'You have three lives — the stack reaching the top costs one and sweeps the board.',
+                'Reaching the top sweeps the board and costs you one of three attempts.',
             ],
         ],
     ];
