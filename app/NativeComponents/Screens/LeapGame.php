@@ -83,7 +83,17 @@ final class LeapGame extends NativeComponent
 
     private const EXIT_X = -11.0;
 
-    private const GROUND_Y = -1.2;
+    /** Top of the ground. Everything else is measured up from here. */
+    private const GROUND_Y = 0.0;
+
+    /** Decorative ground marks and clouds, and how long each takes to cross. */
+    private const DASH_COUNT = 7;
+
+    private const DASH_CYCLE_MS = 2200;
+
+    private const CLOUD_COUNT = 3;
+
+    private const CLOUD_CYCLE_MS = 16000;
 
     /** Peak of the jump arc, in world units above the runner's resting height. */
     private const JUMP_HEIGHT = 2.3;
@@ -385,24 +395,33 @@ final class LeapGame extends NativeComponent
         // The viewport takes the app's OWN surface colour rather than a dark
         // one of its own, so it reads as part of the page instead of a hole
         // punched in it — and it follows light and dark without a second
-        // palette. theme() resolves the token to hex at render time; the
-        // renderer also uses this as the sky its metals reflect, so the whole
-        // scene re-tints with the app.
+        // palette. theme() resolves the token to hex at render time.
         $scene = Scene::make()
             ->background(theme('surface'))
-            ->camera((new Camera)->at(0.0, 1.1, 13.5)->lookAt(0.0, 0.6, 0.0));
+            // Nearly level with the ground, so the ground reads as a line
+            // rather than a slab. Looking down at it from above turned the
+            // horizon into a wide grey band across the middle of the screen.
+            ->camera((new Camera)->at(0.0, 1.05, 11.0)->lookAt(0.0, 0.85, 0.0));
 
         if ($this->screenState !== 'content') {
             return $scene;
         }
 
+        $runMs = $this->phase === 'running' && $this->runStartedAtMs > 0
+            ? $this->nowMs() - $this->runStartedAtMs
+            : 0;
+
         $scene = $scene->add(
             Node::shape('ground', Shapes::BOX)
-                ->at(0.0, self::GROUND_Y - 0.5, 0.0)
-                ->size(26.0, 1.0, 5.0)
-                ->material(Material::metal(theme('surface-variant'), roughness: 0.75)),
+                ->at(0.0, self::GROUND_Y - 0.25, 0.0)
+                ->size(30.0, 0.5, 2.2)
+                ->material(Material::solid(theme('on-surface-variant'))),
             $this->runnerNode(),
         );
+
+        foreach ($this->decorations($runMs) as $node) {
+            $scene = $scene->add($node);
+        }
 
         foreach ($this->active as $obstacle) {
             $height = max(1, $obstacle['height']);
@@ -410,14 +429,89 @@ final class LeapGame extends NativeComponent
             $scene = $scene->add(
                 Node::shape('ob:'.$obstacle['index'], Shapes::BOX)
                     ->at(self::SPAWN_X, self::GROUND_Y + ($height * 0.5), 0.0)
-                    ->size(0.9, $height * 1.0, 0.9)
-                    ->material(Material::metal(self::ACCENT, roughness: 0.35))
+                    ->size(0.85, $height * 1.0, 0.85)
+                    // SOLID, not metal. A metal has no diffuse colour — it can
+                    // only show what it reflects — so on a dark background
+                    // every object reflected the dark background and the whole
+                    // scene went to mud. Solid keeps the colour it is told.
+                    ->material(Material::solid(self::ACCENT))
                     // Handed over once. The renderer owns the motion from here.
                     ->moveTo(self::EXIT_X, self::GROUND_Y + ($height * 0.5), 0.0, $obstacle['travel_ms'] / 1000),
             );
         }
 
         return $scene;
+    }
+
+    /**
+     * Ground marks and clouds — the only thing that says "moving" while the
+     * gap between obstacles is empty. Without them the runner reads as
+     * standing still and obstacles as sliding toward it.
+     *
+     * Each one crosses and starts over. The cycle number is part of the id, so
+     * a new lap is a NEW node to the renderer: it appears at the spawn edge
+     * and tweens across, where reusing the id would tween it backwards across
+     * the screen to start again.
+     *
+     * @return list<Node>
+     */
+    private function decorations(int $runMs): array
+    {
+        $nodes = [];
+
+        for ($i = 0; $i < self::DASH_COUNT; $i++) {
+            $node = $this->recycled(
+                'dash', $i, self::DASH_COUNT, self::DASH_CYCLE_MS, $runMs,
+                fn (string $id): Node => Node::shape($id, Shapes::BOX)
+                    ->size(0.6, 0.06, 0.06)
+                    ->material(Material::solid(theme('on-surface-variant'))),
+                y: self::GROUND_Y + 0.04,
+                z: 1.05,
+            );
+
+            if ($node !== null) {
+                $nodes[] = $node;
+            }
+        }
+
+        for ($i = 0; $i < self::CLOUD_COUNT; $i++) {
+            $node = $this->recycled(
+                'cloud', $i, self::CLOUD_COUNT, self::CLOUD_CYCLE_MS, $runMs,
+                fn (string $id): Node => Node::shape($id, Shapes::BOX)
+                    ->size(1.9, 0.42, 0.42)
+                    ->material(Material::solid(theme('surface-variant'))),
+                y: 3.1 + ($i * 0.85),
+                // Far behind the action, so it drifts slowly across a wider
+                // apparent distance — parallax without a second speed to tune.
+                z: -7.0,
+            );
+
+            if ($node !== null) {
+                $nodes[] = $node;
+            }
+        }
+
+        return $nodes;
+    }
+
+    /**
+     * One element of a repeating procession, evenly phased against the others.
+     * Returns null before its first lap is due.
+     */
+    private function recycled(string $prefix, int $index, int $count, int $cycleMs, int $runMs, callable $build, float $y, float $z): ?Node
+    {
+        $phaseMs = (int) round($index * $cycleMs / max(1, $count));
+        $elapsed = $runMs - $phaseMs;
+
+        if ($elapsed < 0) {
+            return null;
+        }
+
+        $lap = intdiv($elapsed, $cycleMs);
+
+        return $build($prefix.':'.$index.':'.$lap)
+            ->at(self::SPAWN_X, $y, $z)
+            ->moveTo(self::EXIT_X, $y, $z, $cycleMs / 1000);
     }
 
     /**
@@ -429,29 +523,33 @@ final class LeapGame extends NativeComponent
      */
     private function runnerNode(): Node
     {
+        $restY = self::GROUND_Y + 0.58;
+
         $node = Node::shape('runner', Shapes::CAPSULE)
-            ->size(0.85, 1.15, 0.85)
+            ->size(0.8, 1.16, 0.8)
             // on-surface is the token that is dark on a light theme and light
             // on a dark one, so the runner cannot vanish into the ground.
-            ->material(Material::metal(theme('on-surface'), roughness: 0.3));
+            // Solid rather than metal, or it would reflect the background it
+            // is meant to stand out from.
+            ->material(Material::solid(theme('on-surface')));
 
         $elapsed = $this->jumpStartedAtMs > 0 ? $this->nowMs() - $this->jumpStartedAtMs : PHP_INT_MAX;
 
         if ($elapsed >= self::AIRBORNE_MS) {
-            return $node->at(self::RUNNER_X, self::GROUND_Y + 0.6, 0.0);
+            return $node->at(self::RUNNER_X, $restY, 0.0);
         }
 
         $apexMs = (int) (self::AIRBORNE_MS / 2);
 
         if ($elapsed < $apexMs) {
             return $node
-                ->at(self::RUNNER_X, self::GROUND_Y + 0.6, 0.0)
-                ->moveTo(self::RUNNER_X, self::GROUND_Y + 0.6 + self::JUMP_HEIGHT, 0.0, ($apexMs - $elapsed) / 1000);
+                ->at(self::RUNNER_X, $restY, 0.0)
+                ->moveTo(self::RUNNER_X, $restY + self::JUMP_HEIGHT, 0.0, ($apexMs - $elapsed) / 1000);
         }
 
         return $node
-            ->at(self::RUNNER_X, self::GROUND_Y + 0.6 + self::JUMP_HEIGHT, 0.0)
-            ->moveTo(self::RUNNER_X, self::GROUND_Y + 0.6, 0.0, (self::AIRBORNE_MS - $elapsed) / 1000);
+            ->at(self::RUNNER_X, $restY + self::JUMP_HEIGHT, 0.0)
+            ->moveTo(self::RUNNER_X, $restY, 0.0, (self::AIRBORNE_MS - $elapsed) / 1000);
     }
 
     private function finish(): void

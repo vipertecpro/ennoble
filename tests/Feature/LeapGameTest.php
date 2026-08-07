@@ -293,3 +293,49 @@ test('a jump too early has landed again by the time the obstacle arrives', funct
     expect($screen->get('resolvedCount'))->toBe(1)
         ->and($screen->get('lives'))->toBe($screen->get('maxLives') - 1);
 });
+
+test('nothing in the scene is metallic, or it reflects the background instead of showing its colour', function () {
+    // The bug this replaced: every object was Material::metal, and a metal has
+    // no diffuse colour — it can only show what it reflects. On a dark theme
+    // the runner reflected the dark background and read as a black blob.
+    $session = startLeap($this->profile);
+
+    $screen = Native::visit('/play/leap/'.$session->getKey());
+    leapRunning($screen);
+    leapTick($screen, 8);
+
+    foreach (leapScene($screen)['n'] as $node) {
+        expect($node['mat']['me'] ?? 0.0)->toBe(
+            0.0,
+            "Node [{$node['id']}] is metallic and will take the background's colour.",
+        );
+    }
+});
+
+test('a decoration gets a fresh id each lap, so it never tweens backwards', function () {
+    // Reusing an id for the next lap would ask the renderer to move the SAME
+    // node from the exit edge back to the spawn edge — a visible slide across
+    // the screen the wrong way. A new id is a new node: it appears at the
+    // spawn edge and crosses.
+    $session = startLeap($this->profile);
+
+    $screen = Native::visit('/play/leap/'.$session->getKey());
+    leapRunning($screen);
+    leapTick($screen, 2);
+
+    $lapOf = fn (array $scene, string $prefix): array => collect($scene['n'])
+        ->filter(fn (array $n): bool => str_starts_with($n['id'], $prefix.':'))
+        ->pluck('id')
+        ->all();
+
+    $first = $lapOf(leapScene($screen), 'dash');
+
+    expect($first)->not->toBeEmpty('No ground marks — the run reads as standing still.');
+
+    // Past a full cycle, every mark must be on a new lap.
+    leapTick($screen, 12);
+
+    $second = $lapOf(leapScene($screen), 'dash');
+
+    expect(array_intersect($first, $second))->toBe([]);
+});
