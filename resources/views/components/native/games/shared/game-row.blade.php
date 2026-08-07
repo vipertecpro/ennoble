@@ -18,6 +18,7 @@
         'recall' => [Ios::Grid, AndroidOutlined::GridView],
         'flow' => [Ios::Waveform, AndroidOutlined::Waves],
         'signal' => [Ios::Paintpalette, AndroidOutlined::Palette],
+        'leap' => [Ios::HareFill, AndroidOutlined::DirectionsRun],
         default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports],
     };
     $best = $game['best_score'] ?? null;

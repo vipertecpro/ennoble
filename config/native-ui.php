@@ -234,6 +234,7 @@ return [
             'recall' => ['violet-500', 'fuchsia-500'],
             'flow' => ['indigo-500', 'cyan-400'],
             'signal' => ['amber-400', 'orange-500'],
+            'leap' => ['orange-400', 'rose-500'],
         ],
 
         'onboarding_tones' => [

@@ -22,7 +22,7 @@ internal object Transforms {
      */
     fun trs(
         x: Float, y: Float, z: Float,
-        scale: Float,
+        scaleX: Float, scaleY: Float, scaleZ: Float,
         rotXDeg: Float, rotYDeg: Float, rotZDeg: Float,
     ): FloatArray {
         val rx = Math.toRadians(rotXDeg.toDouble())
@@ -33,18 +33,21 @@ internal object Transforms {
         val cy = cos(ry).toFloat(); val sy = sin(ry).toFloat()
         val cz = cos(rz).toFloat(); val sz = sin(rz).toFloat()
 
-        // Combined ZYX rotation, then uniform scale folded into the basis.
-        val m00 = (cz * cy) * scale
-        val m01 = (sz * cy) * scale
-        val m02 = (-sy) * scale
+        // Combined ZYX rotation with scale folded into the basis. Each basis
+        // VECTOR takes one axis' scale — m0* is the x axis, m1* the y, m2* the
+        // z. Scaling by component index instead would scale the world axes
+        // rather than the object's own, and a rotated node would shear.
+        val m00 = (cz * cy) * scaleX
+        val m01 = (sz * cy) * scaleX
+        val m02 = (-sy) * scaleX
 
-        val m10 = (cz * sy * sx - sz * cx) * scale
-        val m11 = (sz * sy * sx + cz * cx) * scale
-        val m12 = (cy * sx) * scale
+        val m10 = (cz * sy * sx - sz * cx) * scaleY
+        val m11 = (sz * sy * sx + cz * cx) * scaleY
+        val m12 = (cy * sx) * scaleY
 
-        val m20 = (cz * sy * cx + sz * sx) * scale
-        val m21 = (sz * sy * cx - cz * sx) * scale
-        val m22 = (cy * cx) * scale
+        val m20 = (cz * sy * cx + sz * sx) * scaleZ
+        val m21 = (sz * sy * cx - cz * sx) * scaleZ
+        val m22 = (cy * cx) * scaleZ
 
         // Column-major: each group of four is a COLUMN, and the translation
         // occupies the last one. Filling this row-major transposes the basis

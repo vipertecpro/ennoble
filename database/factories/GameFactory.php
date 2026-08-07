@@ -67,6 +67,18 @@ class GameFactory extends Factory
         ]);
     }
 
+    public function leap(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Leap,
+            'slug' => 'leap',
+            'name' => 'Leap',
+            'description' => 'Obstacles keep coming — tap to jump, and keep your timing as the pace climbs.',
+            'sort_order' => 6,
+            'skill_keys' => ['speed', 'focus', 'adaptability'],
+        ]);
+    }
+
     public function signal(): static
     {
         return $this->state(fn (): array => [

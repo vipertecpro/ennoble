@@ -123,7 +123,7 @@ internal class SceneGraph(
             val ry = node.rotY + if (node.spinAxis == "y") spinAngle else 0f
             val rz = node.rotZ + if (node.spinAxis == "z") spinAngle else 0f
 
-            setTransform(entry.asset, x, y, z, node.scale, rx, ry, rz)
+            setTransform(entry.asset, x, y, z, node.scale, node.scaleY, node.scaleZ, rx, ry, rz)
 
             entry.asset.instance.animator?.let { animator ->
                 if (node.clip != null) {
@@ -245,20 +245,20 @@ internal class SceneGraph(
 
     private fun applyTransform(entry: Entry, x: Float, y: Float, z: Float) {
         val n = entry.node
-        setTransform(entry.asset, x, y, z, n.scale, n.rotX, n.rotY, n.rotZ)
+        setTransform(entry.asset, x, y, z, n.scale, n.scaleY, n.scaleZ, n.rotX, n.rotY, n.rotZ)
     }
 
     private fun setTransform(
         asset: FilamentAsset,
         x: Float, y: Float, z: Float,
-        scale: Float,
+        scaleX: Float, scaleY: Float, scaleZ: Float,
         rx: Float, ry: Float, rz: Float,
     ) {
         val tm = engine.transformManager
         val instance = tm.getInstance(asset.root)
         if (instance == 0) return
 
-        tm.setTransform(instance, Transforms.trs(x, y, z, scale, rx, ry, rz))
+        tm.setTransform(instance, Transforms.trs(x, y, z, scaleX, scaleY, scaleZ, rx, ry, rz))
     }
 
     private companion object {

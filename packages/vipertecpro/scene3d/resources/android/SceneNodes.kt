@@ -18,6 +18,8 @@ internal data class SceneNode(
     val shape: String?,
     val x: Float, val y: Float, val z: Float,
     val scale: Float,
+    val scaleY: Float,
+    val scaleZ: Float,
     val rotX: Float, val rotY: Float, val rotZ: Float,
     val color: String?,
     val metallic: Float,
@@ -50,6 +52,12 @@ internal data class SceneNode(
                 // `s` is absent when the scale is 1 — the PHP side strips it as
                 // a default, so 0 here means "unset", not "collapse to a point".
                 scale = json.optDouble("s", 0.0).toFloat().let { if (it == 0f) 1f else it },
+                // Absent means "same as s" — the uniform case, which is most
+                // nodes and stays a single key on the wire.
+                scaleY = json.optDouble("sy", 0.0).toFloat()
+                    .let { if (it == 0f) json.optDouble("s", 0.0).toFloat().let { u -> if (u == 0f) 1f else u } else it },
+                scaleZ = json.optDouble("sz", 0.0).toFloat()
+                    .let { if (it == 0f) json.optDouble("s", 0.0).toFloat().let { u -> if (u == 0f) 1f else u } else it },
                 rotX = json.optDouble("rx", 0.0).toFloat(),
                 rotY = json.optDouble("ry", 0.0).toFloat(),
                 rotZ = json.optDouble("rz", 0.0).toFloat(),

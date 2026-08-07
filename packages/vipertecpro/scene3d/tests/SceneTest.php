@@ -5,6 +5,7 @@ use Vipertecpro\Scene3d\Scene\Light;
 use Vipertecpro\Scene3d\Scene\Material;
 use Vipertecpro\Scene3d\Scene\Node;
 use Vipertecpro\Scene3d\Scene\Scene;
+use Vipertecpro\Scene3d\Scene\Shapes;
 
 test('a scene lights itself so the simplest case is never a black screen', function () {
     $wire = Scene::make()->toArray();
@@ -150,4 +151,32 @@ it('distinguishes a zero roughness from an omitted one', function () {
     expect((new Material(color: '#FFFFFF'))->toArray())
         ->not->toHaveKey('me')
         ->not->toHaveKey('em');
+});
+
+it('keeps uniform scale on one wire key and spells out non-uniform scale', function () {
+    // Uniform is the common case and stays compact...
+    $uniform = Node::shape('a', Shapes::BOX)->scale(2.0)->toArray();
+
+    expect($uniform)->toHaveKey('s')
+        ->and($uniform)->not->toHaveKey('sy')
+        ->and($uniform['s'])->toBe(2.0);
+
+    // ...and non-uniform sends all three, INCLUDING any that happen to be 1.0.
+    // With per-axis scale there is no "absent means same as the others"
+    // shorthand left, so omitting a 1.0 would be read back as the x scale.
+    $floor = Node::shape('floor', Shapes::BOX)->size(40.0, 1.0, 6.0)->toArray();
+
+    expect($floor['s'])->toBe(40.0)
+        ->and($floor['sy'])->toBe(1.0)
+        ->and($floor['sz'])->toBe(6.0);
+});
+
+it('lets size() and scale() override one another rather than combining', function () {
+    // Both write the same slot; the last call wins. Combining them would make
+    // the result depend on call order in a way nobody would predict.
+    expect(Node::shape('a', Shapes::BOX)->size(4.0, 1.0, 2.0)->scale(3.0)->toArray())
+        ->not->toHaveKey('sy');
+
+    expect(Node::shape('b', Shapes::BOX)->scale(3.0)->size(4.0, 1.0, 2.0)->toArray()['sy'])
+        ->toBe(1.0);
 });

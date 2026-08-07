@@ -78,6 +78,12 @@ final class Node
         return $this->with(transform: $this->transform->scaled($scale));
     }
 
+    /** Shape a primitive per-axis. See {@see Transform} for when not to. */
+    public function size(float $x, float $y, float $z): self
+    {
+        return $this->with(transform: $this->transform->sized($x, $y, $z));
+    }
+
     public function rotate(float $x = 0.0, float $y = 0.0, float $z = 0.0): self
     {
         return $this->with(transform: $this->transform->rotated($x, $y, $z));

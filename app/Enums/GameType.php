@@ -9,4 +9,5 @@ enum GameType: string
     case Recall = 'recall';
     case Flow = 'flow';
     case Signal = 'signal';
+    case Leap = 'leap';
 }
