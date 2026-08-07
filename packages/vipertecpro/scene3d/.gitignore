@@ -2,3 +2,7 @@
 /node_modules/
 .DS_Store
 *.log
+
+# A library must resolve against its consumer's dependency graph, so the
+# lock file is not committed — only applications pin one.
+composer.lock
