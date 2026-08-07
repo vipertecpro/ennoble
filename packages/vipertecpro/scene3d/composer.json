@@ -3,6 +3,7 @@
     "description": "Real-time 3D for NativePHP Mobile \u2014 one Filament-backed renderer for iOS and Android, described from PHP.",
     "type": "nativephp-plugin",
     "license": "MIT",
+    "version": "0.1.0",
     "authors": [
         {
             "name": "Your Name",

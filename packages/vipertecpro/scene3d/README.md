@@ -80,12 +80,22 @@ The PHP half is complete and tested. The Android renderer is written but has
 never been through a Kotlin compiler — expect build fixes on first
 `native:run`, particularly around Filament's lifecycle and the version pin.
 
+The manifest declares **Android only**. iOS is deliberately undeclared until a
+renderer exists — declaring it would add an unverified `pod 'Filament'` to real
+iOS builds for a renderer that isn't there. A test enforces this: the declared
+platforms must match the non-empty `resources/<platform>` directories.
+
 ### Verify before the first build
 
-- The iOS pod is declared as `Filament`; confirm the exact pod name and version
-  against the release you pin.
 - Android coordinates are pinned to `1.51.6`; runtime and tools must come from
   the same Filament release.
+
+### Before extracting to its own repository
+
+- Drop `version` from `composer.json` — it exists only because a path
+  repository has no tags; once the package has its own repo, tags supply it.
+- Fill in the author email, homepage and repository in `nativephp.json`, and
+  add the `icon` the marketplace shows.
 
 ## Roadmap
 

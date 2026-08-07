@@ -1,12 +1,12 @@
 {
     "name": "vipertecpro/scene3d",
-    "version": "1.0.0",
-    "description": "A real 3D viewport for NativePHP Mobile \u2014 SceneKit on iOS, SceneView on Android, described from PHP.",
+    "version": "0.1.0",
+    "description": "Real-time 3D for NativePHP Mobile \u2014 one Filament-backed renderer, described from PHP.",
     "namespace": "Scene3d",
     "keywords": [
         "3d",
-        "scenekit",
-        "sceneview",
+        "filament",
+        "gltf",
         "games",
         "edge"
     ],
@@ -16,18 +16,16 @@
         "type": "free"
     },
     "author": {
-        "name": "Your Name",
-        "email": "you@example.com",
+        "name": "vipertecpro",
+        "email": "",
         "url": ""
     },
     "homepage": "",
     "repository": "",
     "funding": [],
     "platforms": [
-        "android",
-        "ios"
+        "android"
     ],
-    "icon": "resources/icon.png",
     "screenshots": [],
     "bridge_functions": [],
     "android": {
@@ -46,22 +44,8 @@
         "receivers": [],
         "providers": []
     },
-    "ios": {
-        "min_version": "15.0",
-        "permissions": [],
-        "repositories": [],
-        "dependencies": {
-            "swift_packages": [],
-            "pods": [
-                "Filament"
-            ]
-        }
-    },
     "assets": {
         "android": [
-            "resources/primitives"
-        ],
-        "ios": [
             "resources/primitives"
         ]
     },
@@ -74,7 +58,6 @@
             "element": "Vipertecpro\\Scene3d\\Edge\\Scene3dElement",
             "blade": "Vipertecpro\\Scene3d\\Components\\Scene3d",
             "android_renderer": "com.vipertecpro.plugins.scene3d.ui.Scene3dRenderer",
-            "ios_renderer": "Scene3dRenderer",
             "self_closing": true
         }
     ]

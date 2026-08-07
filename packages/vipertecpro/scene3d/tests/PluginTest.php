@@ -1,5 +1,7 @@
 <?php
 
+use Vipertecpro\Scene3d\Scene\Shapes;
+
 /**
  * Manifest integrity.
  *
@@ -17,7 +19,7 @@ beforeEach(function () {
     );
 });
 
-it('declares the scene_3d element with a renderer on both platforms', function () {
+it('declares the scene_3d element with a renderer', function () {
     $components = $this->manifest['components'];
 
     expect($components)->toHaveCount(1);
@@ -25,7 +27,6 @@ it('declares the scene_3d element with a renderer on both platforms', function (
     $scene = $components[0];
 
     expect($scene['type'])->toBe('scene_3d')
-        ->and($scene['ios_renderer'])->not->toBeEmpty()
         ->and($scene['android_renderer'])->not->toBeEmpty()
         ->and($scene['self_closing'])->toBeTrue();
 });
@@ -49,7 +50,7 @@ it('ships no bridge functions, because the viewport is declarative', function ()
         ->and($this->manifest['events'])->toBe([]);
 });
 
-it('declares Filament on both platforms so one asset format serves both', function () {
+it('declares Filament and gltfio for Android', function () {
     $android = $this->manifest['android']['dependencies']['implementation'];
 
     expect(implode(' ', $android))
@@ -58,12 +59,27 @@ it('declares Filament on both platforms so one asset format serves both', functi
         // there is no model loading and no character animation.
         ->toContain('gltfio-android');
 
-    expect($this->manifest['ios']['dependencies']['pods'])->toContain('Filament');
+    expect($this->manifest['android']['min_version'])->toBeGreaterThanOrEqual(24);
 });
 
-it('targets platform versions Filament actually supports', function () {
-    expect($this->manifest['android']['min_version'])->toBeGreaterThanOrEqual(24)
-        ->and((float) $this->manifest['ios']['min_version'])->toBeGreaterThanOrEqual(13.0);
+it('declares only the platforms it can actually render', function () {
+    // Declaring a platform pulls that platform's dependencies into a real
+    // build. Claiming iOS while resources/ios is empty would add an
+    // unverified `pod 'Filament'` and break an iOS build for a renderer that
+    // is not there — so the manifest is checked against the sources rather
+    // than against intent. Adding a renderer flips this test; the manifest
+    // has to be updated in the same commit.
+    foreach (['android', 'ios'] as $platform) {
+        $sources = glob($this->pluginPath."/resources/{$platform}/*") ?: [];
+        $declared = in_array($platform, $this->manifest['platforms'], strict: true);
+
+        expect($declared)->toBe($sources !== [], $sources === []
+            ? "Manifest declares [{$platform}] but resources/{$platform} is empty."
+            : "resources/{$platform} has sources but the manifest omits [{$platform}].");
+
+        // Renderer names are per-platform too, for the same reason.
+        expect(isset($this->manifest['components'][0]["{$platform}_renderer"]))->toBe($declared);
+    }
 });
 
 it('has a Kotlin renderer whose package and object match the manifest', function () {
@@ -93,7 +109,7 @@ it('bundles the primitives the renderer resolves shapes to', function () {
 
     expect($declared)->toContain('resources/primitives');
 
-    foreach (\Vipertecpro\Scene3d\Scene\Shapes::ALL as $shape) {
+    foreach (Shapes::ALL as $shape) {
         expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.gltf"))
             ->toBeTrue("No bundled mesh for shape [{$shape}].");
     }
