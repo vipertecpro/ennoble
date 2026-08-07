@@ -106,6 +106,21 @@ final class StackGame extends NativeComponent
 
     public int $pieceRotation = 0;
 
+    /** The piece set aside, and whether it has already been swapped this turn. */
+    public ?string $holdPiece = null;
+
+    public bool $holdLocked = false;
+
+    /**
+     * The next three pieces. Held as state rather than read from the sequence
+     * in the view, so the preview cannot drift from what actually spawns.
+     *
+     * @var list<string>
+     */
+    public array $nextPieces = [];
+
+    public int $level = 1;
+
     public int $lives = 3;
 
     public int $maxLives = 3;
@@ -117,6 +132,9 @@ final class StackGame extends NativeComponent
     public int $score = 0;
 
     public int $lines = 0;
+
+    /** The level's own pace, before the level ramp is applied to it. */
+    public int $baseDropIntervalMs = 800;
 
     public int $dropIntervalMs = 800;
 
@@ -282,6 +300,35 @@ final class StackGame extends NativeComponent
         $this->lockPiece();
     }
 
+    /**
+     * Set the current piece aside, bringing back whatever was there.
+     *
+     * Locked until the next piece spawns. Without that, holding repeatedly
+     * cycles through the queue for free and the choice costs nothing.
+     */
+    public function hold(): void
+    {
+        if ($this->phase !== 'playing' || $this->holdLocked) {
+            return;
+        }
+
+        $swapped = $this->holdPiece;
+        $this->holdPiece = $this->piece;
+
+        if ($swapped === null) {
+            $this->spawn($this->pieceIndex + 1 < $this->totalPieces ? $this->pieceIndex + 1 : $this->pieceIndex);
+        } else {
+            $this->piece = $swapped;
+            $this->pieceRotation = 0;
+            $this->pieceColumn = (int) floor((self::COLUMNS - 4) / 2);
+            $this->pieceRow = -1;
+            $this->pieceStartedAtMs = $this->nowMs();
+        }
+
+        $this->holdLocked = true;
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+    }
+
     /** One row down, by the player's choice rather than by gravity. */
     public function softDrop(): void
     {
@@ -373,6 +420,7 @@ final class StackGame extends NativeComponent
 
         $this->cells = $this->toArrayCells($settled);
         $this->lines += $linesCleared;
+        $this->applyLevel();
         $this->feedbackSerial++;
 
         if ($clean) {
@@ -439,6 +487,8 @@ final class StackGame extends NativeComponent
     {
         $this->pieceIndex = $index;
         $this->piece = $this->sequence[$index];
+        $this->holdLocked = false;
+        $this->nextPieces = array_values(array_slice($this->sequence, $index + 1, 3));
         $this->pieceRotation = 0;
         $this->pieceColumn = (int) floor((self::COLUMNS - 4) / 2);
         // Entering one row above the board gives a tall piece somewhere to be
@@ -458,13 +508,20 @@ final class StackGame extends NativeComponent
     private function scene(): Scene
     {
         $scene = Scene::make()
-            ->background(theme('surface'))
+            // The playfield colour, not the app surface: the viewport IS the
+            // board here, so any gutter around the panel blends into it rather
+            // than showing a bright frame around a dark board.
+            ->background(theme('grid-surface'))
             // Straight on, so the board reads as a grid rather than a
             // perspective view of one. Far enough back for all 16 rows.
             ->camera((new Camera)->at(0.0, 0.0, 15.5)->lookAt(0.0, 0.0, 0.0));
 
         if ($this->screenState !== 'content' || $this->cells === []) {
             return $scene;
+        }
+
+        foreach ($this->gridNodes() as $node) {
+            $scene = $scene->add($node);
         }
 
         foreach ($this->board()->filledCells() as $cell) {
@@ -499,6 +556,46 @@ final class StackGame extends NativeComponent
         return $scene;
     }
 
+    /**
+     * The empty playfield behind the pieces: a dark backing panel with a line
+     * on every cell boundary.
+     *
+     * Lines rather than 128 individual tiles. Both read the same on screen,
+     * but a tile per cell would put well over a hundred extra nodes on the
+     * wire on EVERY render, and the grid never changes.
+     *
+     * @return list<Node>
+     */
+    private function gridNodes(): array
+    {
+        $width = self::COLUMNS * self::CELL;
+        $height = self::ROWS * self::CELL;
+
+        $nodes = [
+            Node::shape('grid:panel', Shapes::BOX)
+                ->at(0.0, 0.0, -0.75)
+                ->size($width, $height, 0.4)
+                ->material(Material::solid(theme('grid-surface'))),
+        ];
+
+        // Interior boundaries only — the outer edge is the panel's own.
+        for ($column = 1; $column < self::COLUMNS; $column++) {
+            $nodes[] = Node::shape('grid:v'.$column, Shapes::BOX)
+                ->at(($column - self::COLUMNS / 2) * self::CELL, 0.0, -0.5)
+                ->size(0.04, $height, 0.1)
+                ->material(Material::solid(theme('grid-line')));
+        }
+
+        for ($row = 1; $row < self::ROWS; $row++) {
+            $nodes[] = Node::shape('grid:h'.$row, Shapes::BOX)
+                ->at(0.0, (self::ROWS / 2 - $row) * self::CELL, -0.5)
+                ->size($width, 0.04, 0.1)
+                ->material(Material::solid(theme('grid-line')));
+        }
+
+        return $nodes;
+    }
+
     private function cube(string $id, int $column, int $row, string $color): Node
     {
         return Node::shape($id, Shapes::BOX)
@@ -512,6 +609,22 @@ final class StackGame extends NativeComponent
             // reflect the background, which is the whole point of the piece
             // palette being distinguishable.
             ->material(Material::solid($color));
+    }
+
+    /**
+     * A level every ten rows cleared, each one quickening the drop.
+     *
+     * Progress here is measured in LINES, not pieces placed: a player who
+     * clears efficiently should reach the fast game sooner than one who fills
+     * the board with the same number of pieces.
+     */
+    private function applyLevel(): void
+    {
+        $this->level = 1 + intdiv($this->lines, 10);
+
+        // Floored well above the poll interval — a drop faster than the screen
+        // can think would land pieces between frames.
+        $this->dropIntervalMs = max(280, $this->baseDropIntervalMs - (($this->level - 1) * 60));
     }
 
     private function board(): StackBoard
@@ -589,7 +702,8 @@ final class StackGame extends NativeComponent
             $this->previousBest = $service->previousBestScore($session);
 
             $configuration = is_array($session->level->configuration) ? $session->level->configuration : [];
-            $this->dropIntervalMs = max(250, (int) ($configuration['drop_ms'] ?? 800));
+            $this->baseDropIntervalMs = max(280, (int) ($configuration['drop_ms'] ?? 800));
+            $this->dropIntervalMs = $this->baseDropIntervalMs;
             $this->maxLives = max(1, (int) ($configuration['lives'] ?? 3));
             $this->lives = $this->maxLives;
             $this->readyCountdown = $this->reducedMotion ? 1 : 3;

@@ -263,3 +263,83 @@ test('a run through every piece finishes and reports', function () {
     expect(GameSession::find($session->getKey())->status)->toBe(SessionStatus::Completed)
         ->and($screen->get('resultCorrect'))->toBeGreaterThanOrEqual(0);
 });
+
+test('the board draws a grid behind the pieces', function () {
+    // The empty playfield is what makes it read as a board rather than blocks
+    // floating in space. Lines, not a tile per cell: 128 extra nodes would
+    // ship on every render for something that never changes.
+    $session = startStack($this->profile);
+
+    $screen = Native::visit('/play/stack/'.$session->getKey());
+    stackPlaying($screen);
+
+    $ids = collect(stackScene($screen)['n'])->pluck('id');
+
+    expect($ids)->toContain('grid:panel')
+        ->and($ids->filter(fn (string $id): bool => str_starts_with($id, 'grid:v')))->toHaveCount(StackGame::COLUMNS - 1)
+        ->and($ids->filter(fn (string $id): bool => str_starts_with($id, 'grid:h')))->toHaveCount(StackGame::ROWS - 1);
+});
+
+test('the next queue shows what actually spawns', function () {
+    // A preview that can drift from the sequence is worse than no preview:
+    // the player plans against it.
+    $session = startStack($this->profile);
+
+    $screen = Native::visit('/play/stack/'.$session->getKey());
+    stackPlaying($screen);
+
+    expect($screen->get('nextPieces'))->toHaveCount(3);
+
+    $expected = $screen->get('nextPieces')[0];
+    $screen->call('hardDrop');
+
+    expect($screen->get('piece'))->toBe($expected);
+});
+
+test('hold swaps the piece and cannot be used twice on one turn', function () {
+    // Unlimited holding cycles the queue for free, and the choice costs
+    // nothing.
+    $session = startStack($this->profile);
+
+    $screen = Native::visit('/play/stack/'.$session->getKey());
+    stackPlaying($screen);
+
+    $first = $screen->get('piece');
+    $screen->call('hold');
+
+    expect($screen->get('holdPiece'))->toBe($first)
+        ->and($screen->get('holdLocked'))->toBeTrue()
+        ->and($screen->get('piece'))->not->toBe($first);
+
+    $second = $screen->get('piece');
+    $screen->call('hold');
+
+    expect($screen->get('piece'))->toBe($second, 'A second hold on the same turn must be ignored.');
+
+    // The lock lifts when the next piece spawns.
+    $screen->call('hardDrop');
+
+    expect($screen->get('holdLocked'))->toBeFalse();
+});
+
+test('the level rises with lines cleared and quickens the drop', function () {
+    $session = startStack($this->profile);
+
+    $screen = Native::visit('/play/stack/'.$session->getKey());
+    stackPlaying($screen);
+
+    $opening = $screen->get('dropIntervalMs');
+
+    expect($screen->get('level'))->toBe(1);
+
+    // Ten cleared rows is one level. Progress is measured in LINES, so
+    // clearing efficiently reaches the fast game sooner than merely placing
+    // the same number of pieces.
+    $screen->set('lines', 20);
+    $screen->call('hardDrop');
+
+    expect($screen->get('level'))->toBeGreaterThanOrEqual(3)
+        ->and($screen->get('dropIntervalMs'))->toBeLessThan($opening)
+        // Never faster than the screen can think, or pieces land between polls.
+        ->and($screen->get('dropIntervalMs'))->toBeGreaterThanOrEqual(280);
+});
