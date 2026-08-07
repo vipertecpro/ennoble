@@ -16,13 +16,13 @@
 ])
 
 @php
-    $accent = $accent ?? ConsolePalette::VALUE;
+    $accent = $accent ?? ConsolePalette::value();
 @endphp
 
-<native:column class="w-20 items-center gap-0.5 rounded-lg px-2 py-2 border border-[{{ ConsolePalette::LINE }}]/35 bg-[{{ ConsolePalette::LINE }}]/5">
+<native:column class="w-20 items-center gap-0.5 rounded-lg px-2 py-2 border border-[{{ ConsolePalette::line() }}]/35 bg-[{{ ConsolePalette::line() }}]/5">
     <native:text
         font="mono"
-        class="text-[8] uppercase tracking-widest text-[{{ ConsolePalette::LABEL }}]"
+        class="text-[8] uppercase tracking-widest text-[{{ ConsolePalette::label() }}]"
     >{{ $label }}</native:text>
 
     <native:text

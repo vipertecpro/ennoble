@@ -14,7 +14,7 @@
     };
 @endphp
 
-<native:column class="h-full w-full bg-[{{ ConsolePalette::GROUND }}]">
+<native:column class="h-full w-full bg-[{{ ConsolePalette::ground() }}]">
     @if ($screenState === 'error')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4 safe-area">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>
@@ -62,7 +62,7 @@
                     a11y-label="Back to games"
                     a11y-hint="Leaves this game"
                     :press-scale="0.9"
-                    class="w-9 h-9 items-center justify-center rounded-full border border-[{{ ConsolePalette::LINE }}]/40"
+                    class="w-9 h-9 items-center justify-center rounded-full border border-[{{ ConsolePalette::line() }}]/40"
                 >
                     <x-native.ui.icon :ios="Ios::ChevronLeft" :android="AndroidOutlined::ArrowBack" :size="16" />
                 </native:pressable>
@@ -76,7 +76,7 @@
                     />
                 </native:column>
 
-                <native:text font="mono" class="text-[11] uppercase tracking-widest text-[{{ ConsolePalette::LABEL }}]">
+                <native:text font="mono" class="text-[11] uppercase tracking-widest text-[{{ ConsolePalette::label() }}]">
                     {{ $pieceIndex + 1 }}/{{ $totalPieces }}
                 </native:text>
             </native:row>
@@ -94,12 +94,12 @@
                  on iOS and the board vanished, twice. h-full resolves. --}}
             <native:row class="flex-1 w-full gap-2">
                 <native:column class="flex-1 h-full">
-                    <native:scene-3d class="h-full w-full rounded-lg border-2 border-[{{ ConsolePalette::LINE }}]/60" :scene="$scene" />
+                    <native:scene-3d class="h-full w-full rounded-lg border-2 border-[{{ ConsolePalette::line() }}]" :scene="$scene" />
                 </native:column>
 
                 <native:column class="w-20 h-full gap-2">
-                    <native:column class="w-20 items-center gap-2 rounded-lg px-2 py-2 border border-[{{ ConsolePalette::LINE }}]/35 bg-[{{ ConsolePalette::LINE }}]/5">
-                        <native:text font="mono" class="text-[8] uppercase tracking-widest text-[{{ ConsolePalette::LABEL }}]">Next</native:text>
+                    <native:column class="w-20 items-center gap-2 rounded-lg px-2 py-2 border border-[{{ ConsolePalette::line() }}]/35 bg-[{{ ConsolePalette::line() }}]/5">
+                        <native:text font="mono" class="text-[8] uppercase tracking-widest text-[{{ ConsolePalette::label() }}]">Next</native:text>
                         @foreach ($nextPieces as $upcoming)
                             <native:column class="h-6 items-center justify-center">
                                 <x-native.games.stack.piece-preview :piece="$upcoming" :cell="7" />
@@ -121,7 +121,7 @@
                         label="Level"
                         :value="$level"
                         key="stack-level"
-                        :accent="ConsolePalette::LINE"
+                        :accent="ConsolePalette::line()"
                         :motion-duration="$feedbackMotionDuration"
                     />
 
@@ -129,7 +129,7 @@
                         label="Lines"
                         :value="$lines"
                         key="stack-lines"
-                        :accent="ConsolePalette::LINE"
+                        :accent="ConsolePalette::line()"
                         :motion-duration="$feedbackMotionDuration"
                     />
                 </native:column>
@@ -140,7 +140,7 @@
             @if ($callout !== null)
                 <native:text
                     native:key="stack-callout-{{ $feedbackSerial }}"
-                    font="mono" class="text-[11] uppercase tracking-widest text-center text-[{{ ConsolePalette::VALUE }}]"
+                    font="mono" class="text-[11] uppercase tracking-widest text-center text-[{{ ConsolePalette::value() }}]"
                     :animate-duration="$feedbackMotionDuration"
                     animate-easing="spring"
                 >
@@ -148,17 +148,44 @@
                 </native:text>
             @endif
 
-            {{-- Rotate sits apart from the movement cluster, as it does on the
-                 reference: it is a different KIND of action, and grouping it
-                 with the arrows makes it easy to hit by mistake. --}}
-            <native:row class="w-full items-center gap-2 pb-4">
-                <x-native.games.stack.control action="rotate" label="Rotate" press="rotate" />
-                <native:spacer class="flex-1" />
-                <x-native.games.stack.control action="left" label="Move left" press="moveLeft" />
-                <x-native.games.stack.control action="down" label="Soft drop" press="softDrop" />
-                <x-native.games.stack.control action="right" label="Move right" press="moveRight" />
-                <x-native.games.stack.control action="drop" label="Hard drop" press="hardDrop" :primary="true" />
-            </native:row>
+            {{-- The control cluster, laid out as the reference does it:
+                 left and right side by side, down beneath and between them,
+                 and rotate off to the right at a larger size.
+
+                 A STACK with transform offsets, not rows inside columns. That
+                 triangle needs a row nested in a column, which collapses to
+                 nothing on iOS — the same trap that ate the piece previews.
+                 A stack overlays its children and translate-x/-y place them,
+                 which is the one arrangement that survives. --}}
+            <native:stack class="w-full h-[150px]">
+                <native:column class="w-full h-full items-center justify-center">
+                    <x-native.games.stack.control
+                        action="left" label="Move left" press="moveLeft" :size="64"
+                        :translate-x="-118" :translate-y="-20"
+                    />
+                </native:column>
+
+                <native:column class="w-full h-full items-center justify-center">
+                    <x-native.games.stack.control
+                        action="right" label="Move right" press="moveRight" :size="64"
+                        :translate-x="-34" :translate-y="-20"
+                    />
+                </native:column>
+
+                <native:column class="w-full h-full items-center justify-center">
+                    <x-native.games.stack.control
+                        action="down" label="Soft drop" press="softDrop" :size="64"
+                        :translate-x="-76" :translate-y="48"
+                    />
+                </native:column>
+
+                <native:column class="w-full h-full items-center justify-center">
+                    <x-native.games.stack.control
+                        action="rotate" label="Rotate" press="rotate" :size="86" primary
+                        :translate-x="96" :translate-y="16"
+                    />
+                </native:column>
+            </native:stack>
         </native:column>
     @endif
 </native:column>

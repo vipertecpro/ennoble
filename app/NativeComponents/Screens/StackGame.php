@@ -477,7 +477,7 @@ final class StackGame extends NativeComponent
         $scene = Scene::make()
             // The screen's own colour, not the app's. This is a committed
             // look — see ConsolePalette — so the theme is not consulted.
-            ->background(ConsolePalette::SCREEN)
+            ->background(ConsolePalette::screen())
             // AMBIENT ONLY — no key light, so no shading gradient across a
             // face and no cast shadows at all. A falling-block board is read
             // as a grid of flat colours; shading every cube and dropping a
@@ -489,7 +489,7 @@ final class StackGame extends NativeComponent
             // size and shape as one in the middle. Close up with a wide angle,
             // the outer columns splayed outward and the board looked like a
             // solid object seen in perspective.
-            ->camera((new Camera)->at(0.0, 0.0, 62.0)->lookAt(0.0, 0.0, 0.0)->fieldOfView(17.0));
+            ->camera((new Camera)->at(0.0, 0.0, 62.0)->lookAt(0.0, 0.0, 0.0)->fieldOfView(15.2));
 
         if ($this->screenState !== 'content' || $this->cells === []) {
             return $scene;
@@ -550,9 +550,13 @@ final class StackGame extends NativeComponent
             Node::shape('grid:panel', Shapes::PLANE)
                 ->at(0.0, 0.0, -0.75)
                 ->size($width, $height, 1.0)
-                ->material(Material::solid(ConsolePalette::SCREEN)),
+                ->material(Material::solid(ConsolePalette::screen())),
         ];
 
+        // NOTE: opaque colours throughout. A translucent material needs blend
+        // configuration in SceneKit; without it the alpha channel bleeds and a
+        // faint teal came out brown on screen.
+        //
         // A soft darkening at the top and bottom of the EMPTY grid. Four
         // bands of falling opacity rather than one, because a single band has
         // a hard edge and reads as a stripe.
@@ -568,24 +572,26 @@ final class StackGame extends NativeComponent
                 $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::PLANE)
                     ->at(0.0, $edge * (($height - $depth) / 2), -0.4)
                     ->size($width, $depth, 1.0)
-                    ->material(Material::solid(ConsolePalette::FADE))
+                    ->material(Material::solid(ConsolePalette::fade()))
                     ->opacity($opacity);
             }
         }
 
-        // Interior boundaries only — the outer edge is the panel's own.
+        // Interior boundaries only — the outer edge is the frame's. Kept
+        // deliberately faint and thin: the grid is there to let a player judge
+        // a column, not to be looked at. The frame is the bold element.
         for ($column = 1; $column < self::COLUMNS; $column++) {
             $nodes[] = Node::shape('grid:v'.$column, Shapes::PLANE)
                 ->at(($column - self::COLUMNS / 2) * self::CELL, 0.0, -0.5)
-                ->size(0.04, $height, 1.0)
-                ->material(Material::solid(ConsolePalette::LINE_DIM));
+                ->size(0.025, $height, 1.0)
+                ->material(Material::solid(ConsolePalette::lineDim()));
         }
 
         for ($row = 1; $row < self::ROWS; $row++) {
             $nodes[] = Node::shape('grid:h'.$row, Shapes::PLANE)
                 ->at(0.0, (self::ROWS / 2 - $row) * self::CELL, -0.5)
-                ->size($width, 0.04, 1.0)
-                ->material(Material::solid(ConsolePalette::LINE_DIM));
+                ->size($width, 0.025, 1.0)
+                ->material(Material::solid(ConsolePalette::lineDim()));
         }
 
         return $nodes;
