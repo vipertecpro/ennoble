@@ -13,6 +13,15 @@
 
     The number and label live directly in the <native:column> to avoid the iOS
     nested-centred-row collapse gotcha.
+
+    HEIGHT: the badge is sized by its CONTENT plus symmetric `padding` — never
+    give it an `h-*` or a `min-h-*`. `min-h-*` is silently dropped by the class
+    parser, and a fixed `h-*` makes iOS ignore vertical alignment and pin the
+    content to one edge. `items-stretch` on the parent row does NOT equalise
+    sibling badges either, so when two badges use different `valueSize`s, even
+    out their heights by giving the smaller-value one more `padding` (each step
+    of `py-*` is 4pt per side; a 34 -> 20 drop in value size loses ~17pt of
+    line box, so `py-5` vs `py-7` lands them within ~2pt).
 --}}
 
 @use('App\NativeUI\Tokens\Gradients')
@@ -24,6 +33,7 @@
     'accentTo' => null,
     'labelColor' => null,
     'valueSize' => 'text-[34]',
+    'padding' => 'py-5 px-3',
 ])
 
 @php
@@ -31,7 +41,7 @@
     $labelColor = $labelColor ?? $accent;
 @endphp
 
-<native:column class="flex-1 min-h-[112px] items-center justify-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/28 via-{{ $accent }}/8 to-transparent border {{ Gradients::hairline() }} py-5 px-3">
+<native:column class="flex-1 {{ $padding }} items-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/28 via-{{ $accent }}/8 to-transparent border {{ Gradients::hairline() }}">
     @if (isset($icon))
         <native:column class="w-12 h-12 items-center justify-center">
             {{ $icon }}

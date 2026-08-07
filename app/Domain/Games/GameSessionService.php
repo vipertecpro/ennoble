@@ -8,6 +8,8 @@ use App\Domain\Games\Contracts\ScoringResult;
 use App\Domain\Games\Flow\FlowScoringService;
 use App\Domain\Games\QuickMath\QuickMathScoringService;
 use App\Domain\Games\Recall\RecallScoringService;
+use App\Domain\Games\Signal\SignalScoringService;
+use App\Domain\Games\Vertex\VertexScoringService;
 use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Statistics\StatisticsService;
@@ -32,6 +34,8 @@ final class GameSessionService
         private readonly QuickMathScoringService $quickMathScoringService,
         private readonly RecallScoringService $recallScoringService,
         private readonly FlowScoringService $flowScoringService,
+        private readonly SignalScoringService $signalScoringService,
+        private readonly VertexScoringService $vertexScoringService,
         private readonly ProgressService $progressService,
         private readonly StatisticsService $statisticsService,
         private readonly AchievementService $achievementService,
@@ -254,6 +258,8 @@ final class GameSessionService
             GameType::QuickMath => $this->quickMathScoringService,
             GameType::Recall => $this->recallScoringService,
             GameType::Flow => $this->flowScoringService,
+            GameType::Signal => $this->signalScoringService,
+            GameType::Vertex => $this->vertexScoringService,
         };
     }
 

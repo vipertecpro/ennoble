@@ -14,7 +14,9 @@ use App\NativeComponents\Screens\QuickMathExplain;
 use App\NativeComponents\Screens\QuickMathGame;
 use App\NativeComponents\Screens\RecallGame;
 use App\NativeComponents\Screens\Settings;
+use App\NativeComponents\Screens\SignalGame;
 use App\NativeComponents\Screens\Splash;
+use App\NativeComponents\Screens\VertexGame;
 use App\NativeComponents\Screens\WordMatchGame;
 use App\NativeLayouts\EnnobleLayout;
 use App\NativeLayouts\OnboardingLayout;
@@ -35,6 +37,8 @@ Route::nativeGroup(EnnobleLayout::class, function (): void {
     Route::native('/play/quick-math/{session}/explain', QuickMathExplain::class)->name('native.play.quick-math.explain');
     Route::native('/play/recall/{session}', RecallGame::class)->name('native.play.recall');
     Route::native('/play/flow/{session}', FlowGame::class)->name('native.play.flow');
+    Route::native('/play/signal/{session}', SignalGame::class)->name('native.play.signal');
+    Route::native('/play/vertex/{session}', VertexGame::class)->name('native.play.vertex');
     Route::native('/achievements', Achievements::class)->name('native.achievements');
     Route::native('/achievements/{category}', AchievementCategory::class)->name('native.achievements.category');
     Route::native('/profile', Profile::class)->name('native.profile');

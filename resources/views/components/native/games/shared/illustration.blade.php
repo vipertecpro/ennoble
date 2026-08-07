@@ -38,6 +38,8 @@
             'quick-math' => [Ios::NumberSquare, AndroidOutlined::Numbers, 'Abstract quick math illustration'],
             'recall' => [Ios::Grid, AndroidOutlined::GridView, 'Abstract memory recall illustration'],
             'flow' => [Ios::Waveform, AndroidOutlined::Waves, 'Abstract flowing current illustration'],
+            'signal' => [Ios::Paintpalette, AndroidOutlined::Palette, 'Abstract color-interference illustration'],
+            'vertex' => [Ios::Viewfinder, AndroidOutlined::CenterFocusStrong, 'Abstract depth-tunnel illustration'],
             default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports, 'Abstract game illustration'],
         };
     @endphp

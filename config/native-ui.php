@@ -184,6 +184,16 @@ return [
         'headline' => 'SpaceGrotesk-Bold',
         'display' => 'SpaceGrotesk-Bold',
         'numeric' => 'SpaceGrotesk-Medium',
+
+        // The quote ticker's own voice — a serif, deliberately unlike the
+        // Inter/Space Grotesk pairing the rest of the app is set in, so the
+        // strip reads as a quotation rather than as more UI copy.
+        'quote' => 'Lora-Italic',
+        'quote-source' => 'Lora-Regular',
+
+        // The Home masthead's terminal voice.
+        'mono' => 'JetBrainsMono-Regular',
+        'mono-bold' => 'JetBrainsMono-Bold',
     ],
 
     /*
@@ -223,6 +233,8 @@ return [
             'quick-math' => ['cyan-400', 'sky-500'],
             'recall' => ['violet-500', 'fuchsia-500'],
             'flow' => ['indigo-500', 'cyan-400'],
+            'signal' => ['amber-400', 'orange-500'],
+            'vertex' => ['emerald-400', 'teal-500'],
         ],
 
         'onboarding_tones' => [

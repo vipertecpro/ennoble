@@ -17,6 +17,8 @@
         'quick-math' => [Ios::NumberSquare, AndroidOutlined::Numbers],
         'recall' => [Ios::Grid, AndroidOutlined::GridView],
         'flow' => [Ios::Waveform, AndroidOutlined::Waves],
+        'signal' => [Ios::Paintpalette, AndroidOutlined::Palette],
+        'vertex' => [Ios::Viewfinder, AndroidOutlined::CenterFocusStrong],
         default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports],
     };
     $best = $game['best_score'] ?? null;

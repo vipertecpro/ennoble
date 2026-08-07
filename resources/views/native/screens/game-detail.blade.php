@@ -21,12 +21,16 @@
                         accent="rose-500"
                         labelColor="rose-500"
                     />
+                    {{-- Extra padding compensates for the smaller value size so
+                         this badge matches its sibling's height — `items-stretch`
+                         does not equalise them on iOS. --}}
                     <x-native.ui.stat-badge
                         :value="$difficultyLabel"
                         label="Level"
                         accent="amber-400"
                         labelColor="amber-400"
                         valueSize="text-[20]"
+                        padding="py-7 px-3"
                     />
                 </native:row>
 
@@ -85,7 +89,12 @@
             </native:column>
         </native:scroll-view>
 
-        <native:column class="w-full px-4 pt-3 pb-4 safe-area-bottom">
+        {{-- No `safe-area-bottom` here. This screen renders under the layout's
+             chrome, which already insets the home indicator — adding the class
+             on top of that doubled it and left the button floating ~52pt off the
+             edge. `pb-2` alone measures 42pt to the screen edge: 34pt of system
+             inset plus 8pt of breathing room. --}}
+        <native:column class="w-full px-4 pt-3 pb-2">
             <x-native.ui.gradient-button label="Play" press="play" />
         </native:column>
     @endif

@@ -2,6 +2,7 @@
 
 use App\Models\Profile as LocalProfile;
 use App\Models\Setting;
+use App\Models\Statistic;
 use App\NativeComponents\Screens\About;
 use App\NativeComponents\Screens\AchievementCategory;
 use App\NativeComponents\Screens\Achievements;
@@ -43,18 +44,49 @@ test('all application shell routes are registered with the expected layout', fun
     ]);
 });
 
-test('the home screen shows a single recent game card and the streak glance', function () {
+test('the home header carries identity and progress, with no jump-back-in card', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
-        ->assertSee('Start playing')
-        ->assertSee('Word Match')
+        ->assertSee('Friday, Aug 7')
+        ->assertSee('Local Player')
+        // No avatar or identity chip anywhere on Home.
+        ->assertDontSee('Open settings')
+        // Progress folded into the masthead — the standalone Level card is gone.
+        ->assertSee('Level 1 · Warming up')
+        ->assertSee('Level 1 progress, 0 / 120 XP')
+        ->assertSee('0 / 120 XP · no streak yet')
+        // The Jump back in / Start playing section was removed outright; the
+        // carousel is now the only route into a game from Home.
+        ->assertDontSee('Start playing')
+        ->assertDontSee('Jump back in')
         ->assertSee('Your games')
-        ->assertSee('Streak')
+        ->assertSee('Word Match')
+        // Streak is stated in the header, so it must NOT also be a chip.
+        ->assertSee('Games')
         ->assertSee('Accuracy')
-        ->assertDontSee('Best score')
-        ->assertDontSee('Latest badge')
         ->assertSee('No badges yet')
         ->assertAccessible();
+});
+
+test('the masthead stacks the clock as hour, minute and meridiem', function () {
+    // The clock is real layout on the right of the masthead, not a background
+    // wash — so each part is its own line and must reach the tree separately.
+    $now = now();
+
+    Native::visit('/')
+        ->assertSet('hour', $now->format('h'))
+        ->assertSet('minute', $now->format('i'))
+        ->assertSet('meridiem', $now->format('A'))
+        ->assertSee('The time is '.$now->format('h:i A'));
+});
+
+test('a running streak replaces the empty-state line', function () {
+    $profile = LocalProfile::query()->firstOrFail();
+    Statistic::factory()->for($profile)->create(['current_streak' => 5]);
+
+    Native::visit('/')
+        ->assertSee('5-day streak')
+        ->assertDontSee('no streak yet');
 });
 
 test('splash replaces itself with home', function () {

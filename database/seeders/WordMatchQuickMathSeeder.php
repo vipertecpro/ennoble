@@ -61,6 +61,26 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Speed->value, SkillKey::Focus->value, SkillKey::Adaptability->value],
                 'configuration' => ['content_version' => 1],
             ],
+            [
+                'type' => GameType::Signal->value,
+                'slug' => 'signal',
+                'name' => 'Signal',
+                'description' => 'Trust the ink, not the word — then watch the rule flip.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 5,
+                'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Adaptability->value],
+                'configuration' => ['content_version' => 1],
+            ],
+            [
+                'type' => GameType::Vertex->value,
+                'slug' => 'vertex',
+                'name' => 'Vertex',
+                'description' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 6,
+                'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Speed->value],
+                'configuration' => ['content_version' => 1],
+            ],
         ];
 
         DB::table('games')->upsert(
@@ -76,7 +96,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal', 'vertex'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -99,6 +119,16 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 12, 1400, ['directions' => ['left', 'right'], 'window_ms' => 2400, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 14, 1100, ['directions' => ['left', 'right', 'up'], 'window_ms' => 1900, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 16, 900, ['directions' => ['left', 'right', 'up', 'down'], 'window_ms' => 1500, 'lives' => 3]],
+            ],
+            'signal' => [
+                [Difficulty::Beginner, 'Warm-up', 10, 3500, ['colors' => ['red', 'blue', 'green'], 'rules' => ['ink'], 'options_count' => 3, 'seconds_per_round' => 6, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 12, 2800, ['colors' => ['red', 'blue', 'green', 'purple'], 'rules' => ['ink', 'word'], 'options_count' => 4, 'seconds_per_round' => 5, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 14, 2200, ['colors' => ['red', 'blue', 'green', 'purple', 'pink', 'teal'], 'rules' => ['ink', 'word'], 'options_count' => 4, 'seconds_per_round' => 4, 'lives' => 3]],
+            ],
+            'vertex' => [
+                [Difficulty::Beginner, 'Warm-up', 10, 2600, ['shapes' => ['disc', 'block', 'ring'], 'flight_ms' => 2600, 'go_ratio' => 0.7, 'key_hold' => 99, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 12, 2100, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'flight_ms' => 2100, 'go_ratio' => 0.72, 'key_hold' => 5, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 14, 1700, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'flight_ms' => 1700, 'go_ratio' => 0.75, 'key_hold' => 4, 'lives' => 3]],
             ],
         ];
 

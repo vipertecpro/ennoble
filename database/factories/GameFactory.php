@@ -66,4 +66,28 @@ class GameFactory extends Factory
             'skill_keys' => ['speed', 'focus', 'adaptability'],
         ]);
     }
+
+    public function signal(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Signal,
+            'slug' => 'signal',
+            'name' => 'Signal',
+            'description' => 'Trust the ink, not the word — then watch the rule flip.',
+            'sort_order' => 5,
+            'skill_keys' => ['focus', 'precision', 'adaptability'],
+        ]);
+    }
+
+    public function vertex(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Vertex,
+            'slug' => 'vertex',
+            'name' => 'Vertex',
+            'description' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+            'sort_order' => 6,
+            'skill_keys' => ['focus', 'precision', 'speed'],
+        ]);
+    }
 }

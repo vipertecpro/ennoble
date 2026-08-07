@@ -88,10 +88,9 @@ test('the simplified games library shows compact tiles and opens a detail', func
         ->assertNavigatedTo('/games/word-match');
 });
 
-test('the simplified home shows a single recent game, streak glance, and latest badge', function () {
+test('the simplified home shows the games carousel and latest badge', function () {
     Native::visit('/')
         ->assertScreen(Home::class)
-        ->assertSee('Start playing')
         ->assertSee('Word Match')
         ->assertSee('Your games')
         ->assertDontSee('Latest badge')

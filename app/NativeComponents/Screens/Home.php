@@ -17,7 +17,6 @@ use App\NativeUI\Home\GreetingResolver;
 use App\NativeUI\Theme\ThemeManager;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
-use Carbon\CarbonInterface;
 use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
@@ -35,18 +34,16 @@ final class Home extends NativeComponent
 
     public string $displayName = 'friend';
 
+    /** Clock parts for the masthead, stacked one per line. */
+    public string $hour = '';
+
+    public string $minute = '';
+
+    public string $meridiem = '';
+
     public string $todayLabel = '';
 
-    public string $currentTime = '';
-
     public string $greetingMessage = 'Pick a game and take a focused few minutes.';
-
-    public string $playSectionTitle = 'Start playing';
-
-    /**
-     * @var array{slug: string, title: string, subtitle: string}|null
-     */
-    public ?array $recentGame = null;
 
     public int $currentStreak = 0;
 
@@ -111,15 +108,6 @@ final class Home extends NativeComponent
     public function onResume(): void
     {
         $this->loadHome();
-    }
-
-    /**
-     * Tick the header's live device clock — updates the shown time every second.
-     */
-    #[Poll(1000)]
-    public function tickClock(): void
-    {
-        $this->currentTime = now()->format('g:i:s');
     }
 
     /**
@@ -202,7 +190,7 @@ final class Home extends NativeComponent
             $this->greeting = $greetings->greeting(now());
             $this->displayName = $greetings->displayName($profile->display_name);
             $this->todayLabel = now()->format('l, M j');
-            $this->currentTime = now()->format('g:i:s');
+            $this->applyClock();
             $this->reducedMotion = $settings->reduced_motion;
             $this->motionDuration = $this->reducedMotion
                 ? 0
@@ -219,16 +207,54 @@ final class Home extends NativeComponent
         }
     }
 
+    /**
+     * Refresh the masthead clock. Polled every 30s rather than every second:
+     * only the minute is displayed, so a per-second render would re-render the
+     * whole screen sixty times for one visible change.
+     */
+    #[Poll(30000)]
+    public function tickClock(): void
+    {
+        $this->applyClock();
+    }
+
+    private function applyClock(): void
+    {
+        $now = now();
+
+        $this->hour = $now->format('h');
+        $this->minute = $now->format('i');
+        $this->meridiem = $now->format('A');
+    }
+
+    private function loadGlance(Profile $profile): void
+    {
+        $overview = app(StatisticsService::class)->overview($profile);
+        $this->currentStreak = $overview?->current_streak ?? 0;
+        $this->gamesPlayed = $overview?->sessions_completed ?? 0;
+        $this->accuracyLabel = $overview?->accuracy === null ? '—' : round($overview->accuracy).'%';
+
+        $progression = app(LevelService::class)->forProfile($profile);
+        $this->level = $progression['level'];
+        $this->levelProgress = $progression['progress'];
+        $this->levelTitle = $progression['title'];
+        $this->xpLabel = $progression['into'].' / '.$progression['span'].' XP';
+
+        $unlock = app(AchievementService::class)->latestUnlock($profile);
+        $this->achievementTitle = $unlock?->achievement->name;
+        $this->achievementDescription = $unlock?->achievement->description;
+    }
+
     private function loadRecentGame(Profile $profile): void
     {
         $games = Game::query()
             ->playable()
-            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow])
+            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow, GameType::Signal, GameType::Vertex])
             ->orderBy('sort_order')
             ->get();
 
         if ($games->isEmpty()) {
-            $this->recentGame = null;
+            $this->games = [];
 
             return;
         }
@@ -253,63 +279,8 @@ final class Home extends NativeComponent
         $preview = $previews->get($recent->getKey(), []);
         $hasHistory = ($preview['best_score'] ?? null) !== null;
 
-        $this->recentGame = [
-            'slug' => $recent->slug,
-            'title' => $recent->name,
-            'subtitle' => $this->gameSubtitle($preview),
-        ];
-        $this->playSectionTitle = $hasHistory ? 'Jump back in' : 'Start playing';
         $this->greetingMessage = $hasHistory
             ? 'Welcome back. Keep your streak alive.'
             : 'Pick a game and take a focused few minutes.';
-    }
-
-    /**
-     * @param  array<string, mixed>  $preview
-     */
-    private function gameSubtitle(array $preview): string
-    {
-        $bestScore = $preview['best_score'] ?? null;
-
-        if ($bestScore === null) {
-            return 'Tap to play';
-        }
-
-        return 'Best '.number_format($bestScore).' · Played '.$this->formatLastPlayed($preview['last_played_at'] ?? null);
-    }
-
-    private function loadGlance(Profile $profile): void
-    {
-        $overview = app(StatisticsService::class)->overview($profile);
-        $this->currentStreak = $overview?->current_streak ?? 0;
-        $this->gamesPlayed = $overview?->sessions_completed ?? 0;
-        $this->accuracyLabel = $overview?->accuracy === null ? '—' : round($overview->accuracy).'%';
-
-        $progression = app(LevelService::class)->forProfile($profile);
-        $this->level = $progression['level'];
-        $this->levelProgress = $progression['progress'];
-        $this->levelTitle = $progression['title'];
-        $this->xpLabel = $progression['into'].' / '.$progression['span'].' XP';
-
-        $unlock = app(AchievementService::class)->latestUnlock($profile);
-        $this->achievementTitle = $unlock?->achievement->name;
-        $this->achievementDescription = $unlock?->achievement->description;
-    }
-
-    private function formatLastPlayed(?CarbonInterface $lastPlayedAt): string
-    {
-        if ($lastPlayedAt === null) {
-            return 'recently';
-        }
-
-        if ($lastPlayedAt->isToday()) {
-            return 'today';
-        }
-
-        if ($lastPlayedAt->isYesterday()) {
-            return 'yesterday';
-        }
-
-        return $lastPlayedAt->format('M j');
     }
 }

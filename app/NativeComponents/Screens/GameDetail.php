@@ -70,6 +70,24 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong swipe or a missed current costs one.',
             ],
         ],
+        'signal' => [
+            'tagline' => 'Trust the ink, not the word — then watch the rule flip.',
+            'steps' => [
+                'A color name appears, always printed in a different ink.',
+                'The banner says which one counts: name the INK you see, or the WORD you read.',
+                'The rule flips between rounds — answering right through a flip pays a bonus.',
+                'You have three lives — a wrong tap or a time-out costs one.',
+            ],
+        ],
+        'vertex' => [
+            'tagline' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+            'steps' => [
+                'A target form is shown at the bottom; objects fly at you one at a time.',
+                'Tap anywhere to strike — but only when the object matches the target.',
+                'Striking as it crosses the dashed ring scores the biggest bonus.',
+                'Letting a decoy through is worth points too. Three lives — a false strike or a missed target costs one.',
+            ],
+        ],
     ];
 
     public string $screenState = 'content';

@@ -8,4 +8,6 @@ enum GameType: string
     case QuickMath = 'quick_math';
     case Recall = 'recall';
     case Flow = 'flow';
+    case Signal = 'signal';
+    case Vertex = 'vertex';
 }
