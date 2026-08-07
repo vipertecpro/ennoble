@@ -15,6 +15,7 @@ use App\Models\GameSession;
 use App\NativeUI\Feedback\HapticFeedback;
 use App\NativeUI\Feedback\HapticService;
 use App\NativeUI\Theme\ThemeManager;
+use App\NativeUI\Tokens\ConsolePalette;
 use App\NativeUI\Tokens\DesignTokens;
 use App\NativeUI\Tokens\MotionToken;
 use Native\Mobile\Attributes\Poll;
@@ -474,9 +475,9 @@ final class StackGame extends NativeComponent
     private function scene(): Scene
     {
         $scene = Scene::make()
-            // The playfield colour, not the app surface: the viewport IS the
-            // board, so any gutter around it blends in rather than framing it.
-            ->background(theme('grid-surface'))
+            // The screen's own colour, not the app's. This is a committed
+            // look — see ConsolePalette — so the theme is not consulted.
+            ->background(ConsolePalette::SCREEN)
             // AMBIENT ONLY — no key light, so no shading gradient across a
             // face and no cast shadows at all. A falling-block board is read
             // as a grid of flat colours; shading every cube and dropping a
@@ -549,7 +550,7 @@ final class StackGame extends NativeComponent
             Node::shape('grid:panel', Shapes::PLANE)
                 ->at(0.0, 0.0, -0.75)
                 ->size($width, $height, 1.0)
-                ->material(Material::solid(theme('grid-surface'))),
+                ->material(Material::solid(ConsolePalette::SCREEN)),
         ];
 
         // A soft darkening at the top and bottom of the EMPTY grid. Four
@@ -567,7 +568,7 @@ final class StackGame extends NativeComponent
                 $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::PLANE)
                     ->at(0.0, $edge * (($height - $depth) / 2), -0.4)
                     ->size($width, $depth, 1.0)
-                    ->material(Material::solid(theme('grid-fade')))
+                    ->material(Material::solid(ConsolePalette::FADE))
                     ->opacity($opacity);
             }
         }
@@ -577,14 +578,14 @@ final class StackGame extends NativeComponent
             $nodes[] = Node::shape('grid:v'.$column, Shapes::PLANE)
                 ->at(($column - self::COLUMNS / 2) * self::CELL, 0.0, -0.5)
                 ->size(0.04, $height, 1.0)
-                ->material(Material::solid(theme('grid-line')));
+                ->material(Material::solid(ConsolePalette::LINE_DIM));
         }
 
         for ($row = 1; $row < self::ROWS; $row++) {
             $nodes[] = Node::shape('grid:h'.$row, Shapes::PLANE)
                 ->at(0.0, (self::ROWS / 2 - $row) * self::CELL, -0.5)
                 ->size($width, 0.04, 1.0)
-                ->material(Material::solid(theme('grid-line')));
+                ->material(Material::solid(ConsolePalette::LINE_DIM));
         }
 
         return $nodes;

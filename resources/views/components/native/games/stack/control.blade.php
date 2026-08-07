@@ -1,12 +1,13 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
+@use('App\NativeUI\Tokens\ConsolePalette')
 
 {{--
-    One Stack control: a dark rounded key, as on a real handheld.
+    One control on the console: a circular key inside a ring.
 
-    A pressable rather than <native:button> because the buttons here are
-    icon-only squares of a fixed size, and button's variant styling is
-    theme-driven by design — it will not take a per-instance shape.
+    Two nested circles rather than one, because the ring is what makes a button
+    read as instrument rather than app chrome — the reference draws a dial
+    around every control. Nested COLUMNS, never a row: a row here collapses.
 --}}
 @props([
     'action',
@@ -23,13 +24,17 @@
         'down' => [Ios::ChevronDown, AndroidOutlined::ExpandMore],
         default => [Ios::ArrowDownToLine, AndroidOutlined::VerticalAlignBottom],
     };
+
+    $ring = $primary ? ConsolePalette::VALUE : ConsolePalette::LINE;
 @endphp
 
 <native:pressable
     @press="{{ $press }}"
-    :press-scale="0.92"
+    :press-scale="0.9"
     a11y-label="{{ $label }}"
-    class="w-16 h-14 items-center justify-center rounded-2xl {{ $primary ? 'bg-theme-accent' : 'bg-theme-surface-variant' }}"
+    class="w-16 h-16 items-center justify-center rounded-full border-2 border-[{{ $ring }}]/40"
 >
-    <x-native.ui.icon :ios="$ios" :android="$android" :size="24" />
+    <native:column class="w-12 h-12 items-center justify-center rounded-full border border-[{{ $ring }}]/70 bg-[{{ $ring }}]/10">
+        <x-native.ui.icon :ios="$ios" :android="$android" :size="22" :color="$ring" :dark-color="$ring" />
+    </native:column>
 </native:pressable>

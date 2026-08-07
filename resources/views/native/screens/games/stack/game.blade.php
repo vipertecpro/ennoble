@@ -1,5 +1,6 @@
 @use('App\Icons\AndroidOutlined')
 @use('App\Icons\Ios')
+@use('App\NativeUI\Tokens\ConsolePalette')
 @use('App\NativeUI\Tokens\Gradients')
 
 @php
@@ -13,7 +14,7 @@
     };
 @endphp
 
-<native:column class="h-full w-full {{ Gradients::screen() }}">
+<native:column class="h-full w-full bg-[{{ ConsolePalette::GROUND }}]">
     @if ($screenState === 'error')
         <native:column class="flex-1 w-full px-4 items-center justify-center gap-4 safe-area">
             <native:text class="text-[18] font-bold text-center text-theme-primary-text">This game couldn’t start</native:text>
@@ -61,7 +62,7 @@
                     a11y-label="Back to games"
                     a11y-hint="Leaves this game"
                     :press-scale="0.9"
-                    class="w-9 h-9 items-center justify-center rounded-full bg-theme-surface-variant"
+                    class="w-9 h-9 items-center justify-center rounded-full border border-[{{ ConsolePalette::LINE }}]/40"
                 >
                     <x-native.ui.icon :ios="Ios::ChevronLeft" :android="AndroidOutlined::ArrowBack" :size="16" />
                 </native:pressable>
@@ -75,7 +76,7 @@
                     />
                 </native:column>
 
-                <native:text class="text-[11] font-semibold uppercase tracking-widest text-theme-muted-text">
+                <native:text font="mono" class="text-[11] uppercase tracking-widest text-[{{ ConsolePalette::LABEL }}]">
                     {{ $pieceIndex + 1 }}/{{ $totalPieces }}
                 </native:text>
             </native:row>
@@ -93,12 +94,12 @@
                  on iOS and the board vanished, twice. h-full resolves. --}}
             <native:row class="flex-1 w-full gap-2">
                 <native:column class="flex-1 h-full">
-                    <native:scene-3d class="h-full w-full rounded-2xl border {{ Gradients::hairline() }}" :scene="$scene" />
+                    <native:scene-3d class="h-full w-full rounded-lg border-2 border-[{{ ConsolePalette::LINE }}]/60" :scene="$scene" />
                 </native:column>
 
                 <native:column class="w-20 h-full gap-2">
-                    <native:column class="w-20 items-center gap-2 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Next</native:text>
+                    <native:column class="w-20 items-center gap-2 rounded-lg px-2 py-2 border border-[{{ ConsolePalette::LINE }}]/35 bg-[{{ ConsolePalette::LINE }}]/5">
+                        <native:text font="mono" class="text-[8] uppercase tracking-widest text-[{{ ConsolePalette::LABEL }}]">Next</native:text>
                         @foreach ($nextPieces as $upcoming)
                             <native:column class="h-6 items-center justify-center">
                                 <x-native.games.stack.piece-preview :piece="$upcoming" :cell="7" />
@@ -109,43 +110,28 @@
                     {{-- Score sits directly under the queue: the two things a
                          player glances at are then in one place, instead of
                          one being at the far bottom of the screen. --}}
-                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Score</native:text>
-                        <native:text
-                            native:key="stack-score"
-                            class="text-[17] font-bold text-theme-primary-text"
-                            content-transition="numeric"
-                            :animate-duration="$feedbackMotionDuration"
-                            animate-easing="spring"
-                        >{{ number_format($score) }}</native:text>
-                    </native:column>
+                    <x-native.games.stack.readout
+                        label="Score"
+                        :value="number_format($score)"
+                        key="stack-score"
+                        :motion-duration="$feedbackMotionDuration"
+                    />
 
-                    {{-- Level and lines get their own cards rather than a line
-                         of small print under the score. They are what a player
-                         is working toward; buried in one text node they read as
-                         a footnote. Stacked as columns, never a row — a row
-                         nested in this rail collapses to nothing on iOS. --}}
-                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Level</native:text>
-                        <native:text
-                            native:key="stack-level"
-                            class="text-[17] font-bold text-theme-accent"
-                            content-transition="numeric"
-                            :animate-duration="$feedbackMotionDuration"
-                            animate-easing="spring"
-                        >{{ $level }}</native:text>
-                    </native:column>
+                    <x-native.games.stack.readout
+                        label="Level"
+                        :value="$level"
+                        key="stack-level"
+                        :accent="ConsolePalette::LINE"
+                        :motion-duration="$feedbackMotionDuration"
+                    />
 
-                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Lines</native:text>
-                        <native:text
-                            native:key="stack-lines"
-                            class="text-[17] font-bold text-theme-primary-text"
-                            content-transition="numeric"
-                            :animate-duration="$feedbackMotionDuration"
-                            animate-easing="spring"
-                        >{{ $lines }}</native:text>
-                    </native:column>
+                    <x-native.games.stack.readout
+                        label="Lines"
+                        :value="$lines"
+                        key="stack-lines"
+                        :accent="ConsolePalette::LINE"
+                        :motion-duration="$feedbackMotionDuration"
+                    />
                 </native:column>
             </native:row>
 
@@ -154,7 +140,7 @@
             @if ($callout !== null)
                 <native:text
                     native:key="stack-callout-{{ $feedbackSerial }}"
-                    class="text-[11] font-semibold uppercase tracking-widest text-center text-theme-accent"
+                    font="mono" class="text-[11] uppercase tracking-widest text-center text-[{{ ConsolePalette::VALUE }}]"
                     :animate-duration="$feedbackMotionDuration"
                     animate-easing="spring"
                 >

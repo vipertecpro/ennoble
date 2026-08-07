@@ -2,6 +2,8 @@
 
 namespace App\Domain\Games\Stack;
 
+use App\NativeUI\Tokens\ConsolePalette;
+
 /**
  * The seven tetrominoes and their rotations.
  *
@@ -14,10 +16,9 @@ namespace App\Domain\Games\Stack;
  *
  * Cells are [column, row] offsets, row growing DOWNWARD to match the board.
  *
- * Colours live here because they are genuine data-driven identity — one PHP
- * home, never pasted into a view. They are the 500-weight palette, not 400:
- * against a white playfield the lighter weights went pastel and the board
- * stopped looking like a game.
+ * Colours come from {@see ConsolePalette}, which owns the screen's committed
+ * neon art direction. The mapping from piece to colour lives here because that
+ * is piece identity; the hex values live there because that is the look.
  */
 final class StackPieces
 {
@@ -26,7 +27,7 @@ final class StackPieces
      */
     private const PIECES = [
         'i' => [
-            'color' => '#06B6D4',
+            'color' => ConsolePalette::PIECES['i'],
             'rotations' => [
                 [[0, 1], [1, 1], [2, 1], [3, 1]],
                 [[2, 0], [2, 1], [2, 2], [2, 3]],
@@ -35,7 +36,7 @@ final class StackPieces
             ],
         ],
         'o' => [
-            'color' => '#EAB308',
+            'color' => ConsolePalette::PIECES['o'],
             // One orientation, repeated: an O that "rotates" visibly is the
             // classic sign of a generic rotation being applied to it.
             'rotations' => [
@@ -46,7 +47,7 @@ final class StackPieces
             ],
         ],
         't' => [
-            'color' => '#A855F7',
+            'color' => ConsolePalette::PIECES['t'],
             'rotations' => [
                 [[1, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [1, 1], [2, 1], [1, 2]],
@@ -55,7 +56,7 @@ final class StackPieces
             ],
         ],
         's' => [
-            'color' => '#22C55E',
+            'color' => ConsolePalette::PIECES['s'],
             'rotations' => [
                 [[1, 0], [2, 0], [0, 1], [1, 1]],
                 [[1, 0], [1, 1], [2, 1], [2, 2]],
@@ -64,7 +65,7 @@ final class StackPieces
             ],
         ],
         'z' => [
-            'color' => '#EF4444',
+            'color' => ConsolePalette::PIECES['z'],
             'rotations' => [
                 [[0, 0], [1, 0], [1, 1], [2, 1]],
                 [[2, 0], [1, 1], [2, 1], [1, 2]],
@@ -73,7 +74,7 @@ final class StackPieces
             ],
         ],
         'j' => [
-            'color' => '#3B82F6',
+            'color' => ConsolePalette::PIECES['j'],
             'rotations' => [
                 [[0, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [2, 0], [1, 1], [1, 2]],
@@ -82,7 +83,7 @@ final class StackPieces
             ],
         ],
         'l' => [
-            'color' => '#F97316',
+            'color' => ConsolePalette::PIECES['l'],
             'rotations' => [
                 [[2, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [1, 1], [1, 2], [2, 2]],
