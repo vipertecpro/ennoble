@@ -278,7 +278,7 @@ final class Scene3dCoordinator: NSObject {
         for hit in view.hitTest(point, options: [SCNHitTestOption.searchMode: SCNHitTestSearchMode.all.rawValue]) {
             guard let id = hit.node.name, tappable.contains(id) else { continue }
 
-            NativeElementBridge.sendTextChangeEvent(tapCallback, elementId, id)
+            NativeElementBridge.sendTextChangeEvent(tapCallback, nodeId: elementId, text: id)
 
             return
         }
