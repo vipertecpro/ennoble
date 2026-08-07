@@ -15,7 +15,9 @@ namespace App\Domain\Games\Stack;
  * Cells are [column, row] offsets, row growing DOWNWARD to match the board.
  *
  * Colours live here because they are genuine data-driven identity — one PHP
- * home, never pasted into a view.
+ * home, never pasted into a view. They are the 500-weight palette, not 400:
+ * against a white playfield the lighter weights went pastel and the board
+ * stopped looking like a game.
  */
 final class StackPieces
 {
@@ -24,7 +26,7 @@ final class StackPieces
      */
     private const PIECES = [
         'i' => [
-            'color' => '#22D3EE',
+            'color' => '#06B6D4',
             'rotations' => [
                 [[0, 1], [1, 1], [2, 1], [3, 1]],
                 [[2, 0], [2, 1], [2, 2], [2, 3]],
@@ -33,7 +35,7 @@ final class StackPieces
             ],
         ],
         'o' => [
-            'color' => '#FACC15',
+            'color' => '#EAB308',
             // One orientation, repeated: an O that "rotates" visibly is the
             // classic sign of a generic rotation being applied to it.
             'rotations' => [
@@ -44,7 +46,7 @@ final class StackPieces
             ],
         ],
         't' => [
-            'color' => '#C084FC',
+            'color' => '#A855F7',
             'rotations' => [
                 [[1, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [1, 1], [2, 1], [1, 2]],
@@ -53,7 +55,7 @@ final class StackPieces
             ],
         ],
         's' => [
-            'color' => '#4ADE80',
+            'color' => '#22C55E',
             'rotations' => [
                 [[1, 0], [2, 0], [0, 1], [1, 1]],
                 [[1, 0], [1, 1], [2, 1], [2, 2]],
@@ -62,7 +64,7 @@ final class StackPieces
             ],
         ],
         'z' => [
-            'color' => '#F87171',
+            'color' => '#EF4444',
             'rotations' => [
                 [[0, 0], [1, 0], [1, 1], [2, 1]],
                 [[2, 0], [1, 1], [2, 1], [1, 2]],
@@ -71,7 +73,7 @@ final class StackPieces
             ],
         ],
         'j' => [
-            'color' => '#60A5FA',
+            'color' => '#3B82F6',
             'rotations' => [
                 [[0, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [2, 0], [1, 1], [1, 2]],
@@ -80,7 +82,7 @@ final class StackPieces
             ],
         ],
         'l' => [
-            'color' => '#FB923C',
+            'color' => '#F97316',
             'rotations' => [
                 [[2, 0], [0, 1], [1, 1], [2, 1]],
                 [[1, 0], [1, 1], [1, 2], [2, 2]],

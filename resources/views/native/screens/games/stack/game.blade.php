@@ -93,7 +93,7 @@
                  on iOS and the board vanished, twice. h-full resolves. --}}
             <native:row class="flex-1 w-full gap-2">
                 <native:column class="flex-1 h-full">
-                    <native:scene-3d class="h-full w-full rounded-2xl" :scene="$scene" />
+                    <native:scene-3d class="h-full w-full rounded-2xl border {{ Gradients::hairline() }}" :scene="$scene" />
                 </native:column>
 
                 <native:column class="w-20 h-full gap-2">
@@ -135,14 +135,33 @@
                             :animate-duration="$feedbackMotionDuration"
                             animate-easing="spring"
                         >{{ number_format($score) }}</native:text>
+                    </native:column>
 
-                        {{-- One text node, not a row of four. A row nested in
-                             this column collapses to nothing on iOS, which is
-                             how the level and line counts disappeared here the
-                             first time. --}}
-                        <native:text native:key="stack-progress" class="text-[10] text-theme-muted-text" content-transition="numeric">
-                            Lv {{ $level }} · {{ $lines }} lines
-                        </native:text>
+                    {{-- Level and lines get their own cards rather than a line
+                         of small print under the score. They are what a player
+                         is working toward; buried in one text node they read as
+                         a footnote. Stacked as columns, never a row — a row
+                         nested in this rail collapses to nothing on iOS. --}}
+                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
+                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Level</native:text>
+                        <native:text
+                            native:key="stack-level"
+                            class="text-[17] font-bold text-theme-accent"
+                            content-transition="numeric"
+                            :animate-duration="$feedbackMotionDuration"
+                            animate-easing="spring"
+                        >{{ $level }}</native:text>
+                    </native:column>
+
+                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
+                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Lines</native:text>
+                        <native:text
+                            native:key="stack-lines"
+                            class="text-[17] font-bold text-theme-primary-text"
+                            content-transition="numeric"
+                            :animate-duration="$feedbackMotionDuration"
+                            animate-easing="spring"
+                        >{{ $lines }}</native:text>
                     </native:column>
                 </native:column>
             </native:row>

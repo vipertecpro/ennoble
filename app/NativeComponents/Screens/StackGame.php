@@ -594,12 +594,15 @@ final class StackGame extends NativeComponent
         // Behind the pieces, not in front. In front they dimmed the blocks
         // themselves, which was plainly wrong on the bottom rows — the fade is
         // meant to shade the playfield, not the game.
+        //
+        // And it is a THEMED colour, not black. Black over a light board does
+        // not read as shadow, it reads as grey dirt.
         foreach ([[0.22, 1.2], [0.15, 2.2], [0.09, 3.4], [0.04, 4.8]] as $band => [$opacity, $depth]) {
             foreach ([1, -1] as $edge) {
                 $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::BOX)
                     ->at(0.0, $edge * (($height - $depth) / 2), -0.4)
                     ->size($width, $depth, 0.1)
-                    ->material(Material::solid('#000000'))
+                    ->material(Material::solid(theme('grid-fade')))
                     ->opacity($opacity);
             }
         }
