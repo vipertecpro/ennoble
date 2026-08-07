@@ -61,6 +61,7 @@ internal class FilamentHost(context: Context) {
     private val graph = SceneGraph(engine, scene, assetLoader, resourceLoader, context)
     private val lightEntities = mutableListOf<Int>()
 
+    private var environment: Environment.Built? = null
     private var chrome: SceneChrome? = null
     private var destroyed = false
     private var firstFrameNanos = 0L
@@ -143,6 +144,22 @@ internal class FilamentHost(context: Context) {
             .color(background[0], background[1], background[2], 1f)
             .build(engine)
 
+        // Metals are pure reflection: with no environment they render black,
+        // which looks like a bug and is merely correct. The background is used
+        // as the sky so reflections agree with what is actually behind the
+        // object, with a darker ground half to keep the two distinguishable.
+        environment?.let {
+            scene.indirectLight = null
+            engine.destroyIndirectLight(it.light)
+            engine.destroyTexture(it.texture)
+        }
+        environment = Environment.build(
+            engine,
+            sky = background,
+            ground = floatArrayOf(background[0] * 0.25f, background[1] * 0.25f, background[2] * 0.25f),
+            intensity = 30_000f,
+        ).also { scene.indirectLight = it.light }
+
         camera.lookAt(
             next.camX.toDouble(), next.camY.toDouble(), next.camZ.toDouble(),
             next.targetX.toDouble(), next.targetY.toDouble(), next.targetZ.toDouble(),
@@ -222,6 +239,16 @@ internal class FilamentHost(context: Context) {
         lightEntities.clear()
 
         scene.skybox?.let { engine.destroySkybox(it) }
+
+        // The light before its texture: the light holds the reflections
+        // cubemap, and freeing the texture first leaves it dangling.
+        environment?.let {
+            scene.indirectLight = null
+            engine.destroyIndirectLight(it.light)
+            engine.destroyTexture(it.texture)
+        }
+        environment = null
+
         engine.destroyRenderer(renderer)
         engine.destroyView(view)
         engine.destroyScene(scene)

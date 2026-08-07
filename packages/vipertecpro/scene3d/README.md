@@ -71,7 +71,7 @@ available.
 | Scene API (`Scene`, `Node`, `Material`, `Camera`, `Light`) | Done — 14 tests |
 | EDGE element, Blade tag, manifest wiring | Done — 5 integrity tests |
 | Built-in primitives (generated GLB) | Done — 13 tests, container validated |
-| Android renderer (Filament + gltfio) | Compiles; engine starts; meshes loading |
+| Android renderer (Filament + gltfio) | Renders on device — geometry, materials, spin |
 | iOS renderer (Filament via CocoaPods) | **Not started** |
 | Picking (`tappable()` → node id) | Modelled in PHP, **not wired natively** |
 | Showcase games | Not started |
