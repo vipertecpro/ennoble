@@ -36,7 +36,9 @@
         "repositories": [],
         "dependencies": {
             "implementation": [
-                "io.github.sceneview:sceneview:2.2.1"
+                "com.google.android.filament:filament-android:1.51.6",
+                "com.google.android.filament:gltfio-android:1.51.6",
+                "com.google.android.filament:filament-utils-android:1.51.6"
             ]
         },
         "activities": [],
@@ -50,7 +52,9 @@
         "repositories": [],
         "dependencies": {
             "swift_packages": [],
-            "pods": []
+            "pods": [
+                "Filament"
+            ]
         }
     },
     "assets": {

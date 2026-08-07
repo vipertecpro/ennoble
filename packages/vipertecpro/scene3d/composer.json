@@ -1,6 +1,6 @@
 {
     "name": "vipertecpro/scene3d",
-    "description": "A NativePHP Mobile plugin",
+    "description": "Real-time 3D for NativePHP Mobile \u2014 one Filament-backed renderer for iOS and Android, described from PHP.",
     "type": "nativephp-plugin",
     "license": "MIT",
     "authors": [
@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "nativephp/mobile": "^3.0"
+        "nativephp/mobile": "^3.0|^4.0"
     },
     "autoload": {
         "psr-4": {
@@ -29,7 +29,8 @@
         }
     },
     "require-dev": {
-        "pestphp/pest": "^3.0"
+        "pestphp/pest": "^3.0",
+        "illuminate/view": "^13.24"
     },
     "scripts": {
         "test": "pest"
@@ -37,6 +38,19 @@
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        }
+    },
+    "keywords": [
+        "nativephp",
+        "3d",
+        "filament",
+        "gltf",
+        "games",
+        "mobile"
+    ],
+    "autoload-dev": {
+        "psr-4": {
+            "Vipertecpro\\Scene3d\\Tests\\": "tests/"
         }
     }
 }
