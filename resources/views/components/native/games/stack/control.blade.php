@@ -29,7 +29,7 @@
     @press="{{ $press }}"
     :press-scale="0.92"
     a11y-label="{{ $label }}"
-    class="w-14 h-12 items-center justify-center rounded-2xl {{ $primary ? 'bg-theme-accent' : 'bg-theme-surface-variant' }}"
+    class="w-16 h-14 items-center justify-center rounded-2xl {{ $primary ? 'bg-theme-accent' : 'bg-theme-surface-variant' }}"
 >
-    <x-native.ui.icon :ios="$ios" :android="$android" :size="20" />
+    <x-native.ui.icon :ios="$ios" :android="$android" :size="24" />
 </native:pressable>

@@ -3,18 +3,13 @@
 @use('App\NativeUI\Tokens\Gradients')
 
 @php
+    // Only what is worth celebrating. A placement that buried a cell still
+    // scores as it should and still shows in the end-of-run accuracy — but
+    // saying so mid-run, every time, is nagging rather than information.
     $callout = match ($feedbackTone) {
         'quad' => 'Four at once',
         'clear' => 'Line cleared',
-        'buried' => 'Buried a cell',
-        'topped' => 'Topped out',
         default => null,
-    };
-
-    $calloutClass = match ($feedbackTone) {
-        'quad', 'clear' => 'text-theme-accent',
-        'buried', 'topped' => 'text-theme-danger',
-        default => 'text-theme-muted-text',
     };
 @endphp
 
@@ -85,73 +80,85 @@
                 </native:text>
             </native:row>
 
-            {{-- Hold and the queue, exactly the information a player needs to
-                 plan more than one piece ahead. --}}
-            <native:row class="w-full gap-2 items-stretch">
-                <native:pressable
-                    @press="hold"
-                    a11y-label="Hold this piece"
-                    a11y-hint="Sets the current piece aside until the next one"
-                    :press-scale="0.97"
-                    class="rounded-2xl px-3 py-2 bg-theme-surface border {{ Gradients::hairline() }}"
-                >
-                    <native:column class="gap-1 items-start">
-                        <native:text class="text-[9] font-semibold uppercase tracking-widest {{ $holdLocked ? 'text-theme-muted-text' : 'text-theme-accent' }}">Hold</native:text>
-                        <native:column class="h-8 justify-center">
-                            <x-native.games.stack.piece-preview :piece="$holdPiece" />
+            {{-- The rail OVERLAYS the board rather than sitting beside it in
+                 a row. A flex-1 viewport inside a column inside a row resolves
+                 to nothing on iOS — the board vanished outright — which is the
+                 same unbounded-proposal trap as everywhere else. A stack
+                 overlays its children, so the board keeps the full width it
+                 already sized correctly and the rail floats over the empty top
+                 of the playfield, which is dead space until the stack grows. --}}
+            {{-- Board on the left, rail on the right. Sizes are EXPLICIT
+                 rather than flex-1 inside flex-1: a viewport given a flex
+                 height inside a flex column inside a row resolved to nothing
+                 on iOS and the board vanished, twice. h-full resolves. --}}
+            <native:row class="flex-1 w-full gap-2">
+                <native:column class="flex-1 h-full">
+                    <native:scene-3d class="h-full w-full rounded-2xl" :scene="$scene" />
+                </native:column>
+
+                <native:column class="w-20 h-full gap-2">
+                    {{-- HOLD parks the current piece and gives back whatever
+                         was parked — stash the awkward one, keep building,
+                         take it back when it fits. One swap per piece, or it
+                         is just a free reroll. --}}
+                    <native:pressable
+                        @press="hold"
+                        a11y-label="Hold this piece"
+                        a11y-hint="Parks the current piece to use later; one swap per piece"
+                        :press-scale="0.96"
+                        class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}"
+                    >
+                        <native:text class="text-[8] font-semibold uppercase tracking-widest {{ $holdLocked ? 'text-theme-muted-text' : 'text-theme-accent' }}">Hold</native:text>
+                        <native:column class="h-6 items-center justify-center">
+                            <x-native.games.stack.piece-preview :piece="$holdPiece" :cell="7" />
                         </native:column>
-                    </native:column>
-                </native:pressable>
+                    </native:pressable>
 
-                <native:column class="flex-1 rounded-2xl px-3 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                    <native:column class="gap-1">
-                        <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Next</native:text>
-                        <native:row class="gap-4 h-8 items-center">
-                            @foreach ($nextPieces as $upcoming)
-                                <x-native.games.stack.piece-preview :piece="$upcoming" />
-                            @endforeach
-                        </native:row>
+                    <native:column class="w-20 items-center gap-2 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
+                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Next</native:text>
+                        @foreach ($nextPieces as $upcoming)
+                            <native:column class="h-6 items-center justify-center">
+                                <x-native.games.stack.piece-preview :piece="$upcoming" :cell="7" />
+                            </native:column>
+                        @endforeach
+                    </native:column>
+
+                    {{-- Score sits directly under the queue: the two things a
+                         player glances at are then in one place, instead of
+                         one being at the far bottom of the screen. --}}
+                    <native:column class="w-20 items-center gap-1 rounded-xl px-2 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
+                        <native:text class="text-[8] font-semibold uppercase tracking-widest text-theme-muted-text">Score</native:text>
+                        <native:text
+                            native:key="stack-score"
+                            class="text-[17] font-bold text-theme-primary-text"
+                            content-transition="numeric"
+                            :animate-duration="$feedbackMotionDuration"
+                            animate-easing="spring"
+                        >{{ number_format($score) }}</native:text>
+
+                        {{-- One text node, not a row of four. A row nested in
+                             this column collapses to nothing on iOS, which is
+                             how the level and line counts disappeared here the
+                             first time. --}}
+                        <native:text native:key="stack-progress" class="text-[10] text-theme-muted-text" content-transition="numeric">
+                            Lv {{ $level }} · {{ $lines }} lines
+                        </native:text>
                     </native:column>
                 </native:column>
             </native:row>
 
-            <native:column class="flex-1 w-full">
-                <native:scene-3d class="flex-1 w-full rounded-2xl" :scene="$scene" />
-            </native:column>
 
-            <native:row class="w-full items-center gap-3 rounded-2xl px-4 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
-                <native:column class="items-start">
-                    <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Level</native:text>
-                    <native:text native:key="stack-level" class="text-[18] font-bold text-theme-primary-text" content-transition="numeric">{{ $level }}</native:text>
-                </native:column>
 
-                <native:column class="items-start">
-                    <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Lines</native:text>
-                    <native:text native:key="stack-lines" class="text-[18] font-bold text-theme-primary-text" content-transition="numeric">{{ $lines }}</native:text>
-                </native:column>
-
-                <native:spacer class="flex-1" />
-
-                <native:column class="items-end">
-                    <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Score</native:text>
-                    <native:text
-                        native:key="stack-score"
-                        class="text-[22] font-bold text-theme-primary-text"
-                        content-transition="numeric"
-                        :animate-duration="$feedbackMotionDuration"
-                        animate-easing="spring"
-                    >{{ number_format($score) }}</native:text>
-                </native:column>
-            </native:row>
-
-            <native:text
-                native:key="stack-callout-{{ $feedbackSerial }}"
-                class="text-[11] font-semibold uppercase tracking-widest text-center {{ $calloutClass }}"
-                :animate-duration="$feedbackMotionDuration"
-                animate-easing="ease-out"
-            >
-                {{ $callout ?? ' ' }}
-            </native:text>
+            @if ($callout !== null)
+                <native:text
+                    native:key="stack-callout-{{ $feedbackSerial }}"
+                    class="text-[11] font-semibold uppercase tracking-widest text-center text-theme-accent"
+                    :animate-duration="$feedbackMotionDuration"
+                    animate-easing="spring"
+                >
+                    {{ $callout }}
+                </native:text>
+            @endif
 
             {{-- Rotate sits apart from the movement cluster, as it does on the
                  reference: it is a different KIND of action, and grouping it

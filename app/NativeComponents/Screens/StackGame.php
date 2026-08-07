@@ -25,6 +25,7 @@ use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Edge\Transition;
 use Throwable;
 use Vipertecpro\Scene3d\Scene\Camera;
+use Vipertecpro\Scene3d\Scene\Light;
 use Vipertecpro\Scene3d\Scene\Material;
 use Vipertecpro\Scene3d\Scene\Node;
 use Vipertecpro\Scene3d\Scene\Scene;
@@ -509,16 +510,20 @@ final class StackGame extends NativeComponent
     {
         $scene = Scene::make()
             // The playfield colour, not the app surface: the viewport IS the
-            // board here, so any gutter around the panel blends into it rather
-            // than showing a bright frame around a dark board.
+            // board, so any gutter around it blends in rather than framing it.
             ->background(theme('grid-surface'))
-            // Straight on, so the board reads as a grid rather than a
-            // perspective view of one. Far enough back for all 16 rows.
-            // Framed so the whole 16-row board is visible with a little air.
-            // Too far back and the playfield looks like a small object in a
-            // large box; too close and the top and bottom rows are cropped,
-            // which silently hides the row a player is about to complete.
-            ->camera((new Camera)->at(0.0, 0.0, 14.6)->lookAt(0.0, 0.0, 0.0));
+            // AMBIENT ONLY — no key light, so no shading gradient across a
+            // face and no cast shadows at all. A falling-block board is read
+            // as a grid of flat colours; shading every cube and dropping a
+            // shadow under it made the board harder to read, not richer.
+            ->lights(Light::ambient(48000.0))
+            // Far away with a narrow field of view, which is how you fake an
+            // orthographic camera without one: at this distance the frustum is
+            // nearly parallel, so a cell at the edge of the board is the same
+            // size and shape as one in the middle. Close up with a wide angle,
+            // the outer columns splayed outward and the board looked like a
+            // solid object seen in perspective.
+            ->camera((new Camera)->at(0.0, 0.0, 62.0)->lookAt(0.0, 0.0, 0.0)->fieldOfView(17.0));
 
         if ($this->screenState !== 'content' || $this->cells === []) {
             return $scene;
@@ -581,6 +586,23 @@ final class StackGame extends NativeComponent
                 ->size($width, $height, 0.4)
                 ->material(Material::solid(theme('grid-surface'))),
         ];
+
+        // A soft darkening at the top and bottom of the EMPTY grid. Four
+        // bands of falling opacity rather than one, because a single band has
+        // a hard edge and reads as a stripe.
+        //
+        // Behind the pieces, not in front. In front they dimmed the blocks
+        // themselves, which was plainly wrong on the bottom rows — the fade is
+        // meant to shade the playfield, not the game.
+        foreach ([[0.22, 1.2], [0.15, 2.2], [0.09, 3.4], [0.04, 4.8]] as $band => [$opacity, $depth]) {
+            foreach ([1, -1] as $edge) {
+                $nodes[] = Node::shape('grid:fade:'.$band.':'.($edge > 0 ? 't' : 'b'), Shapes::BOX)
+                    ->at(0.0, $edge * (($height - $depth) / 2), -0.4)
+                    ->size($width, $depth, 0.1)
+                    ->material(Material::solid('#000000'))
+                    ->opacity($opacity);
+            }
+        }
 
         // Interior boundaries only — the outer edge is the panel's own.
         for ($column = 1; $column < self::COLUMNS; $column++) {
