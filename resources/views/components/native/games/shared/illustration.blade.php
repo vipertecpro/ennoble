@@ -39,8 +39,6 @@
             'recall' => [Ios::Grid, AndroidOutlined::GridView, 'Abstract memory recall illustration'],
             'flow' => [Ios::Waveform, AndroidOutlined::Waves, 'Abstract flowing current illustration'],
             'signal' => [Ios::Paintpalette, AndroidOutlined::Palette, 'Abstract color-interference illustration'],
-            'vertex' => [Ios::Scope, AndroidOutlined::Adjust, 'Abstract descending-formation illustration'],
-            'axis' => [Ios::CubeTransparent, AndroidOutlined::Rotate90DegreesCcw, 'Abstract rotating-solid illustration'],
             default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports, 'Abstract game illustration'],
         };
     @endphp

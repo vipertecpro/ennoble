@@ -249,14 +249,9 @@ final class Home extends NativeComponent
     {
         $games = Game::query()
             ->playable()
-            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow, GameType::Signal, GameType::Vertex, GameType::Axis])
+            ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow, GameType::Signal])
             ->orderBy('sort_order')
-            ->get()
-            // A game whose renderer is missing on this platform is filtered
-            // out here rather than at the query, so the seeded row still
-            // exists and a direct link to it keeps working.
-            ->filter(fn (Game $game): bool => $game->type->rendersOnThisPlatform())
-            ->values();
+            ->get();
 
         if ($games->isEmpty()) {
             $this->games = [];

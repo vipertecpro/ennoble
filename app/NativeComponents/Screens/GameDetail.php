@@ -79,24 +79,6 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong tap or a time-out costs one.',
             ],
         ],
-        'axis' => [
-            'tagline' => 'Two solids, one mirror — turn them in your head and find the true match.',
-            'steps' => [
-                'A solid is shown at the top, and two more below it.',
-                'One of the two is the same solid turned to a new angle. The other is its mirror image — no amount of turning will ever match it.',
-                'Tap the one you can rotate onto the original.',
-                'Bigger solids pay more. Three lives — a wrong tap or a time-out costs one.',
-            ],
-        ],
-        'vertex' => [
-            'tagline' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
-            'steps' => [
-                'A standing order names the targets — a shape, a colour, or both.',
-                'Tap every invader that matches before the formation lands.',
-                'Firing on the wrong one ends the wave immediately, so read before you shoot.',
-                'Clearing a wave clean pays a big bonus. Three lives — a wrong shot or a landing costs one.',
-            ],
-        ],
     ];
 
     public string $screenState = 'content';

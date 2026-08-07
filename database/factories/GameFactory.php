@@ -67,18 +67,6 @@ class GameFactory extends Factory
         ]);
     }
 
-    public function axis(): static
-    {
-        return $this->state(fn (): array => [
-            'type' => GameType::Axis,
-            'slug' => 'axis',
-            'name' => 'Axis',
-            'description' => 'Two solids, one mirror — turn them in your head and find the true match.',
-            'sort_order' => 7,
-            'skill_keys' => ['structure', 'focus', 'precision'],
-        ]);
-    }
-
     public function signal(): static
     {
         return $this->state(fn (): array => [
@@ -88,18 +76,6 @@ class GameFactory extends Factory
             'description' => 'Trust the ink, not the word — then watch the rule flip.',
             'sort_order' => 5,
             'skill_keys' => ['focus', 'precision', 'adaptability'],
-        ]);
-    }
-
-    public function vertex(): static
-    {
-        return $this->state(fn (): array => [
-            'type' => GameType::Vertex,
-            'slug' => 'vertex',
-            'name' => 'Barrage',
-            'description' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
-            'sort_order' => 6,
-            'skill_keys' => ['focus', 'precision', 'speed'],
         ]);
     }
 }
