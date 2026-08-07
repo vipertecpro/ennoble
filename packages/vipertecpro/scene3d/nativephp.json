@@ -1,0 +1,73 @@
+{
+    "name": "vipertecpro/scene3d",
+    "version": "1.0.0",
+    "description": "A real 3D viewport for NativePHP Mobile \u2014 SceneKit on iOS, SceneView on Android, described from PHP.",
+    "namespace": "Scene3d",
+    "keywords": [
+        "3d",
+        "scenekit",
+        "sceneview",
+        "games",
+        "edge"
+    ],
+    "category": "ui",
+    "license": "MIT",
+    "pricing": {
+        "type": "free"
+    },
+    "author": {
+        "name": "Your Name",
+        "email": "you@example.com",
+        "url": ""
+    },
+    "homepage": "",
+    "repository": "",
+    "funding": [],
+    "platforms": [
+        "android",
+        "ios"
+    ],
+    "icon": "resources/icon.png",
+    "screenshots": [],
+    "bridge_functions": [],
+    "android": {
+        "min_version": 24,
+        "permissions": [],
+        "repositories": [],
+        "dependencies": {
+            "implementation": [
+                "io.github.sceneview:sceneview:2.2.1"
+            ]
+        },
+        "activities": [],
+        "services": [],
+        "receivers": [],
+        "providers": []
+    },
+    "ios": {
+        "min_version": "15.0",
+        "permissions": [],
+        "repositories": [],
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
+    },
+    "assets": {
+        "android": [],
+        "ios": []
+    },
+    "secrets": [],
+    "events": [],
+    "service_provider": "Vipertecpro\\Scene3d\\Scene3dServiceProvider",
+    "components": [
+        {
+            "type": "scene_3d",
+            "element": "Vipertecpro\\Scene3d\\Edge\\Scene3dElement",
+            "blade": "Vipertecpro\\Scene3d\\Components\\Scene3d",
+            "android_renderer": "com.vipertecpro.plugins.scene3d.ui.Scene3dRenderer",
+            "ios_renderer": "Scene3dRenderer",
+            "self_closing": true
+        }
+    ]
+}
