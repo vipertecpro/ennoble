@@ -259,9 +259,14 @@ final class Games extends NativeComponent
 
             $games = Game::query()
                 ->playable()
-                ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow, GameType::Signal, GameType::Vertex])
+                ->whereIn('type', [GameType::WordMatch, GameType::QuickMath, GameType::Recall, GameType::Flow, GameType::Signal, GameType::Vertex, GameType::Axis])
                 ->orderBy('sort_order')
-                ->get();
+                ->get()
+                // A game whose renderer is missing on this platform is
+                // filtered out here rather than at the query, so the seeded
+                // row still exists and a direct link keeps working.
+                ->filter(fn (Game $game): bool => $game->type->rendersOnThisPlatform())
+                ->values();
 
             if ($games->isEmpty()) {
                 throw new DomainException('At least one playable game definition is required for the Games library.');
@@ -411,6 +416,7 @@ final class Games extends NativeComponent
             GameType::Flow => ['speed', 'focus'],
             GameType::Signal => ['focus', 'logic'],
             GameType::Vertex => ['focus', 'speed'],
+            GameType::Axis => ['logic', 'memory'],
         };
     }
 

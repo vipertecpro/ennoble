@@ -67,6 +67,18 @@ class GameFactory extends Factory
         ]);
     }
 
+    public function axis(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Axis,
+            'slug' => 'axis',
+            'name' => 'Axis',
+            'description' => 'Two solids, one mirror — turn them in your head and find the true match.',
+            'sort_order' => 7,
+            'skill_keys' => ['structure', 'focus', 'precision'],
+        ]);
+    }
+
     public function signal(): static
     {
         return $this->state(fn (): array => [

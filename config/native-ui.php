@@ -235,6 +235,7 @@ return [
             'flow' => ['indigo-500', 'cyan-400'],
             'signal' => ['amber-400', 'orange-500'],
             'vertex' => ['emerald-400', 'teal-500'],
+            'axis' => ['sky-400', 'indigo-500'],
         ],
 
         'onboarding_tones' => [

@@ -79,6 +79,15 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong tap or a time-out costs one.',
             ],
         ],
+        'axis' => [
+            'tagline' => 'Two solids, one mirror — turn them in your head and find the true match.',
+            'steps' => [
+                'A solid is shown at the top, and two more below it.',
+                'One of the two is the same solid turned to a new angle. The other is its mirror image — no amount of turning will ever match it.',
+                'Tap the one you can rotate onto the original.',
+                'Bigger solids pay more. Three lives — a wrong tap or a time-out costs one.',
+            ],
+        ],
         'vertex' => [
             'tagline' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
             'steps' => [

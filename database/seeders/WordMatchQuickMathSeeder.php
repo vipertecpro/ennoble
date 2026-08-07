@@ -81,6 +81,16 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Speed->value],
                 'configuration' => ['content_version' => 1],
             ],
+            [
+                'type' => GameType::Axis->value,
+                'slug' => 'axis',
+                'name' => 'Axis',
+                'description' => 'Two solids, one mirror — turn them in your head and find the true match.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 7,
+                'skill_keys' => [SkillKey::Structure->value, SkillKey::Focus->value, SkillKey::Precision->value],
+                'configuration' => ['content_version' => 1],
+            ],
         ];
 
         DB::table('games')->upsert(
@@ -96,7 +106,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal', 'vertex'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal', 'vertex', 'axis'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -124,6 +134,11 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 10, 3500, ['colors' => ['red', 'blue', 'green'], 'rules' => ['ink'], 'options_count' => 3, 'seconds_per_round' => 6, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 12, 2800, ['colors' => ['red', 'blue', 'green', 'purple'], 'rules' => ['ink', 'word'], 'options_count' => 4, 'seconds_per_round' => 5, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 14, 2200, ['colors' => ['red', 'blue', 'green', 'purple', 'pink', 'teal'], 'rules' => ['ink', 'word'], 'options_count' => 4, 'seconds_per_round' => 4, 'lives' => 3]],
+            ],
+            'axis' => [
+                [Difficulty::Beginner, 'Warm-up', 8, 9000, ['cubes' => 4, 'seconds_per_round' => 20, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 10, 8000, ['cubes' => 6, 'seconds_per_round' => 16, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 12, 7000, ['cubes' => 8, 'seconds_per_round' => 13, 'lives' => 3]],
             ],
             'vertex' => [
                 [Difficulty::Beginner, 'Warm-up', 8, 5000, ['shapes' => ['disc', 'block', 'ring'], 'colours' => ['blue', 'amber', 'rose'], 'forms' => ['shape', 'colour'], 'formation' => 6, 'descent_ms' => 8000, 'lives' => 3]],

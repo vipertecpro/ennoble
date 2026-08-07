@@ -19,6 +19,7 @@
         'flow' => [Ios::Waveform, AndroidOutlined::Waves],
         'signal' => [Ios::Paintpalette, AndroidOutlined::Palette],
         'vertex' => [Ios::Scope, AndroidOutlined::Adjust],
+        'axis' => [Ios::CubeTransparent, AndroidOutlined::Rotate90DegreesCcw],
         default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports],
     };
     $best = $game['best_score'] ?? null;
