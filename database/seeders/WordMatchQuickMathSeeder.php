@@ -71,6 +71,16 @@ class WordMatchQuickMathSeeder extends Seeder
                 'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Adaptability->value],
                 'configuration' => ['content_version' => 1],
             ],
+            [
+                'type' => GameType::Stack->value,
+                'slug' => 'stack',
+                'name' => 'Stack',
+                'description' => 'Fit the falling blocks, clear the rows, and never bury a cell you cannot reach.',
+                'status' => GameStatus::Playable->value,
+                'sort_order' => 6,
+                'skill_keys' => [SkillKey::Structure->value, SkillKey::Focus->value, SkillKey::Adaptability->value],
+                'configuration' => ['content_version' => 1],
+            ],
         ];
 
         DB::table('games')->upsert(
@@ -86,7 +96,7 @@ class WordMatchQuickMathSeeder extends Seeder
         );
 
         $gameIds = DB::table('games')
-            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal'])
+            ->whereIn('slug', ['word-match', 'quick-math', 'recall', 'flow', 'signal', 'stack'])
             ->pluck('id', 'slug');
 
         $levels = [
@@ -109,6 +119,11 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Beginner, 'Warm-up', 12, 1400, ['directions' => ['left', 'right'], 'window_ms' => 2400, 'lives' => 3]],
                 [Difficulty::Intermediate, 'Steady', 14, 1100, ['directions' => ['left', 'right', 'up'], 'window_ms' => 1900, 'lives' => 3]],
                 [Difficulty::Advanced, 'Sharp', 16, 900, ['directions' => ['left', 'right', 'up', 'down'], 'window_ms' => 1500, 'lives' => 3]],
+            ],
+            'stack' => [
+                [Difficulty::Beginner, 'Warm-up', 30, 4000, ['drop_ms' => 1000, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 40, 3200, ['drop_ms' => 800, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 50, 2600, ['drop_ms' => 600, 'lives' => 3]],
             ],
             'signal' => [
                 [Difficulty::Beginner, 'Warm-up', 10, 3500, ['colors' => ['red', 'blue', 'green'], 'rules' => ['ink'], 'options_count' => 3, 'seconds_per_round' => 6, 'lives' => 3]],

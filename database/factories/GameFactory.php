@@ -67,6 +67,18 @@ class GameFactory extends Factory
         ]);
     }
 
+    public function stack(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => GameType::Stack,
+            'slug' => 'stack',
+            'name' => 'Stack',
+            'description' => 'Fit the falling blocks, clear the rows, and never bury a cell you cannot reach.',
+            'sort_order' => 6,
+            'skill_keys' => ['structure', 'focus', 'adaptability'],
+        ]);
+    }
+
     public function signal(): static
     {
         return $this->state(fn (): array => [

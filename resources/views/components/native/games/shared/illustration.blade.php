@@ -39,6 +39,7 @@
             'recall' => [Ios::Grid, AndroidOutlined::GridView, 'Abstract memory recall illustration'],
             'flow' => [Ios::Waveform, AndroidOutlined::Waves, 'Abstract flowing current illustration'],
             'signal' => [Ios::Paintpalette, AndroidOutlined::Palette, 'Abstract color-interference illustration'],
+            'stack' => [Ios::SquareGrid3x3, AndroidOutlined::ViewModule, 'Abstract falling-blocks illustration'],
             default => [Ios::Gamecontroller, AndroidOutlined::SportsEsports, 'Abstract game illustration'],
         };
     @endphp

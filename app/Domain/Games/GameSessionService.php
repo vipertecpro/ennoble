@@ -9,6 +9,7 @@ use App\Domain\Games\Flow\FlowScoringService;
 use App\Domain\Games\QuickMath\QuickMathScoringService;
 use App\Domain\Games\Recall\RecallScoringService;
 use App\Domain\Games\Signal\SignalScoringService;
+use App\Domain\Games\Stack\StackScoringService;
 use App\Domain\Games\WordMatch\WordMatchScoringService;
 use App\Domain\Progress\ProgressService;
 use App\Domain\Statistics\StatisticsService;
@@ -34,6 +35,7 @@ final class GameSessionService
         private readonly RecallScoringService $recallScoringService,
         private readonly FlowScoringService $flowScoringService,
         private readonly SignalScoringService $signalScoringService,
+        private readonly StackScoringService $stackScoringService,
         private readonly ProgressService $progressService,
         private readonly StatisticsService $statisticsService,
         private readonly AchievementService $achievementService,
@@ -257,6 +259,7 @@ final class GameSessionService
             GameType::Recall => $this->recallScoringService,
             GameType::Flow => $this->flowScoringService,
             GameType::Signal => $this->signalScoringService,
+            GameType::Stack => $this->stackScoringService,
         };
     }
 

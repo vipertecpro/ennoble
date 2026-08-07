@@ -79,6 +79,15 @@ final class GameDetail extends NativeComponent
                 'You have three lives — a wrong tap or a time-out costs one.',
             ],
         ],
+        'stack' => [
+            'tagline' => 'Fit the falling blocks, clear the rows, and never bury a cell you cannot reach.',
+            'steps' => [
+                'Blocks fall one row at a time. Move, rotate, and drop them with the buttons.',
+                'Fill a whole row and it clears; clearing several at once is worth far more.',
+                'A placement scores as clean only if it buries no empty cell beneath it.',
+                'You have three lives — the stack reaching the top costs one and sweeps the board.',
+            ],
+        ],
     ];
 
     public string $screenState = 'content';
