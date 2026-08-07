@@ -8,6 +8,7 @@
 --}}
 @props([
     'game',
+    'delay' => 0,
 ])
 
 @php
@@ -28,6 +29,9 @@
 <native:pressable
     class="w-32 items-start gap-2.5 rounded-2xl p-3 border {{ Gradients::gameGlass($game['slug']) }} {{ Gradients::hairline() }}"
     :press-scale="0.97"
+    :press-translate-y="2"
+    :animate-delay="$delay"
+    animate-easing="spring"
     a11y-label="{{ $game['title'] }}"
     @press="openGame('{{ $game['slug'] }}')"
 >

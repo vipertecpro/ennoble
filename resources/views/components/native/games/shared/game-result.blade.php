@@ -28,12 +28,13 @@
             {{ $isNewBest ? 'New best score' : 'Session complete' }}
         </native:text>
         <native:text
-            native:key="game-result-score-{{ $score }}"
+            native:key="game-result-score"
             class="text-[40] font-bold tracking-tight text-theme-primary-text"
+            content-transition="numeric"
             :scale="$reducedMotion ? 1 : 1.1"
             :opacity="0.85"
             :animate-duration="$motionDuration"
-            animate-easing="ease-out"
+            animate-easing="spring"
         >
             {{ number_format($score) }}
         </native:text>
@@ -46,18 +47,24 @@
             label="Accuracy"
             accent="rose-500"
             labelColor="rose-500"
+            :delay="$reducedMotion ? 0 : 60"
+            :motion-duration="$motionDuration"
         />
         <x-native.games.shared.result-stat
             :value="$correct.'/'.$total"
             label="Correct"
             accent="cyan-500"
             labelColor="cyan-400"
+            :delay="$reducedMotion ? 0 : 130"
+            :motion-duration="$motionDuration"
         />
         <x-native.games.shared.result-stat
             :value="'×'.$bestCombo"
             label="Best combo"
             accent="amber-400"
             labelColor="amber-400"
+            :delay="$reducedMotion ? 0 : 200"
+            :motion-duration="$motionDuration"
         />
     </native:row>
 

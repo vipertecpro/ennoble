@@ -77,8 +77,8 @@
                         <x-native.dashboard.section-header title="Your games"/>
                         <native:scroll-view horizontal :shows-indicators="false" class="w-full">
                             <native:row class="items-stretch gap-4 pr-4">
-                                @foreach ($games as $game)
-                                    <x-native.games.shared.game-card :game="$game"/>
+                                @foreach ($games as $index => $game)
+                                    <x-native.games.shared.game-card :game="$game" :delay="$reducedMotion ? 0 : min($index, 6) * 45"/>
                                 @endforeach
                             </native:row>
                         </native:scroll-view>

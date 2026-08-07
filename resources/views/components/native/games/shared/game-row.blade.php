@@ -9,6 +9,10 @@
 @props([
     'game',
     'meta' => null,
+    // Its place in the list. A list that arrives all at once reads as a
+    // repaint; the same list arriving a beat apart reads as it being built
+    // for you. Capped by the caller so a long list never feels slow.
+    'delay' => 0,
 ])
 
 @php
@@ -29,6 +33,9 @@
 <native:pressable
     class="w-full rounded-2xl p-3 border bg-theme-surface {{ Gradients::hairline() }}"
     :press-scale="0.98"
+    :press-translate-y="2"
+    :animate-delay="$delay"
+    animate-easing="spring"
     a11y-label="Play {{ $game['title'] }}"
     @press="openGame('{{ $game['slug'] }}')"
 >

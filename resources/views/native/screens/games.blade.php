@@ -44,9 +44,12 @@
         {{-- All games as rich wide rows --}}
         <x-native.dashboard.section-header :title="$selectedCategory === 'all' ? 'All games' : 'Filtered'" />
         <native:column class="w-full gap-2.5">
-            @foreach ($filteredPlayableGames as $game)
+            @foreach ($filteredPlayableGames as $index => $game)
                 @continue($selectedCategory === 'all' && ! empty($featuredGame) && $game['slug'] === $featuredGame['slug'])
-                <x-native.games.shared.game-row :game="$game" />
+                {{-- Capped at six steps: past roughly a third of a second the
+                     stagger stops reading as choreography and starts reading
+                     as the list being slow to load. --}}
+                <x-native.games.shared.game-row :game="$game" :delay="$reducedMotion ? 0 : min($index, 6) * 45" />
             @endforeach
         </native:column>
     @endif

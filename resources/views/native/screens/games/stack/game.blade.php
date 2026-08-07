@@ -122,12 +122,12 @@
             <native:row class="w-full items-center gap-3 rounded-2xl px-4 py-2 bg-theme-surface border {{ Gradients::hairline() }}">
                 <native:column class="items-start">
                     <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Level</native:text>
-                    <native:text class="text-[18] font-bold text-theme-primary-text">{{ $level }}</native:text>
+                    <native:text native:key="stack-level" class="text-[18] font-bold text-theme-primary-text" content-transition="numeric">{{ $level }}</native:text>
                 </native:column>
 
                 <native:column class="items-start">
                     <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Lines</native:text>
-                    <native:text class="text-[18] font-bold text-theme-primary-text">{{ $lines }}</native:text>
+                    <native:text native:key="stack-lines" class="text-[18] font-bold text-theme-primary-text" content-transition="numeric">{{ $lines }}</native:text>
                 </native:column>
 
                 <native:spacer class="flex-1" />
@@ -135,11 +135,11 @@
                 <native:column class="items-end">
                     <native:text class="text-[9] font-semibold uppercase tracking-widest text-theme-muted-text">Score</native:text>
                     <native:text
-                        native:key="stack-score-{{ $score }}"
+                        native:key="stack-score"
                         class="text-[22] font-bold text-theme-primary-text"
-                        :scale="$feedbackMotionDuration > 0 ? 1.05 : 1"
+                        content-transition="numeric"
                         :animate-duration="$feedbackMotionDuration"
-                        animate-easing="ease-out"
+                        animate-easing="spring"
                     >{{ number_format($score) }}</native:text>
                 </native:column>
             </native:row>

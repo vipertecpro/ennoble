@@ -29,13 +29,24 @@
     'label',
     'accent' => 'rose-500',
     'labelColor' => null,
+    // Position in the row. Three tiles arriving together read as a page
+    // load; the same three arriving a beat apart read as choreography, and
+    // the delay costs nothing to render.
+    'delay' => 0,
+    'motionDuration' => 0,
 ])
 
 @php
     $labelColor = $labelColor ?? $accent;
 @endphp
 
-<native:column class="flex-1 pt-3 pb-7 px-2 items-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/28 via-{{ $accent }}/8 to-transparent border {{ Gradients::hairline() }}">
+<native:column
+    class="flex-1 pt-3 pb-7 px-2 items-center gap-1 rounded-3xl bg-linear-to-b from-{{ $accent }}/28 via-{{ $accent }}/8 to-transparent border {{ Gradients::hairline() }}"
+    :scale="$motionDuration > 0 ? 1.06 : 1"
+    :animate-duration="$motionDuration"
+    :animate-delay="$delay"
+    animate-easing="spring"
+>
     <native:text class="text-[24] font-bold leading-tight text-center text-theme-primary-text">
         {{ $value }}
     </native:text>

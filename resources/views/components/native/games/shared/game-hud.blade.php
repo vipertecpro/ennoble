@@ -56,24 +56,34 @@
     </native:pressable>
 
     @if ($combo >= 2)
+        {{-- The pill keeps ONE identity for the whole combo run, so the
+             number rolls inside it instead of the pill being destroyed and
+             rebuilt on every increment. Spring, not ease-out: a combo is a
+             moment of momentum and should overshoot slightly before it
+             settles. --}}
         <native:column
-            native:key="combo-{{ $combo }}"
+            native:key="combo-pill"
             class="rounded-full bg-linear-to-r from-rose-500/30 to-orange-400/20 border border-rose-500/40 shadow-lg px-2.5 py-1"
             :scale="1.08"
             :animate-duration="$motionDuration"
-            animate-easing="ease-out"
+            animate-easing="spring"
             a11y-label="Combo times {{ $combo }}"
         >
-            <native:text class="text-[12] font-bold text-theme-accent">×{{ $combo }}</native:text>
+            <native:text class="text-[12] font-bold text-theme-accent" content-transition="numeric">×{{ $combo }}</native:text>
         </native:column>
     @endif
 
+    {{-- Keyed by ROLE, never by value. Keying a number by its own value
+         changes the key on every change, which makes the renderer destroy the
+         view and build a new one — the digits cannot roll between two
+         different views. This one line is the difference between a score that
+         counts up and one that blinks. --}}
     <native:text
-        native:key="score-{{ $score }}"
+        native:key="hud-score"
         class="text-[18] font-bold text-theme-primary-text"
-        :scale="$motionDuration > 0 ? 1.06 : 1"
+        content-transition="numeric"
         :animate-duration="$motionDuration"
-        animate-easing="ease-out"
+        animate-easing="spring"
     >
         {{ number_format($score) }}
     </native:text>
