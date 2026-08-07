@@ -1,24 +1,13 @@
-@use('App\Domain\Games\Vertex\VertexScoringService')
 @use('App\NativeUI\Tokens\Gradients')
 
 @php
-    $live = $phase === 'flight';
-
-    // The strike ring is DERIVED from the scoring constant, not eyeballed: an
-    // object mounts at $baseSize and tweens linearly to $maxScale over its
-    // flight, so the depth that pays full bonus lands at exactly this diameter.
-    // Aiming at the ring and maximising the bonus are therefore the same act,
-    // and the two can never drift apart.
-    $baseSize = 48;
-    $maxScale = 5.5;
-    $ringSize = (int) round($baseSize * (1 + ($maxScale - 1) * VertexScoringService::SWEET_SPOT));
+    $live = $phase === 'wave';
 
     [$callout, $calloutTone] = match ($feedbackTone) {
-        'struck' => [$lastDepthBonus >= 50 ? 'Perfect strike +'.$lastDepthBonus : 'Struck +'.$lastDepthBonus, 'good'],
-        'passed' => ['Held — decoy passed', 'good'],
-        'false-alarm' => ['False strike', 'bad'],
-        'missed' => ['Target got through', 'bad'],
-        default => ['Round '.($roundIndex + 1).' of '.$totalRounds, 'idle'],
+        'swept' => ['Wave swept', 'good'],
+        'breached' => ['Wrong target', 'bad'],
+        'landed' => ['Formation landed', 'bad'],
+        default => [$phase === 'ready' ? 'Stand by…' : 'Wave '.($waveIndex + 1).' of '.$totalWaves, 'idle'],
     };
 
     $calloutClass = match ($calloutTone) {
@@ -26,6 +15,10 @@
         'bad' => 'text-theme-danger',
         default => 'text-theme-muted-text',
     };
+
+    // The descent bar doubles as the threat gauge: it empties as the formation
+    // closes, so the player reads time-left and danger from the same object.
+    $descentFraction = $descentMs > 0 ? max(0, $descentRemainingMs) / $descentMs : 0;
 @endphp
 
 <native:column class="h-full w-full {{ Gradients::screen() }}">
@@ -42,7 +35,7 @@
                 :accuracy="$resultAccuracy"
                 :best-combo="$resultBestCombo"
                 :correct="$resultCorrect"
-                :total="$totalRounds"
+                :total="$totalWaves"
                 :is-new-best="$isNewBest"
                 :motion-duration="$feedbackMotionDuration"
                 :reduced-motion="$reducedMotion"
@@ -50,75 +43,77 @@
         </native:column>
     @else
         <native:stack class="flex-1 w-full">
-            {{-- Depth, back to front: tunnel, aim ring, object, then the tap
-                 surface with the HUD drawn on it. --}}
-            <x-native.games.vertex.tunnel :reduced-motion="$reducedMotion" />
+            <native:column class="h-full w-full safe-area">
+                <native:column class="w-full px-4 pt-3 gap-3">
+                    <x-native.games.shared.game-hud
+                        :lives="$lives"
+                        :max-lives="$maxLives"
+                        :score="$score"
+                        :combo="$combo"
+                        :round="$waveIndex + 1"
+                        :total="$totalWaves"
+                        :motion-duration="$feedbackMotionDuration"
+                    />
 
-            <native:column class="h-full w-full items-center justify-center">
-                <native:column
-                    class="w-[{{ $ringSize }}px] h-[{{ $ringSize }}px] rounded-full border-2 border-dashed border-theme-accent/35"
-                    a11y-label="Strike ring"
-                />
-            </native:column>
-
-            @if ($live)
-                <x-native.games.vertex.projectile
-                    :shape="$objectShape"
-                    :flight-ms="$flightMs"
-                    :round-index="$roundIndex"
-                    :base-size="$baseSize"
-                    :max-scale="$maxScale"
-                    :reduced-motion="$reducedMotion"
-                />
-            @endif
-
-            {{-- The whole play area strikes. The object is rushing at the
-                 camera, so requiring a hit on its exact bounds would test
-                 dexterity instead of inhibition. --}}
-            <native:pressable
-                class="h-full w-full"
-                :press-scale="1"
-                a11y-label="Strike"
-                a11y-hint="Tap anywhere to strike the incoming object"
-                @press="strike"
-            >
-                <native:column class="h-full w-full safe-area">
-                    <native:column class="w-full px-4 pt-3 gap-3">
-                        <x-native.games.shared.game-hud
-                            :lives="$lives"
-                            :max-lives="$maxLives"
-                            :score="$score"
-                            :combo="$combo"
-                            :round="$roundIndex + 1"
-                            :total="$totalRounds"
-                            :motion-duration="$feedbackMotionDuration"
-                        />
-                    </native:column>
-
-                    <native:spacer />
-
-                    <native:column class="w-full px-4 pb-8 items-center gap-3">
-                        <native:text
-                            native:key="vertex-callout-{{ $feedbackSerial }}"
-                            class="text-[12] font-semibold uppercase tracking-widest {{ $calloutClass }}"
-                            :animate-duration="$feedbackMotionDuration"
-                            animate-easing="ease-out"
-                        >
-                            {{ $phase === 'ready' ? 'Get ready…' : $callout }}
+                    {{-- The standing order is the only thing the player must
+                         hold in mind, so it stays put and stays legible. --}}
+                    <native:column
+                        native:key="barrage-order-{{ $waveIndex }}"
+                        class="w-full items-center rounded-2xl px-4 py-2.5 border bg-theme-accent/15 border-theme-accent/40"
+                        :animate-duration="$motionDuration"
+                        animate-easing="ease-out"
+                        a11y-label="Standing order: {{ $order }}"
+                    >
+                        <native:text class="text-[14] font-bold uppercase tracking-widest text-theme-accent">
+                            {{ $order }}
                         </native:text>
-
-                        <x-native.games.vertex.target-badge
-                            :shape="$targetShape"
-                            :switched="$targetSwitched"
-                            :round-index="$roundIndex"
-                            :reduced-motion="$reducedMotion"
-                            :motion-duration="$motionDuration"
-                        />
                     </native:column>
                 </native:column>
-            </native:pressable>
 
-            @if ($feedbackTone === 'struck')
+                {{-- The battle happens inside a dark viewport rather than on the
+                     app canvas. A space game on a white field reads wrong and
+                     the starfield is invisible against it — but making the whole
+                     SCREEN dark would strand the shared HUD, which is built on
+                     theme tokens and would go dark-on-dark in light mode.
+                     Containing the darkness to a panel fixes both: the field
+                     reads as space, the chrome stays themed. --}}
+                <native:column class="flex-1 w-full px-4 pb-3">
+                    <native:stack class="flex-1 w-full rounded-3xl bg-linear-to-b from-slate-900 via-slate-950 to-slate-900">
+                        <x-native.games.vertex.starfield :reduced-motion="$reducedMotion" />
+
+                        <native:column class="h-full w-full justify-start pt-4">
+                            @if ($live)
+                                <x-native.games.vertex.formation
+                                    :invaders="$invaders"
+                                    :wave-index="$waveIndex"
+                                    :descent-ms="$descentMs"
+                                    :last-struck="$lastStruck"
+                                    :reduced-motion="$reducedMotion"
+                                    :motion-duration="$feedbackMotionDuration"
+                                />
+                            @endif
+                        </native:column>
+                    </native:stack>
+                </native:column>
+
+                <native:column class="w-full px-4 pb-6 gap-2">
+                    <native:text
+                        native:key="barrage-callout-{{ $feedbackSerial }}"
+                        class="text-[12] font-semibold uppercase tracking-widest text-center {{ $calloutClass }}"
+                        :animate-duration="$feedbackMotionDuration"
+                        animate-easing="ease-out"
+                    >
+                        {{ $callout }}
+                    </native:text>
+
+                    <x-native.games.shared.timer-bar
+                        :seconds-per-round="100"
+                        :seconds-remaining="(int) round($descentFraction * 100)"
+                    />
+                </native:column>
+            </native:column>
+
+            @if ($feedbackTone === 'swept')
                 <x-native.games.shared.confetti-burst
                     :serial="$feedbackSerial"
                     :reduced-motion="$reducedMotion"

@@ -12,20 +12,20 @@ use App\Models\Statistic;
 use LogicException;
 
 /**
- * Vertex runtime service. Generates a deterministic object stream with
- * {@see VertexGenerator} and records authoritative round evidence through the
- * shared {@see GameSessionService}.
+ * Barrage runtime service. Generates deterministic waves with
+ * {@see VertexGenerator} and records one authoritative round per WAVE.
  *
- * The one thing worth knowing: a round can resolve by ACTION (the player
- * struck) or by INACTION (the object flew past). Both can be right and both can
- * be wrong, so there are two record methods and neither is a "timeout" in the
- * usual sense — letting a decoy pass is a correct answer that happens to be
- * made of silence.
+ * A wave can end two ways and the distinction matters: the player can clear
+ * every target before the formation lands (resolved early, which is the
+ * skilled outcome and the only one that earns the clean-sweep bonus), or the
+ * descent clock can run out with targets still standing.
  *
- * Depth is stored on every struck round as a 0..1 fraction of the flight, which
- * is what {@see VertexScoringService} pays the precision bonus from. It is
- * derived from elapsed time rather than anything the view reports, because
- * finger position and render state never reach PHP.
+ * Outcome is decided in strict priority: any false alarm makes the wave
+ * Incorrect, because firing on a decoy is a failure of inhibition and should
+ * not be redeemable by clearing the rest; otherwise any survivor makes it
+ * Missed; otherwise it is Correct. Response time is only recorded when the
+ * wave was actually resolved — a wave that timed out has no reaction to time,
+ * and averaging the full descent in would make patience look like slowness.
  */
 final class VertexGameService
 {
@@ -36,15 +36,14 @@ final class VertexGameService
     ) {}
 
     /**
-     * Build this session's deterministic object stream.
+     * Build this session's deterministic waves.
      *
-     * @return list<array{key: string, shape: string, is_go: bool}>
+     * @return list<array{criterion: array<string, mixed>, order: string, invaders: list<array{id: int, shape: string, colour: string, is_target: bool}>}>
      */
-    public function roundsFor(GameSession $session): array
+    public function wavesFor(GameSession $session): array
     {
         $this->guardSession($session);
 
-        $roundCount = max(1, (int) $session->level->round_count);
         $rotation = GameSession::query()
             ->whereBelongsTo($session->profile)
             ->where('game_id', $session->game_id)
@@ -53,92 +52,62 @@ final class VertexGameService
 
         return $this->generator->generate(
             level: $session->level,
-            seed: 'vertex:'.$session->getKey().':rotation:'.$rotation,
-            count: $roundCount,
+            seed: 'barrage:'.$session->getKey().':rotation:'.$rotation,
+            count: max(1, (int) $session->level->round_count),
         );
     }
 
     /**
-     * Persist a struck object. Striking a target is a hit; striking a decoy is
-     * a false alarm — the error the whole game is built to provoke.
+     * Persist a resolved wave.
      *
-     * @param  array{key: string, shape: string, is_go: bool}  $round
+     * @param  array{criterion: array<string, mixed>, order: string, invaders: list<array<string, mixed>>}  $wave
      * @param  array<string, mixed>  $stateSnapshot
      */
-    public function recordStrike(
+    public function recordWave(
         GameSession $session,
-        array $round,
+        array $wave,
+        int $hits,
+        int $falseAlarms,
+        int $survivors,
         int $responseMs,
-        int $flightMs,
+        int $descentMs,
+        float $remainingFraction,
         int $combo,
         array $stateSnapshot,
     ): GameRound {
         $this->guardSession($session);
 
-        $isGo = (bool) $round['is_go'];
-        $outcome = $isGo ? RoundOutcome::Correct : RoundOutcome::Incorrect;
-        $boundedResponseMs = max(1, min($responseMs, 300000));
-        $boundedFlightMs = max(1, min($flightMs, 300000));
-        $depth = min(1.0, $boundedResponseMs / $boundedFlightMs);
-        $storedCombo = $isGo ? max(0, $combo) : 0;
+        $outcome = match (true) {
+            $falseAlarms > 0 => RoundOutcome::Incorrect,
+            $survivors > 0 => RoundOutcome::Missed,
+            default => RoundOutcome::Correct,
+        };
+
+        $clean = $outcome === RoundOutcome::Correct;
+        $storedCombo = $clean ? max(0, $combo) : 0;
+        $boundedRemaining = max(0.0, min(1.0, $remainingFraction));
 
         return $this->sessions->recordRound(
             gameSession: $session,
             roundData: [
                 'outcome' => $outcome,
-                'response_ms' => $boundedResponseMs,
-                'score_delta' => $isGo
-                    ? 100 + VertexScoringService::depthBonus($depth) + min($storedCombo * 10, 120)
-                    : 0,
+                // Only a wave the player actually finished has a reaction time.
+                'response_ms' => $survivors > 0 ? null : max(1, min($responseMs, 300000)),
+                'score_delta' => $this->scoreDelta($hits, $clean, $boundedRemaining, $storedCombo),
                 'combo' => $storedCombo,
                 'response' => [
-                    'key' => (string) $round['key'],
-                    'shape' => (string) $round['shape'],
-                    'is_go' => $isGo,
-                    'struck' => true,
-                    'depth' => round($depth, 4),
-                    'flight_ms' => $boundedFlightMs,
-                ],
-            ],
-            stateSnapshot: $stateSnapshot,
-        );
-    }
-
-    /**
-     * Persist an object that flew past untouched. For a decoy that is the
-     * correct, disciplined answer; for a target it is a genuine miss.
-     *
-     * @param  array{key: string, shape: string, is_go: bool}  $round
-     * @param  array<string, mixed>  $stateSnapshot
-     */
-    public function recordPass(
-        GameSession $session,
-        array $round,
-        int $flightMs,
-        int $combo,
-        array $stateSnapshot,
-    ): GameRound {
-        $this->guardSession($session);
-
-        $isGo = (bool) $round['is_go'];
-        $outcome = $isGo ? RoundOutcome::Missed : RoundOutcome::Correct;
-        $storedCombo = $isGo ? 0 : max(0, $combo);
-
-        return $this->sessions->recordRound(
-            gameSession: $session,
-            roundData: [
-                'outcome' => $outcome,
-                // No strike means no reaction to time — see the class docblock.
-                'response_ms' => null,
-                'score_delta' => $isGo ? 0 : 30 + min($storedCombo * 10, 60),
-                'combo' => $storedCombo,
-                'response' => [
-                    'key' => (string) $round['key'],
-                    'shape' => (string) $round['shape'],
-                    'is_go' => $isGo,
-                    'struck' => false,
-                    'depth' => 1.0,
-                    'flight_ms' => max(1, min($flightMs, 300000)),
+                    'order' => (string) $wave['order'],
+                    'criterion' => $wave['criterion'],
+                    'formation' => count($wave['invaders']),
+                    'targets' => count(array_filter(
+                        $wave['invaders'],
+                        static fn (array $invader): bool => (bool) $invader['is_target'],
+                    )),
+                    'hits' => max(0, $hits),
+                    'false_alarms' => max(0, $falseAlarms),
+                    'survivors' => max(0, $survivors),
+                    'descent_ms' => max(1, min($descentMs, 300000)),
+                    'remaining_fraction' => round($boundedRemaining, 4),
                 ],
             ],
             stateSnapshot: $stateSnapshot,
@@ -174,7 +143,21 @@ final class VertexGameService
         $session->loadMissing(['game', 'level', 'profile']);
 
         if ($session->game->type !== GameType::Vertex) {
-            throw new LogicException('Vertex gameplay requires a real Vertex session.');
+            throw new LogicException('Barrage gameplay requires a real Barrage session.');
         }
+    }
+
+    private function scoreDelta(int $hits, bool $clean, float $remainingFraction, int $combo): int
+    {
+        $score = max(0, $hits) * 60;
+
+        if (! $clean) {
+            return $score;
+        }
+
+        return $score
+            + 120
+            + VertexScoringService::speedBonus($remainingFraction)
+            + min($combo * 15, 150);
     }
 }

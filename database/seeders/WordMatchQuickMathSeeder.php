@@ -74,8 +74,8 @@ class WordMatchQuickMathSeeder extends Seeder
             [
                 'type' => GameType::Vertex->value,
                 'slug' => 'vertex',
-                'name' => 'Vertex',
-                'description' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+                'name' => 'Barrage',
+                'description' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
                 'status' => GameStatus::Playable->value,
                 'sort_order' => 6,
                 'skill_keys' => [SkillKey::Focus->value, SkillKey::Precision->value, SkillKey::Speed->value],
@@ -126,9 +126,9 @@ class WordMatchQuickMathSeeder extends Seeder
                 [Difficulty::Advanced, 'Sharp', 14, 2200, ['colors' => ['red', 'blue', 'green', 'purple', 'pink', 'teal'], 'rules' => ['ink', 'word'], 'options_count' => 4, 'seconds_per_round' => 4, 'lives' => 3]],
             ],
             'vertex' => [
-                [Difficulty::Beginner, 'Warm-up', 10, 2600, ['shapes' => ['disc', 'block', 'ring'], 'flight_ms' => 2600, 'go_ratio' => 0.7, 'key_hold' => 99, 'lives' => 3]],
-                [Difficulty::Intermediate, 'Steady', 12, 2100, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'flight_ms' => 2100, 'go_ratio' => 0.72, 'key_hold' => 5, 'lives' => 3]],
-                [Difficulty::Advanced, 'Sharp', 14, 1700, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'flight_ms' => 1700, 'go_ratio' => 0.75, 'key_hold' => 4, 'lives' => 3]],
+                [Difficulty::Beginner, 'Warm-up', 8, 5000, ['shapes' => ['disc', 'block', 'ring'], 'colours' => ['blue', 'amber', 'rose'], 'forms' => ['shape', 'colour'], 'formation' => 6, 'descent_ms' => 8000, 'lives' => 3]],
+                [Difficulty::Intermediate, 'Steady', 10, 4200, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'colours' => ['blue', 'amber', 'violet', 'rose'], 'forms' => ['shape', 'colour', 'not_shape'], 'formation' => 9, 'descent_ms' => 6500, 'lives' => 3]],
+                [Difficulty::Advanced, 'Sharp', 12, 3600, ['shapes' => ['disc', 'block', 'bar', 'ring'], 'colours' => ['blue', 'amber', 'violet', 'rose'], 'forms' => ['shape', 'colour', 'not_shape', 'not_colour', 'both'], 'formation' => 12, 'descent_ms' => 5500, 'lives' => 3]],
             ],
         ];
 

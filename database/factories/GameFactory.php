@@ -84,8 +84,8 @@ class GameFactory extends Factory
         return $this->state(fn (): array => [
             'type' => GameType::Vertex,
             'slug' => 'vertex',
-            'name' => 'Vertex',
-            'description' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+            'name' => 'Barrage',
+            'description' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
             'sort_order' => 6,
             'skill_keys' => ['focus', 'precision', 'speed'],
         ]);

@@ -9,27 +9,24 @@ use App\Models\GameRound;
 use Illuminate\Support\Collection;
 
 /**
- * Vertex scoring. Two different things count as Correct here — striking a
- * target, and correctly letting a decoy pass — so they are paid differently:
- * a strike is the skilled act and carries a depth bonus, a clean pass is the
- * disciplined one and pays a flat, smaller amount. Both build combo, because
- * holding a go/no-go together is the whole game.
+ * Barrage scoring. A round is a WAVE, not a shot, because the wave is the unit
+ * the player actually solves — clearing four targets out of nine while holding
+ * fire on the rest is one act of search, and scoring each tap separately would
+ * make a lucky sweep look like skill.
+ *
+ * Every wave therefore pays per confirmed hit, and then adds a clean-sweep
+ * bonus only when the whole formation was resolved without a single false
+ * alarm or survivor. That bonus is the point: it is worth far more to read the
+ * field once and act correctly than to tap fast and absorb the errors.
  */
 final class VertexScoringService implements GameScoringService
 {
-    /** Landed a strike on a target. */
-    private const STRIKE_BASE = 100;
+    private const HIT = 60;
 
-    /** Let a decoy fly past untouched. */
-    private const PASS_BASE = 30;
+    /** Paid only when a wave is fully cleared with no false alarms. */
+    private const CLEAN_SWEEP = 120;
 
-    /** Depth at which a strike is worth full bonus (0 = spawn, 1 = arrival). */
-    public const SWEET_SPOT = 0.68;
-
-    /** How far either side of the sweet spot still pays anything. */
-    public const SWEET_SPOT_TOLERANCE = 0.32;
-
-    private const MAX_DEPTH_BONUS = 60;
+    private const MAX_SPEED_BONUS = 80;
 
     /**
      * @param  Collection<int, GameRound>  $rounds
@@ -44,17 +41,13 @@ final class VertexScoringService implements GameScoringService
             ? null
             : round(($correctCount / $attemptedCount) * 100, 2);
 
-        // Only struck rounds have a response time; a clean pass has none, and
-        // averaging zeros in would make discipline look like slowness.
         $timedResponses = $rounds->whereNotNull('response_ms');
         $averageResponseMs = $timedResponses->isEmpty()
             ? null
             : (int) round($timedResponses->avg('response_ms'));
 
-        $score = $rounds->sum(fn (GameRound $round): int => $this->roundScore($round));
-
         return new ScoringResult(
-            score: max(0, $score),
+            score: max(0, $rounds->sum(fn (GameRound $round): int => $this->waveScore($round))),
             accuracy: $accuracy,
             averageResponseMs: $averageResponseMs,
             correctCount: $correctCount,
@@ -71,33 +64,29 @@ final class VertexScoringService implements GameScoringService
     }
 
     /**
-     * The depth bonus for a strike: full value at the strike ring, tapering to
-     * nothing as the object is caught too early (a stab in the dark) or too
-     * late (riding the deadline).
+     * Clearing the wave early leaves descent on the clock; that remaining
+     * fraction is the speed bonus. Waves that time out earn none of it.
      */
-    public static function depthBonus(float $depth): int
+    public static function speedBonus(float $remainingFraction): int
     {
-        $offset = abs($depth - self::SWEET_SPOT);
-        $fraction = 1 - ($offset / self::SWEET_SPOT_TOLERANCE);
+        $fraction = max(0.0, min(1.0, $remainingFraction));
 
-        return max(0, min(self::MAX_DEPTH_BONUS, (int) round($fraction * self::MAX_DEPTH_BONUS)));
+        return (int) round($fraction * self::MAX_SPEED_BONUS);
     }
 
-    private function roundScore(GameRound $round): int
+    private function waveScore(GameRound $round): int
     {
-        if ($round->outcome !== RoundOutcome::Correct) {
-            return 0;
-        }
-
         $response = is_array($round->response) ? $round->response : [];
-        $combo = (int) ($round->combo ?? 0);
+        $hits = max(0, (int) ($response['hits'] ?? 0));
+        $score = $hits * self::HIT;
 
-        if (($response['is_go'] ?? false) === true) {
-            return self::STRIKE_BASE
-                + self::depthBonus((float) ($response['depth'] ?? 0.0))
-                + min($combo * 10, 120);
+        if ($round->outcome !== RoundOutcome::Correct) {
+            return $score;
         }
 
-        return self::PASS_BASE + min($combo * 10, 60);
+        return $score
+            + self::CLEAN_SWEEP
+            + self::speedBonus((float) ($response['remaining_fraction'] ?? 0.0))
+            + min(((int) ($round->combo ?? 0)) * 15, 150);
     }
 }

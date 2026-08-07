@@ -4,7 +4,6 @@ namespace App\NativeComponents\Screens;
 
 use App\Domain\Games\GameSessionService;
 use App\Domain\Games\Vertex\VertexGameService;
-use App\Domain\Games\Vertex\VertexScoringService;
 use App\Domain\Onboarding\OnboardingService;
 use App\Domain\Profile\ProfileService;
 use App\Domain\Settings\SettingsService;
@@ -25,31 +24,30 @@ use Native\Mobile\Edge\Transition;
 use Throwable;
 
 /**
- * Vertex — a go/no-go game staged inside a tunnel. Objects rush out of a
- * vanishing point one at a time; the player strikes the ones matching the
- * current target form and lets every decoy fly past untouched. The target
- * re-keys as the run goes on, so the reflex the player just built becomes the
- * thing working against them.
+ * Barrage — a Space Invaders shaped visual-search game. A formation descends
+ * carrying invaders of mixed shape and colour, and a standing order says which
+ * of them may be fired on. Clear every target before the formation lands and
+ * hold fire on everything else.
  *
- * HOW THE MOTION WORKS. PHP cannot drive animation — the poll floor is 250ms
- * (4fps) and finger position never reaches PHP. So this screen owns only
- * discrete truth (which object is in flight, when its window opened, whether a
- * strike landed) while every frame of movement is a NATIVE tween: an object
- * mounts small at the vanishing point with a `scale` target and an
- * `animate-duration` equal to its flight, and the platform interpolates it to
- * full size at real framerate. The tunnel rings behind it are pure
- * `animate-loop` and never involve PHP at all.
+ * THE ROUND IS THE WAVE. The player solves a whole field at once, so a wave is
+ * one unit of evidence: hits, false alarms and survivors are tallied here and
+ * handed to VertexGameService when the wave resolves. Nothing is recorded per
+ * tap — a lucky sweep should not read as skill.
  *
- * That split is also why the flight uses LINEAR easing: depth has to be a
- * straight function of elapsed time for the strike bonus to be honest, since
- * PHP scores depth from the clock rather than from anything the view reports.
+ * HOW THE MOTION WORKS. PHP cannot animate: the poll floor is 250ms and finger
+ * position never reaches PHP. So this screen owns only discrete truth (which
+ * invaders are alive, when the descent opened, what was struck) while the
+ * descent itself is ONE native tween on the formation, and the starfield behind
+ * it is a pure `animate-loop` that never involves PHP at all. Destroying an
+ * invader removes a child from the formation without touching the formation's
+ * own props, so the descent tween is never interrupted.
  */
 final class VertexGame extends NativeComponent
 {
     /** The game's own accent, applied only while this screen is mounted. */
     public const ACCENT = '#10B981';
 
-    /** How often the flight clock ticks, in milliseconds. */
+    /** How often the descent clock ticks, in milliseconds. */
     private const TICK_MS = 250;
 
     /**
@@ -69,34 +67,33 @@ final class VertexGame extends NativeComponent
 
     public string $errorMessage = 'This game could not be started. Please try again.';
 
-    /** ready | flight | result */
+    /** ready | wave | result */
     public string $phase = 'ready';
 
     public int $readyTicks = 3;
 
-    /** @var list<array{key: string, shape: string, is_go: bool}> */
-    public array $rounds = [];
+    /** @var list<array<string, mixed>> */
+    public array $waves = [];
 
-    public int $roundIndex = 0;
+    public int $waveIndex = 0;
 
-    public int $totalRounds = 0;
+    public int $totalWaves = 0;
 
-    /** The form the player must strike this round. */
-    public string $targetShape = '';
+    public string $order = '';
 
-    /** The form actually flying down the tunnel. */
-    public string $objectShape = '';
+    /** Invaders still standing this wave. @var list<array<string, mixed>> */
+    public array $invaders = [];
 
-    public bool $isGo = false;
+    public int $descentMs = 6000;
 
-    /** True when this round re-keyed the target from the previous round. */
-    public bool $targetSwitched = false;
+    public int $descentRemainingMs = 6000;
 
-    public int $flightMs = 2100;
+    public int $waveStartedAtMs = 0;
 
-    public int $flightRemainingMs = 2100;
+    /** Tally for the wave in progress. */
+    public int $hits = 0;
 
-    public int $roundStartedAtMs = 0;
+    public int $falseAlarms = 0;
 
     public int $lives = 3;
 
@@ -108,15 +105,13 @@ final class VertexGame extends NativeComponent
 
     public int $score = 0;
 
-    /** idle | struck | false-alarm | passed | missed */
+    /** idle | swept | breached | landed */
     public string $feedbackTone = 'idle';
 
     public int $feedbackSerial = 0;
 
-    /** Depth of the last strike, 0..1 — drives the "perfect strike" readout. */
-    public float $lastDepth = 0.0;
-
-    public int $lastDepthBonus = 0;
+    /** Id of the last invader struck, so the view can flash it. */
+    public int $lastStruck = -1;
 
     public bool $awaitingAdvance = false;
 
@@ -172,7 +167,6 @@ final class VertexGame extends NativeComponent
 
     public function onResume(): void
     {
-        // Re-assert the game's accent in case another screen reset the theme.
         app(ThemeManager::class)->applyWithAccent(self::ACCENT_TOKENS);
     }
 
@@ -182,7 +176,7 @@ final class VertexGame extends NativeComponent
     }
 
     /**
-     * Drive the ready countdown, the flight clock, and the reveal beat.
+     * Drive the ready countdown, the descent clock, and the reveal beat.
      */
     #[Poll(self::TICK_MS)]
     public function tickGame(): void
@@ -195,7 +189,7 @@ final class VertexGame extends NativeComponent
             $this->readyTicks--;
 
             if ($this->readyTicks <= 0) {
-                $this->launch();
+                $this->launchWave();
             }
 
             return;
@@ -213,57 +207,60 @@ final class VertexGame extends NativeComponent
             return;
         }
 
-        $this->flightRemainingMs -= self::TICK_MS;
+        $this->descentRemainingMs -= self::TICK_MS;
 
-        if ($this->flightRemainingMs <= 0) {
-            $this->resolvePass();
+        if ($this->descentRemainingMs <= 0) {
+            $this->resolveWave(landed: true);
         }
     }
 
     /**
-     * The player struck. The whole play area is the target — the object is
-     * rushing at the camera, so demanding a hit on its exact bounds would be
-     * testing dexterity rather than inhibition.
+     * Fire on one invader. A target is destroyed and removed from the
+     * formation; a decoy is a false alarm and ends the wave immediately, so
+     * the mistake cannot be buried under a fast clean-up.
      */
-    public function strike(): void
+    public function fire(string $id): void
     {
-        if (! $this->acceptsStrike()) {
+        if (! $this->acceptsFire()) {
             return;
         }
 
-        $session = $this->session();
-        $responseMs = $this->elapsedMs();
-        $newCombo = $this->isGo ? $this->combo + 1 : 0;
+        $invaderId = (int) $id;
+        $struck = null;
 
-        app(VertexGameService::class)->recordStrike(
-            session: $session,
-            round: $this->rounds[$this->roundIndex],
-            responseMs: $responseMs,
-            flightMs: $this->flightMs,
-            combo: $newCombo,
-            stateSnapshot: $this->snapshot(),
-        );
+        foreach ($this->invaders as $invader) {
+            if ((int) $invader['id'] === $invaderId) {
+                $struck = $invader;
 
-        $this->feedbackSerial++;
-        $this->lastDepth = min(1.0, $responseMs / max(1, $this->flightMs));
-
-        if ($this->isGo) {
-            $this->lastDepthBonus = VertexScoringService::depthBonus($this->lastDepth);
-            $this->feedbackTone = 'struck';
-            $this->combo = $newCombo;
-            $this->bestCombo = max($this->bestCombo, $newCombo);
-            app(HapticService::class)->trigger(HapticFeedback::Success);
-        } else {
-            $this->lastDepthBonus = 0;
-            $this->feedbackTone = 'false-alarm';
-            $this->combo = 0;
-            $this->lives = max(0, $this->lives - 1);
-            app(HapticService::class)->trigger(HapticFeedback::Error);
+                break;
+            }
         }
 
-        $this->score = app(VertexGameService::class)->score($session)->score;
-        $this->awaitingAdvance = true;
-        $this->revealTicks = $this->reducedMotion ? 1 : 2;
+        if ($struck === null) {
+            return;
+        }
+
+        $this->lastStruck = $invaderId;
+        $this->feedbackSerial++;
+
+        if (($struck['is_target'] ?? false) !== true) {
+            $this->falseAlarms++;
+            app(HapticService::class)->trigger(HapticFeedback::Error);
+            $this->resolveWave(landed: false);
+
+            return;
+        }
+
+        $this->hits++;
+        $this->invaders = array_values(array_filter(
+            $this->invaders,
+            static fn (array $invader): bool => (int) $invader['id'] !== $invaderId,
+        ));
+        app(HapticService::class)->trigger(HapticFeedback::Selection);
+
+        if ($this->targetsRemaining() === 0) {
+            $this->resolveWave(landed: false);
+        }
     }
 
     /**
@@ -293,52 +290,60 @@ final class VertexGame extends NativeComponent
     }
 
     /**
-     * The object reached the camera untouched — correct for a decoy, a genuine
-     * miss for a target.
+     * Close out the wave and bank its evidence.
      */
-    private function resolvePass(): void
+    private function resolveWave(bool $landed): void
     {
         $session = $this->session();
-        $newCombo = $this->isGo ? 0 : $this->combo + 1;
+        $survivors = $this->targetsRemaining();
+        $remainingFraction = $landed
+            ? 0.0
+            : max(0, $this->descentRemainingMs) / max(1, $this->descentMs);
+        $clean = $this->falseAlarms === 0 && $survivors === 0;
+        $newCombo = $clean ? $this->combo + 1 : 0;
 
-        app(VertexGameService::class)->recordPass(
+        app(VertexGameService::class)->recordWave(
             session: $session,
-            round: $this->rounds[$this->roundIndex],
-            flightMs: $this->flightMs,
+            wave: $this->waves[$this->waveIndex],
+            hits: $this->hits,
+            falseAlarms: $this->falseAlarms,
+            survivors: $survivors,
+            responseMs: $this->elapsedMs(),
+            descentMs: $this->descentMs,
+            remainingFraction: $remainingFraction,
             combo: $newCombo,
             stateSnapshot: $this->snapshot(),
         );
 
         $this->feedbackSerial++;
-        $this->lastDepthBonus = 0;
 
-        if ($this->isGo) {
-            $this->feedbackTone = 'missed';
+        if ($clean) {
+            $this->feedbackTone = 'swept';
+            $this->combo = $newCombo;
+            $this->bestCombo = max($this->bestCombo, $newCombo);
+            app(HapticService::class)->trigger(HapticFeedback::Success);
+        } else {
+            $this->feedbackTone = $this->falseAlarms > 0 ? 'breached' : 'landed';
             $this->combo = 0;
             $this->lives = max(0, $this->lives - 1);
             app(HapticService::class)->trigger(HapticFeedback::Error);
-        } else {
-            $this->feedbackTone = 'passed';
-            $this->combo = $newCombo;
-            $this->bestCombo = max($this->bestCombo, $newCombo);
-            app(HapticService::class)->trigger(HapticFeedback::Selection);
         }
 
         $this->score = app(VertexGameService::class)->score($session)->score;
         $this->awaitingAdvance = true;
-        $this->revealTicks = $this->reducedMotion ? 1 : 2;
+        $this->revealTicks = $this->reducedMotion ? 1 : 3;
     }
 
     private function advance(): void
     {
-        if ($this->lives <= 0 || $this->roundIndex + 1 >= $this->totalRounds) {
+        if ($this->lives <= 0 || $this->waveIndex + 1 >= $this->totalWaves) {
             $this->finish();
 
             return;
         }
 
-        $this->presentRound($this->roundIndex + 1);
-        $this->launch();
+        $this->presentWave($this->waveIndex + 1);
+        $this->launchWave();
     }
 
     private function finish(): void
@@ -392,16 +397,16 @@ final class VertexGame extends NativeComponent
             $this->feedbackMotionDuration = $this->reducedMotion ? 0 : DesignTokens::motionDuration(MotionToken::Success);
 
             $service = app(VertexGameService::class);
-            $this->rounds = $service->roundsFor($session);
-            $this->totalRounds = count($this->rounds);
+            $this->waves = $service->wavesFor($session);
+            $this->totalWaves = count($this->waves);
             $this->previousBest = $service->previousBestScore($session);
 
             $configuration = is_array($session->level->configuration) ? $session->level->configuration : [];
-            $this->flightMs = max(800, (int) ($configuration['flight_ms'] ?? 2100));
+            $this->descentMs = max(2000, (int) ($configuration['descent_ms'] ?? 6000));
             $this->maxLives = max(1, (int) ($configuration['lives'] ?? 3));
             $this->lives = $this->maxLives;
 
-            $this->presentRound(0);
+            $this->presentWave(0);
             $this->phase = 'ready';
             $this->readyTicks = $this->reducedMotion ? 2 : 4;
         } catch (Throwable $exception) {
@@ -411,30 +416,29 @@ final class VertexGame extends NativeComponent
         }
     }
 
-    private function presentRound(int $index): void
+    private function presentWave(int $index): void
     {
-        $round = $this->rounds[$index];
-        $previousTarget = $index > 0 ? (string) $this->rounds[$index - 1]['key'] : null;
+        $wave = $this->waves[$index];
 
-        $this->roundIndex = $index;
-        $this->targetShape = (string) $round['key'];
-        $this->targetSwitched = $previousTarget !== null && $previousTarget !== $this->targetShape;
-        $this->objectShape = (string) $round['shape'];
-        $this->isGo = (bool) $round['is_go'];
+        $this->waveIndex = $index;
+        $this->order = (string) $wave['order'];
+        $this->invaders = array_values($wave['invaders']);
+        $this->hits = 0;
+        $this->falseAlarms = 0;
+        $this->lastStruck = -1;
         $this->feedbackTone = 'idle';
-        $this->lastDepthBonus = 0;
         $this->awaitingAdvance = false;
         $this->revealTicks = 0;
     }
 
     /**
-     * Open the flight window and send the object down the tunnel.
+     * Open the descent window and send the formation down.
      */
-    private function launch(): void
+    private function launchWave(): void
     {
-        $this->phase = 'flight';
-        $this->roundStartedAtMs = $this->nowMs();
-        $this->flightRemainingMs = $this->flightMs;
+        $this->phase = 'wave';
+        $this->waveStartedAtMs = $this->nowMs();
+        $this->descentRemainingMs = $this->descentMs;
         $this->feedbackTone = 'idle';
         $this->feedbackSerial++;
     }
@@ -455,25 +459,33 @@ final class VertexGame extends NativeComponent
     private function snapshot(): array
     {
         return [
-            'round_index' => $this->roundIndex,
+            'wave_index' => $this->waveIndex,
             'lives' => $this->lives,
             'combo' => $this->combo,
         ];
     }
 
-    /**
-     * Strikes only land on a live object, before its resolution beat.
-     */
-    private function acceptsStrike(): bool
+    private function targetsRemaining(): int
     {
-        return $this->phase === 'flight'
+        return count(array_filter(
+            $this->invaders,
+            static fn (array $invader): bool => ($invader['is_target'] ?? false) === true,
+        ));
+    }
+
+    /**
+     * Shots only land on a live formation, before its resolution beat.
+     */
+    private function acceptsFire(): bool
+    {
+        return $this->phase === 'wave'
             && ! $this->awaitingAdvance
             && $this->feedbackTone === 'idle';
     }
 
     private function elapsedMs(): int
     {
-        return max(1, min($this->flightMs, $this->nowMs() - $this->roundStartedAtMs));
+        return max(1, min($this->descentMs, $this->nowMs() - $this->waveStartedAtMs));
     }
 
     private function nowMs(): int

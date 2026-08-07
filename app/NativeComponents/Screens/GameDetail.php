@@ -80,12 +80,12 @@ final class GameDetail extends NativeComponent
             ],
         ],
         'vertex' => [
-            'tagline' => 'Objects rush out of the tunnel — strike the target form, let the rest fly past.',
+            'tagline' => 'Waves descend — clear every target in the formation and hold fire on the rest.',
             'steps' => [
-                'A target form is shown at the bottom; objects fly at you one at a time.',
-                'Tap anywhere to strike — but only when the object matches the target.',
-                'Striking as it crosses the dashed ring scores the biggest bonus.',
-                'Letting a decoy through is worth points too. Three lives — a false strike or a missed target costs one.',
+                'A standing order names the targets — a shape, a colour, or both.',
+                'Tap every invader that matches before the formation lands.',
+                'Firing on the wrong one ends the wave immediately, so read before you shoot.',
+                'Clearing a wave clean pays a big bonus. Three lives — a wrong shot or a landing costs one.',
             ],
         ],
     ];

@@ -19,7 +19,7 @@ beforeEach(function () {
     Setting::factory()->for($this->profile)->create(['reduced_motion' => true]);
 });
 
-function startVertex(Profile $profile): GameSession
+function startBarrage(Profile $profile): GameSession
 {
     $game = Game::query()->where('slug', 'vertex')->firstOrFail();
     $level = $game->levels()->where('difficulty', Difficulty::Intermediate)->firstOrFail();
@@ -28,162 +28,163 @@ function startVertex(Profile $profile): GameSession
 }
 
 /**
- * Tick through the ready countdown until an object is in flight.
+ * Tick through the stand-by countdown until a formation is descending.
  */
-function advanceToFlight($screen): void
+function advanceToWave($screen): void
 {
     $guard = 0;
-    while ($screen->get('phase') !== 'flight' && $guard++ < 20) {
+    while ($screen->get('phase') !== 'wave' && $guard++ < 20) {
         $screen->call('tickGame');
     }
 }
 
 /**
- * Let the current object fly all the way past without striking it.
+ * Ids of the invaders still standing that do / do not match the order.
+ *
+ * @return list<int>
  */
-function letObjectPass($screen): void
+function standingIds($screen, bool $targets): array
 {
-    $guard = 0;
-    while ($screen->get('feedbackTone') === 'idle' && $guard++ < 40) {
-        $screen->call('tickGame');
-    }
+    return collect($screen->get('invaders'))
+        ->filter(fn (array $invader): bool => $invader['is_target'] === $targets)
+        ->pluck('id')
+        ->map(fn ($id): int => (int) $id)
+        ->values()
+        ->all();
 }
 
-test('the vertex detail screen launches a free-play session', function () {
+test('the barrage detail screen launches a free-play session', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
     Native::visit('/games/vertex')
         ->assertScreen(GameDetail::class)
-        ->assertSee('Vertex')
+        ->assertSee('Barrage')
         ->tap('Play')
         ->follow()
         ->assertScreen(VertexGame::class)
         ->assertSet('phase', 'ready');
 });
 
-test('striking a target scores it and striking a decoy costs a life', function () {
+test('clearing every target sweeps the wave and banks a clean round', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
-    $session = startVertex($this->profile);
-
+    $session = startBarrage($this->profile);
     $screen = Native::visit('/play/vertex/'.$session->getKey())
         ->assertScreen(VertexGame::class)
         ->assertSet('lives', 3)
         ->assertAccessible();
 
-    $struckTarget = false;
-    $struckDecoy = false;
-    $guard = 0;
+    advanceToWave($screen);
 
-    // Walk the stream, striking every object regardless of form — that
-    // deliberately lands both a hit and the false alarm the game exists to
-    // provoke, so both branches get exercised on real evidence.
-    while ($guard++ < 12 && $screen->get('phase') !== 'result') {
-        advanceToFlight($screen);
+    $targets = standingIds($screen, targets: true);
+    expect($targets)->not->toBeEmpty();
 
-        if ($screen->get('phase') !== 'flight') {
-            break;
-        }
-
-        $wasGo = $screen->get('isGo');
-        $screen->call('strike');
-
-        if ($wasGo) {
-            $struckTarget = true;
-            expect($screen->get('feedbackTone'))->toBe('struck');
-        } else {
-            $struckDecoy = true;
-            expect($screen->get('feedbackTone'))->toBe('false-alarm')
-                ->and($screen->get('combo'))->toBe(0);
-        }
-
-        $screen->call('tickGame')->call('tickGame')->call('tickGame');
+    foreach ($targets as $id) {
+        $screen->call('fire', (string) $id);
     }
 
-    expect($struckTarget)->toBeTrue()
-        ->and($struckDecoy)->toBeTrue();
+    // Clearing the last target resolves the wave without waiting for descent.
+    $screen->assertSet('feedbackTone', 'swept')
+        ->assertSet('lives', 3)
+        ->assertSet('combo', 1);
 
-    // Three false strikes end the run early, so lives must have been spent.
-    expect($screen->get('lives'))->toBeLessThan(3);
+    $round = $session->rounds()->reorder('round_number', 'desc')->first();
+
+    expect($round->outcome)->toBe(RoundOutcome::Correct)
+        ->and($round->response['hits'])->toBe(count($targets))
+        ->and($round->response['false_alarms'])->toBe(0)
+        ->and($round->response['survivors'])->toBe(0)
+        // Resolved early, so descent was left on the clock and pays a bonus.
+        ->and($round->response['remaining_fraction'])->toBeGreaterThan(0.0)
+        ->and($round->score_delta)->toBeGreaterThan(count($targets) * 60);
 });
 
-test('letting a decoy fly past is scored as correct, not as a miss', function () {
+test('firing on a decoy ends the wave immediately and costs a life', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
-    $session = startVertex($this->profile);
+    $session = startBarrage($this->profile);
     $screen = Native::visit('/play/vertex/'.$session->getKey());
 
-    $guard = 0;
-    while ($guard++ < 12 && $screen->get('phase') !== 'result') {
-        advanceToFlight($screen);
+    advanceToWave($screen);
 
-        if ($screen->get('phase') !== 'flight') {
-            break;
-        }
+    $decoys = standingIds($screen, targets: false);
+    expect($decoys)->not->toBeEmpty();
 
-        if (! $screen->get('isGo')) {
-            letObjectPass($screen);
+    $screen->call('fire', (string) $decoys[0]);
 
-            $screen->assertSet('feedbackTone', 'passed')
-                ->assertSet('lives', 3);
+    // A false alarm must not be redeemable by clearing the rest afterwards.
+    $screen->assertSet('feedbackTone', 'breached')
+        ->assertSet('lives', 2)
+        ->assertSet('combo', 0);
 
-            $round = $session->rounds()->reorder('round_number', 'desc')->first();
+    $round = $session->rounds()->reorder('round_number', 'desc')->first();
 
-            expect($round->outcome)->toBe(RoundOutcome::Correct)
-                ->and($round->response['is_go'])->toBeFalse()
-                ->and($round->response['struck'])->toBeFalse()
-                // Discipline is not slowness: a clean pass has no reaction time.
-                ->and($round->response_ms)->toBeNull()
-                ->and($round->score_delta)->toBeGreaterThan(0);
-
-            return;
-        }
-
-        $screen->call('strike')->call('tickGame')->call('tickGame')->call('tickGame');
-    }
-
-    $this->fail('The intermediate level never presented a decoy.');
+    expect($round->outcome)->toBe(RoundOutcome::Incorrect)
+        ->and($round->response['false_alarms'])->toBe(1);
 });
 
-test('a target allowed through is a missed life', function () {
+test('a formation that lands with targets standing is a miss, not a false alarm', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
-    $session = startVertex($this->profile);
+    $session = startBarrage($this->profile);
     $screen = Native::visit('/play/vertex/'.$session->getKey());
 
-    advanceToFlight($screen);
+    advanceToWave($screen);
 
     $guard = 0;
-    while (! $screen->get('isGo') && $guard++ < 12) {
-        $screen->call('strike')->call('tickGame')->call('tickGame')->call('tickGame');
-        advanceToFlight($screen);
+    while ($screen->get('feedbackTone') === 'idle' && $guard++ < 60) {
+        $screen->call('tickGame');
     }
 
-    expect($screen->get('isGo'))->toBeTrue();
-
-    letObjectPass($screen);
-
-    $screen->assertSet('feedbackTone', 'missed')
+    $screen->assertSet('feedbackTone', 'landed')
         ->assertSet('lives', 2);
 
-    expect($session->rounds()->reorder('round_number', 'desc')->first()->outcome)
-        ->toBe(RoundOutcome::Missed);
+    $round = $session->rounds()->reorder('round_number', 'desc')->first();
+
+    expect($round->outcome)->toBe(RoundOutcome::Missed)
+        ->and($round->response['survivors'])->toBeGreaterThan(0)
+        // Patience is not slowness: a wave nobody finished has no reaction time.
+        ->and($round->response_ms)->toBeNull()
+        // Cast: JSON brings 0.0 back as an int, and toBe() is strict.
+        ->and((float) $round->response['remaining_fraction'])->toBe(0.0);
 });
 
-test('a struck target records its depth and completing the run scores it', function () {
+test('shots are ignored once the wave has resolved', function () {
     Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
 
-    $session = startVertex($this->profile);
+    $session = startBarrage($this->profile);
     $screen = Native::visit('/play/vertex/'.$session->getKey());
 
-    // Play it properly: strike targets, hold for decoys.
+    advanceToWave($screen);
+
+    $decoys = standingIds($screen, targets: false);
+    $screen->call('fire', (string) $decoys[0])->assertSet('feedbackTone', 'breached');
+
+    $roundsAfterBreach = $session->rounds()->count();
+
+    // Panic-tapping through the reveal beat must not bank more evidence.
+    foreach (standingIds($screen, targets: true) as $id) {
+        $screen->call('fire', (string) $id);
+    }
+
+    expect($session->rounds()->count())->toBe($roundsAfterBreach)
+        ->and($screen->get('lives'))->toBe(2);
+});
+
+test('a full clean playthrough completes the session with an evidence-backed score', function () {
+    Native::fakeBridge()->respondTo('Device.Vibrate', ['success' => true]);
+
+    $session = startBarrage($this->profile);
+    $screen = Native::visit('/play/vertex/'.$session->getKey());
+
     $guard = 0;
     while ($screen->get('phase') !== 'result' && $guard++ < 200) {
-        if ($screen->get('phase') === 'flight'
+        if ($screen->get('phase') === 'wave'
             && ! $screen->get('awaitingAdvance')
-            && $screen->get('feedbackTone') === 'idle'
-            && $screen->get('isGo')) {
-            $screen->call('strike');
+            && $screen->get('feedbackTone') === 'idle') {
+            foreach (standingIds($screen, targets: true) as $id) {
+                $screen->call('fire', (string) $id);
+            }
 
             continue;
         }
@@ -196,14 +197,8 @@ test('a struck target records its depth and completing the run scores it', funct
     $session->refresh();
     expect($session->status)->toBe(SessionStatus::Completed)
         ->and($session->score)->toBeGreaterThan(0)
-        // A clean run never spends a life, so every round was judged correctly.
+        // Every wave swept clean, so no life was ever spent.
         ->and($session->incorrect_count)->toBe(0)
-        ->and($session->missed_count)->toBe(0);
-
-    $struck = $session->rounds()->get()
-        ->first(fn ($round): bool => ($round->response['struck'] ?? false) === true);
-
-    expect($struck)->not->toBeNull()
-        ->and($struck->response['depth'])->toBeGreaterThan(0.0)
-        ->and($struck->response['depth'])->toBeLessThanOrEqual(1.0);
+        ->and($session->missed_count)->toBe(0)
+        ->and($session->best_combo)->toBeGreaterThan(1);
 });
