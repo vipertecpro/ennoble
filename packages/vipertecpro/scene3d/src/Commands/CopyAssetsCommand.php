@@ -13,7 +13,7 @@ use Native\Mobile\Plugins\Commands\NativePluginHookCommand;
  * viewport with no error anywhere — the meshes are simply not on the device.
  *
  * Both platforms receive the SAME files under the same relative path
- * (`primitives/<shape>.gltf`), which is the whole point of choosing glTF: the
+ * (`primitives/<shape>.glb`), which is the whole point of choosing glTF: the
  * renderers resolve a shape identically instead of each carrying its own asset
  * conventions. It matches `SceneNode.assetPath` in the Kotlin.
  *
@@ -36,7 +36,7 @@ class CopyAssetsCommand extends NativePluginHookCommand
             return self::FAILURE;
         }
 
-        $meshes = glob($source.'/*.gltf') ?: [];
+        $meshes = glob($source.'/*.glb') ?: [];
 
         if ($meshes === []) {
             $this->error('No primitive meshes found. Run nativephp:scene3d:primitives.');

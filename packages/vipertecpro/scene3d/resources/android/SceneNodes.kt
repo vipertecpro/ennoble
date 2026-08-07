@@ -28,7 +28,7 @@ internal data class SceneNode(
 ) {
     /** The asset this node draws — a user model, or a bundled primitive. */
     val assetPath: String
-        get() = model ?: "primitives/${shape ?: "box"}.gltf"
+        get() = model ?: "primitives/${shape ?: "box"}.glb"
 
     companion object {
         fun from(json: JSONObject): SceneNode {

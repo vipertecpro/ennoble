@@ -16,9 +16,9 @@ use Vipertecpro\Scene3d\Scene\Shapes;
  */
 class GeneratePrimitivesCommand extends Command
 {
-    protected $signature = 'nativephp:scene3d:primitives {--path= : Where to write the .gltf files}';
+    protected $signature = 'nativephp:scene3d:primitives {--path= : Where to write the .glb files}';
 
-    protected $description = 'Regenerate the built-in scene3d primitive meshes as glTF';
+    protected $description = 'Regenerate the built-in scene3d primitive meshes as binary glTF';
 
     public function handle(PrimitiveFactory $factory, GltfWriter $writer): int
     {
@@ -31,10 +31,10 @@ class GeneratePrimitivesCommand extends Command
         }
 
         foreach (Shapes::ALL as $shape) {
-            $json = $writer->toJson($factory->make($shape), $shape);
-            file_put_contents("{$path}/{$shape}.gltf", $json);
+            $glb = $writer->toGlb($factory->make($shape), $shape);
+            file_put_contents("{$path}/{$shape}.glb", $glb);
 
-            $this->line(sprintf('  %-10s %6.1f KB', $shape, strlen($json) / 1024));
+            $this->line(sprintf('  %-10s %6.1f KB', $shape, strlen($glb) / 1024));
         }
 
         $this->info(count(Shapes::ALL).' primitives written to '.$path);

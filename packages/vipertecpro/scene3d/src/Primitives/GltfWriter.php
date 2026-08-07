@@ -5,10 +5,10 @@ namespace Vipertecpro\Scene3d\Primitives;
 /**
  * Encodes a {@see Mesh} as a self-contained glTF 2.0 document.
  *
- * The buffer is embedded as a base64 data URI rather than written alongside as
- * a .bin, so a primitive is one file with no companion to lose in a build
- * pipeline. These meshes are a few kilobytes; the ~33% base64 overhead is
- * irrelevant next to shipping two files per shape.
+ * {@see toGlb()} is what ships — see the note there for why the JSON form's
+ * data URI could not be used. This array/JSON form remains the single source
+ * of truth for the document's structure, and is far easier to inspect and test
+ * than a binary blob.
  *
  * POSITION accessors carry min/max because the glTF spec REQUIRES them, and
  * loaders use them for bounding boxes and frustum culling. Omitting them
@@ -122,6 +122,46 @@ final class GltfWriter
     public function toJson(Mesh $mesh, string $name): string
     {
         return json_encode($this->encode($mesh, $name), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Encode as binary glTF (.glb) — the format actually shipped.
+     *
+     * WHY NOT THE .gltf ABOVE. A .gltf carries its buffer as a `data:` URI,
+     * which the loader must resolve through its resource layer. Filament's
+     * gltfio failed that resolution on device, logged one line, and then read
+     * the unresolved buffer anyway — a null memcpy inside glBufferSubData, so
+     * the process died in native code with a stack that named nothing of ours.
+     * A .glb has no URI: the buffer is a chunk in the file, so there is nothing
+     * to resolve and nothing to fail. It is also ~25% smaller, having dropped
+     * base64.
+     *
+     * The JSON half is byte-identical to {@see encode()} except that its buffer
+     * carries no `uri` — which is exactly what the spec requires for the GLB
+     * buffer, and is what tells a reader to look in the BIN chunk.
+     */
+    public function toGlb(Mesh $mesh, string $name): string
+    {
+        $document = $this->encode($mesh, $name);
+
+        $uri = $document['buffers'][0]['uri'];
+        $binary = base64_decode(substr($uri, strpos($uri, ',') + 1), strict: true);
+
+        unset($document['buffers'][0]['uri']);
+
+        $json = json_encode($document, JSON_THROW_ON_ERROR);
+
+        // Both chunks must be 4-byte aligned. The spec is specific about the
+        // padding VALUE, not just the length: JSON pads with spaces so it stays
+        // parseable, BIN pads with zeros.
+        $json .= str_repeat(' ', (4 - (strlen($json) % 4)) % 4);
+        $binary .= str_repeat("\0", (4 - (strlen($binary) % 4)) % 4);
+
+        $chunks = pack('Va4', strlen($json), 'JSON').$json
+            .pack('Va4', strlen($binary), "BIN\0").$binary;
+
+        // 12-byte header: magic, version, total length including the header.
+        return pack('a4VV', 'glTF', 2, 12 + strlen($chunks)).$chunks;
     }
 
     /**

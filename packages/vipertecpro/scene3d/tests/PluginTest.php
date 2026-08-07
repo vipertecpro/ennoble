@@ -123,10 +123,10 @@ it('declares the copy_assets hook that actually bundles the meshes', function ()
 });
 
 it('bundles the primitives the renderer resolves shapes to', function () {
-    // SceneNode.assetPath falls back to "primitives/<shape>.gltf"; a shape
+    // SceneNode.assetPath falls back to "primitives/<shape>.glb"; a shape
     // without a bundled mesh renders as nothing at all, silently.
     foreach (Shapes::ALL as $shape) {
-        expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.gltf"))
+        expect(file_exists($this->pluginPath."/resources/primitives/{$shape}.glb"))
             ->toBeTrue("No bundled mesh for shape [{$shape}].");
     }
 });

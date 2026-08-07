@@ -1,6 +1,7 @@
 package com.vipertecpro.plugins.scene3d.ui
 
 import android.content.Context
+import android.util.Log
 import com.google.android.filament.Engine
 import com.google.android.filament.Scene
 import com.google.android.filament.gltfio.AssetLoader
@@ -131,7 +132,31 @@ internal class SceneGraph(
         buffer.rewind()
 
         val asset = assetLoader.createAsset(buffer) ?: return null
+
+        // MUST be checked, and this is the only way to check it: loadResources
+        // returns the loader for chaining, not a status, and gltfio logs a
+        // single line and carries on when it cannot resolve something. The
+        // unbacked vertex buffer then reaches the GPU and the first frame
+        // memcpys from null inside glBufferSubData — the process dies in
+        // native code with a stack that names nothing of ours.
+        //
+        // A non-empty resourceUris means the asset wants files we never
+        // supplied (an external .bin or texture). Bundled primitives are GLB
+        // and carry none; a user's model might. Refusing here costs one model
+        // and turns a fatal signal into a log line.
+        val missing = asset.resourceUris
+        if (missing.isNotEmpty()) {
+            Log.e(
+                TAG,
+                "[${node.assetPath}] needs external resources this loader cannot supply " +
+                    "(${missing.joinToString()}). Use a self-contained .glb. Skipping node ${node.id}.",
+            )
+            assetLoader.destroyAsset(asset)
+            return null
+        }
+
         resourceLoader.loadResources(asset)
+
         // Source data is only needed while resources resolve; holding it keeps
         // the whole glTF in memory for the life of the asset.
         asset.releaseSourceData()
@@ -176,6 +201,10 @@ internal class SceneGraph(
         tm.setTransform(instance, Transforms.trs(x, y, z, scale, rx, ry, rz))
     }
 
+    private companion object {
+        const val TAG = "Scene3d"
+    }
+
     private fun readAsset(path: String): ByteBuffer? = runCatching {
         context.assets.open(path).use { stream ->
             val bytes = stream.readBytes()
@@ -184,7 +213,8 @@ internal class SceneGraph(
                 rewind()
             }
         }
-    }.getOrNull()
+    }.onFailure { Log.e(TAG, "Asset [$path] is not bundled — is the copy_assets hook running?", it) }
+        .getOrNull()
 
     private fun release(entry: Entry) {
         scene.removeEntities(entry.asset.entities)

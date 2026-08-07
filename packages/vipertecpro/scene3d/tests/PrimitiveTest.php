@@ -132,3 +132,45 @@ test('positions round-trip through the packed buffer intact', function () {
             ->and($unpacked[$i])->toBeLessThan($expected + 0.0001);
     }
 });
+
+test('the GLB container is byte-correct, since a bad one crashes the renderer natively', function () {
+    // Verified against the container spec rather than "it loaded once": a GLB
+    // whose header length or chunk padding is wrong is read as garbage by the
+    // native loader, and the failure surfaces as a SIGSEGV in Filament with a
+    // stack that names nothing of ours. It is only checkable here.
+    $writer = new GltfWriter;
+    $factory = new PrimitiveFactory;
+
+    foreach (Shapes::ALL as $shape) {
+        $glb = $writer->toGlb($factory->make($shape), $shape);
+
+        ['magic' => $magic, 'version' => $version, 'length' => $length] =
+            unpack('a4magic/Vversion/Vlength', substr($glb, 0, 12));
+
+        expect($magic)->toBe('glTF', "[{$shape}] is not a GLB.")
+            ->and($version)->toBe(2)
+            ->and($length)->toBe(strlen($glb), "[{$shape}] header length disagrees with the file.");
+
+        $offset = 12;
+        $chunks = [];
+
+        while ($offset < strlen($glb)) {
+            ['len' => $len, 'type' => $type] = unpack('Vlen/a4type', substr($glb, $offset, 8));
+
+            expect($len % 4)->toBe(0, "[{$shape}] chunk {$type} is not 4-byte aligned.");
+
+            $chunks[trim($type)] = substr($glb, $offset + 8, $len);
+            $offset += 8 + $len;
+        }
+
+        expect($offset)->toBe(strlen($glb), "[{$shape}] chunks overrun the file.")
+            ->and(array_key_first($chunks))->toBe('JSON', "[{$shape}] JSON must be the first chunk.");
+
+        $document = json_decode($chunks['JSON'], true, flags: JSON_THROW_ON_ERROR);
+
+        // The whole reason for moving off .gltf: a GLB buffer has no uri, so
+        // there is no resource for the loader to fail to resolve.
+        expect($document['buffers'][0])->not->toHaveKey('uri')
+            ->and($document['buffers'][0]['byteLength'])->toBeLessThanOrEqual(strlen($chunks['BIN']));
+    }
+});
