@@ -4,6 +4,7 @@ namespace Vipertecpro\Scene3d;
 
 use Illuminate\Support\ServiceProvider;
 use Vipertecpro\Scene3d\Commands\CopyAssetsCommand;
+use Vipertecpro\Scene3d\Commands\GeneratePrimitivesCommand;
 
 /**
  * The plugin has no runtime services to bind.
@@ -20,6 +21,7 @@ class Scene3dServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 CopyAssetsCommand::class,
+                GeneratePrimitivesCommand::class,
             ]);
         }
     }

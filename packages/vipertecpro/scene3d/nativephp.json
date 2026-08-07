@@ -58,8 +58,12 @@
         }
     },
     "assets": {
-        "android": [],
-        "ios": []
+        "android": [
+            "resources/primitives"
+        ],
+        "ios": [
+            "resources/primitives"
+        ]
     },
     "secrets": [],
     "events": [],
